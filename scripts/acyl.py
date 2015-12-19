@@ -8,7 +8,6 @@ import tempfile
 import configparser
 from gi.repository import Gtk, Gdk, GdkPixbuf, GObject
 from copy import deepcopy
-from itertools import count
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
@@ -48,47 +47,6 @@ class ColorSelectWrapper:
 		self.selector.set_current_rgba(Gdk.RGBA(*rgba))
 
 
-class IconGroups:
-
-	def __init__(self, config):
-		self.allgroups = dict()
-		counter = count(1)
-
-		while True:
-			index = next(counter)
-			section = "IconGroup" + str(index)
-			if not config.has_section(section): break
-			try:
-				is_custom = config.getboolean(section, 'custom')
-
-				args = ("name", "pairdir", "emptydir", "testbase", "realbase")
-				kargs = {k: config.get(section, k) for k in args if config.has_option(section, k)}
-
-				l_args = ("testdirs", "realdirs")
-				l_kargs = {k: config.get(section, k).split(";") for k in l_args if config.has_option(section, k)}
-
-				b_args = ("pairsw",)
-				b_kargs = {k: config.getboolean(section, k) for k in b_args if config.has_option(section, k)}
-
-				for d in (l_kargs, b_kargs): kargs.update(d)
-				kargs['index'] = index
-
-				if is_custom:
-					self.allgroups[kargs['name']] = common.CustomIconGroup(**kargs)
-				else:
-					self.allgroups[kargs['name']] = common.BasicIconGroup(**kargs)
-			except Exception:
-				print("Fail to load icon group №%d" % index)
-
-		self.names = [key for key in self.allgroups]
-		self.names.sort(key=lambda name: self.allgroups[name].index)
-
-		self.current = self.allgroups[self.names[0]]
-
-	def switch(self, name):
-		if name in self.allgroups:
-			self.current = self.allgroups[name]
-
 class Handler:
 	def __init__(self):
 		self.builder = Gtk.Builder()
@@ -108,10 +66,10 @@ class Handler:
 		self.iconview = common.Prospector(DIRS['main']['real'])
 		self.alternatives = common.Prospector(DIRS['main']['alternative'])
 
-		self.icongroups = IconGroups(self.config)
+		self.icongroups = common.IconGroupCollector(self.config)
 
 		common.CustomFilterBase.connect_refresh(self.on_test_click)
-		self.filters = common.FilterGroup(DIRS['filters'])
+		self.filters = common.FilterCollector(DIRS['filters'])
 
 		self.gradient = common.Gradient()
 
@@ -151,7 +109,7 @@ class Handler:
 		self.is_rtr_allowed = False
 
 	def fill_up_gui(self):
-		for group in self.icongroups.allgroups.values():
+		for group in self.icongroups.pack.values():
 			if group.is_custom:
 				for key, value in group.state.items():
 					self.custom_icons_store.append([key.capitalize(), value])

@@ -7,6 +7,7 @@ import imp
 from gi.repository import Gtk
 from copy import deepcopy
 from lxml import etree
+from itertools import count
 
 # Module functions
 def get_svg_list(*dirlist):
@@ -22,6 +23,20 @@ def get_svg_list(*dirlist):
 class Parser:
 	"""Define lxml parser here"""
 	parser = etree.XMLParser(remove_blank_text=True)
+
+class ItemPack:
+	"""Base for work with groups of items"""
+	def switch(self, name):
+		"""Set current item by name"""
+		if name in self.pack:
+			self.current = self.pack[name]
+
+	def build_names(self, sortkey):
+		"""Build sorted list of item names and set active first"""
+		self.names = [key for key in self.pack]
+		self.names.sort(key=sortkey)
+		self.current = self.pack[self.names[0]]
+
 
 class FilterParameter:
 	"""Helper to find, change, save and restore certain value in xml tag attrubute.
@@ -128,7 +143,7 @@ class CustomFilterBase(SimpleFilterBase):
 		return True
 
 
-class FilterGroup:
+class FilterCollector(ItemPack):
 	"""Object to load, store and switch between acyl-filters"""
 	def __init__(self, path, filename='filter.py', default='Empty'):
 		self.pack = dict()
@@ -142,15 +157,7 @@ class FilterGroup:
 				except Exception:
 					print("Fail to load filter from %s" % root)
 
-		self.names = [key for key in self.pack]
-		self.names.sort(key=lambda key: 1 if key == default else 2)
-
-		self.current = self.pack[self.names[0]]
-
-	def switch(self, name):
-		"""Set current filter by name"""
-		if name in self.pack:
-			self.current = self.pack[name]
+		self.build_names(sortkey=lambda key: 1 if key == default else 2)
 
 
 class FileKeeper:
@@ -206,6 +213,41 @@ class CustomIconGroup(BasicIconGroup):
 
 		self.testdirs = [os.path.join(self.testbase, name) for name in self.state if self.state[name]]
 		self.realdirs = [os.path.join(self.realbase, name) for name in self.state if self.state[name]]
+
+class IconGroupCollector(ItemPack):
+	"""Object to load, store and switch between icon groups"""
+	def __init__(self, config):
+		self.pack = dict()
+		counter = count(1)
+
+		while True:
+			index = next(counter)
+			section = "IconGroup" + str(index)
+			if not config.has_section(section): break
+			try:
+				# group type
+				is_custom = config.getboolean(section, 'custom')
+
+				# plain text arguments
+				args = ("name", "pairdir", "emptydir", "testbase", "realbase")
+				kargs = {k: config.get(section, k) for k in args if config.has_option(section, k)}
+
+				# list type arguments
+				args_l = ("testdirs", "realdirs")
+				kargs_l = {k: config.get(section, k).split(";") for k in args_l if config.has_option(section, k)}
+
+				# boolean type  arguments
+				args_b = ("pairsw",)
+				kargs_b = {k: config.getboolean(section, k) for k in args_b if config.has_option(section, k)}
+
+				for d in (kargs_l, kargs_b): kargs.update(d)
+				kargs['index'] = index
+
+				self.pack[kargs['name']] = CustomIconGroup(**kargs) if is_custom else BasicIconGroup(**kargs)
+			except Exception:
+				print("Fail to load icon group №%d" % index)
+
+		self.build_names(sortkey=lambda name: self.pack[name].index)
 
 
 class Prospector:
