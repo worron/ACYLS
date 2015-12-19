@@ -1,0 +1,34 @@
+[PreviewSize]
+group = 48
+single = 196
+
+[IconGroup1]
+name = All (exept emblems)
+emptydir = preview/unknown
+testdirs = preview/main
+realdirs = ../scalable/real_icons/mimetypes;../scalable/real_icons/places;../scalable/real_icons/apps;../scalable/real_icons/categories;../scalable/real_icons/actions;../scalable/real_icons/status;../scalable/real_icons/animations;../scalable/real_icons/devices;../scalable/real_icons/stock;../scalable/alternative_icons
+pairdir = preview/custom/emblems
+custom = False
+
+[IconGroup2]
+name = Emblems
+emptydir = preview/unknown
+testdirs = preview/custom/emblems
+realdirs = ../scalable/real_icons/emblems
+pairdir = preview/main
+pairsw = True
+custom = False
+
+[IconGroup3]
+name = Custom
+emptydir = preview/unknown
+testbase = preview/custom
+realbase = ../scalable/real_icons
+custom = True
+
+[IconGroup4]
+name = Alternative
+emptydir = preview/unknown
+testbase = preview/alternative
+realbase = ../scalable/alternative_icons
+custom = True
