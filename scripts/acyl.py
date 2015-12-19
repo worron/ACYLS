@@ -3,7 +3,6 @@ if sys.version_info < (3, 0):
 	sys.stdout.write("Requires Python 3.x")
 	sys.exit(1)
 
-import imp
 import shelve
 import tempfile
 import configparser
@@ -47,30 +46,6 @@ class ColorSelectWrapper:
 		rgba = [int(c, 16) / 255.0 for c in [color[i:i+2] for i in range(1, 7, 2)]] + [alpha]
 		# rgba = (int(color[1:3], 16) / 255.0, int(color[3:5], 16) / 255.0, int(color[5:7], 16) / 255.0, alpha)
 		self.selector.set_current_rgba(Gdk.RGBA(*rgba))
-
-
-class FilterGroup:
-
-	def __init__(self):
-		self.pack = dict()
-
-		for root, _, files in os.walk(DIRS['filters']):
-			if 'filter.py' in files:
-				try:
-					module=imp.load_source('filter', os.path.join(root, 'filter.py'))
-					filter_ = module.Filter()
-					self.pack[filter_.name] = filter_
-				except Exception:
-					print("Fail to load filter from %s" % root)
-
-		self.names = [key for key in self.pack]
-		self.names.sort(key=lambda key: 1 if key == 'Empty' else 2)
-
-		self.current = self.pack[self.names[0]]
-
-	def switch(self, name):
-		if name in self.pack:
-			self.current = self.pack[name]
 
 
 class IconGroups:
@@ -136,7 +111,7 @@ class Handler:
 		self.icongroups = IconGroups(self.config)
 
 		common.CustomFilterBase.connect_refresh(self.on_test_click)
-		self.filters = FilterGroup()
+		self.filters = common.FilterGroup(DIRS['filters'])
 
 		self.gradient = common.Gradient()
 

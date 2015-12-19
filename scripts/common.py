@@ -2,6 +2,7 @@ import shutil
 import re
 import os
 import sys
+import imp
 
 from gi.repository import Gtk
 from copy import deepcopy
@@ -125,6 +126,32 @@ class CustomFilterBase(SimpleFilterBase):
 	def on_close_window(self, *args):
 		if 'window' in self.gui: self.gui['window'].hide()
 		return True
+
+
+class FilterGroup:
+	"""Object to load, store and switch between acyl-filters"""
+	def __init__(self, path, filename='filter.py', default='Empty'):
+		self.pack = dict()
+
+		for root, _, files in os.walk(path):
+			if filename in files:
+				try:
+					module=imp.load_source(filename.split('.')[0], os.path.join(root, filename))
+					filter_ = module.Filter()
+					self.pack[filter_.name] = filter_
+				except Exception:
+					print("Fail to load filter from %s" % root)
+
+		self.names = [key for key in self.pack]
+		self.names.sort(key=lambda key: 1 if key == default else 2)
+
+		self.current = self.pack[self.names[0]]
+
+	def switch(self, name):
+		"""Set current filter by name"""
+		if name in self.pack:
+			self.current = self.pack[name]
+
 
 class FileKeeper:
 
