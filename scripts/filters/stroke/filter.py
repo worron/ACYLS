@@ -1,6 +1,5 @@
 import os
-from gi.repository import Gtk
-from common import SimpleFilterBase, FilterParameter, CustomFilterBase
+from common import FilterParameter, CustomFilterBase
 
 class Filter(CustomFilterBase):
 

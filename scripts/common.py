@@ -1,5 +1,3 @@
-#!/usr/bin/python
-
 import shutil
 import re
 import os
@@ -23,7 +21,6 @@ def get_svg_list(*dirlist):
 class Parser:
 	"""Define lxml parser here"""
 	parser = etree.XMLParser(remove_blank_text=True)
-	# parser = etree.XMLParser(recover=True, remove_blank_text=True)
 
 class FilterParameter:
 	"""Helper to find, change, save and restore certain value in xml tag attrubute.
