@@ -101,7 +101,7 @@
         <property name="orientation">vertical</property>
         <property name="spacing">12</property>
         <child>
-          <object class="GtkNotebook" id="notebook1">
+          <object class="GtkNotebook" id="notebook">
             <property name="visible">True</property>
             <property name="can_focus">True</property>
             <signal name="switch-page" handler="on_page_changed" swapped="no"/>
@@ -706,12 +706,12 @@
               </packing>
             </child>
             <child>
-              <object class="GtkButton" id="test_button">
-                <property name="label" translatable="yes">Test</property>
+              <object class="GtkButton" id="refresh_button">
+                <property name="label" translatable="yes">Refresh</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <signal name="clicked" handler="on_test_click" swapped="no"/>
+                <signal name="clicked" handler="on_refresh_click" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
