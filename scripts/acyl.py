@@ -73,31 +73,18 @@ class Handler:
 
 		self.gradient = common.Gradient()
 
-		self.window = self.builder.get_object('mainwindow')
-		self.preview_icon = self.builder.get_object('icon_preview')
-		self.offset_list_store = self.builder.get_object('offset_list_store')
-		self.offset_tree_view = self.builder.get_object('offset_tree_view')
-		self.direction_list_store = self.builder.get_object('direction_list_store')
-		self.offset_scale = self.builder.get_object('offset_scale')
-		self.offset_switch = self.builder.get_object('offset_switch')
-		self.alt_group_combo = self.builder.get_object('alt_group_combo')
-		self.alt_theme_combo = self.builder.get_object('alt_theme_combo')
-		self.gradient_combo = self.builder.get_object('gradient_combo')
-		self.filters_combo = self.builder.get_object('filters_combo')
-		self.iconview_combo = self.builder.get_object('iconview_combo')
-		self.icongroup_combo = self.builder.get_object('icongroup_combo')
-		self.alt_icon_store = self.builder.get_object('alt_icon_store')
-		self.iconview_store = self.builder.get_object('iconview_store')
-		self.alt_icon_view = self.builder.get_object('alt_icon_view')
-		self.iconview_view = self.builder.get_object('iconview_view')
-		self.custom_icon_tree_view = self.builder.get_object('custom_group_tree_view')
-		self.test_button = self.builder.get_object('test_button')
-		self.filter_settings_button = self.builder.get_object('filter_settings_button')
-		self.apply_button = self.builder.get_object('apply_button')
-		self.custom_icons_store = self.builder.get_object('custom_icons_store')
-		self.color_selector_wr = ColorSelectWrapper(self.builder.get_object('color_selector'))
+		gui_elements = (
+			'window', 'preview_icon', 'offset_list_store', 'offset_tree_view', 'direction_list_store',
+			'offset_scale', 'offset_switch', 'alt_group_combo', 'alt_theme_combo', 'gradient_combo',
+			'filters_combo', 'iconview_combo', 'icongroup_combo', 'alt_icon_store', 'iconview_store',
+			'custom_icon_tree_view', 'test_button', 'filter_settings_button', 'apply_button',
+			'custom_icons_store', 'color_selector'
+		)
 
-		self.window.show_all()
+		self.gui = {element: self.builder.get_object(element) for element in gui_elements}
+		self.color_selector_wr = ColorSelectWrapper(self.gui['color_selector'])
+
+		self.gui['window'].show_all()
 
 		self.offset_selected = None
 		self.preview_icon_size = int(self.config.get("PreviewSize", "single"))
@@ -112,29 +99,29 @@ class Handler:
 		for group in self.icongroups.pack.values():
 			if group.is_custom:
 				for key, value in group.state.items():
-					self.custom_icons_store.append([key.capitalize(), value])
+					self.gui['custom_icons_store'].append([key.capitalize(), value])
 				break
 
 		for name in self.filters.names:
-			self.filters_combo.append_text(name)
+			self.gui['filters_combo'].append_text(name)
 
 		for tag in sorted(common.Gradient.profiles):
-			self.gradient_combo.append_text(tag)
-		self.gradient_combo.set_active(0)
+			self.gui['gradient_combo'].append_text(tag)
+		self.gui['gradient_combo'].set_active(0)
 
 		for name in self.icongroups.names:
-			self.icongroup_combo.append_text(name)
-		self.icongroup_combo.set_active(0)
+			self.gui['icongroup_combo'].append_text(name)
+		self.gui['icongroup_combo'].set_active(0)
 
 		self.builder.connect_signals(self)
 
 		for name in self.alternatives.structure[0]['directories']:
-			self.alt_group_combo.append_text(name.capitalize())
-		self.alt_group_combo.set_active(0)
+			self.gui['alt_group_combo'].append_text(name.capitalize())
+		self.gui['alt_group_combo'].set_active(0)
 
 		for name in self.iconview.structure[0]['directories']:
-			self.iconview_combo.append_text(name.capitalize())
-		self.iconview_combo.set_active(0)
+			self.gui['iconview_combo'].append_text(name.capitalize())
+		self.gui['iconview_combo'].set_active(0)
 
 		self.offset_read_from_config()
 		self.change_icon(self.preview_file.name)
@@ -146,13 +133,13 @@ class Handler:
 
 	def on_rtr_toggled(self, switch, *args):
 		self.is_rtr_allowed = switch.get_active()
-		self.test_button.set_sensitive(not self.is_rtr_allowed)
+		self.gui['test_button'].set_sensitive(not self.is_rtr_allowed)
 		self.on_test_click()
 
 	def on_filter_combo_changed(self, combo):
 		self.filters.switch(combo.get_active_text())
 
-		self.filter_settings_button.set_sensitive(self.filters.current.is_custom)
+		self.gui['filter_settings_button'].set_sensitive(self.filters.current.is_custom)
 
 		self.offset_write_to_config()
 		self.change_icon(self.preview_file.name)
@@ -160,32 +147,32 @@ class Handler:
 
 	def on_alt_group_combo_changed(self, combo):
 		self.alternatives.dig(combo.get_active_text().lower(), 1)
-		self.alt_theme_combo.remove_all()
+		self.gui['alt_theme_combo'].remove_all()
 
 		for name in self.alternatives.structure[1]['directories']:
-			self.alt_theme_combo.append_text(name.capitalize())
+			self.gui['alt_theme_combo'].append_text(name.capitalize())
 
-		self.alt_theme_combo.set_active(0)
+		self.gui['alt_theme_combo'].set_active(0)
 
 	def on_alt_theme_combo_changed(self, combo):
 		text = combo.get_active_text()
 		if text:
 			self.alternatives.dig(text.lower(), 2)
-			self.alt_icon_store.clear()
+			self.gui['alt_icon_store'].clear()
 
 			for icon in self.alternatives.get_icons(2):
 				pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(icon, self.view_icon_size, self.view_icon_size)
-				self.alt_icon_store.append([pixbuf])
+				self.gui['alt_icon_store'].append([pixbuf])
 
 	def on_iconview_combo_changed(self, combo):
 		text = combo.get_active_text()
 		if text:
 			self.iconview.dig(text.lower(), 1)
-			self.iconview_store.clear()
+			self.gui['iconview_store'].clear()
 
 			for icon in self.iconview.get_icons(1):
 				pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(icon, self.view_icon_size, self.view_icon_size)
-				self.iconview_store.append([pixbuf])
+				self.gui['iconview_store'].append([pixbuf])
 
 	def on_gradient_type_switched(self, combo):
 		self.gradient.set_tag(combo.get_active_text())
@@ -193,8 +180,8 @@ class Handler:
 		self.offset_read_from_config(['gradtype', 'direction'])
 
 	def on_page_changed(self, nb, page, page_index):
-		self.test_button.set_sensitive(page_index == 0 and not self.is_rtr_allowed)
-		self.apply_button.set_sensitive(page_index in (0, 1))
+		self.gui['test_button'].set_sensitive(page_index == 0 and not self.is_rtr_allowed)
+		self.gui['apply_button'].set_sensitive(page_index in (0, 1))
 		self.current_page_index = page_index
 
 	def preview_update(self):
@@ -213,7 +200,7 @@ class Handler:
 				self.preview_icon_size, self.preview_icon_size
 			)
 
-		self.preview_icon.set_from_pixbuf(pixbuf)
+		self.gui['preview_icon'].set_from_pixbuf(pixbuf)
 
 	def on_close_window(self, *args):
 		self.preview_file.close()
@@ -256,11 +243,11 @@ class Handler:
 		self.icongroups.current.cache_preview(self.preview_file)
 
 		if self.icongroups.current.is_custom:
-			self.custom_icons_store.clear()
+			self.gui['custom_icons_store'].clear()
 			for key, value in self.icongroups.current.state.items():
-				self.custom_icons_store.append([key.capitalize(), value])
+				self.gui['custom_icons_store'].append([key.capitalize(), value])
 
-		self.custom_icon_tree_view.set_sensitive(self.icongroups.current.is_custom)
+		self.gui['custom_icon_tree_view'].set_sensitive(self.icongroups.current.is_custom)
 
 		self.offset_read_from_config()
 		self.preview_update()
@@ -271,25 +258,25 @@ class Handler:
 		section = self.icongroups.current.name if self.icongroups.current.name in self.db else 'default'
 
 		if 'colors' in keys:
-			self.offset_list_store.clear()
+			self.gui['offset_list_store'].clear()
 			for color in self.db[section]['colors']:
-				self.offset_list_store.append(color)
+				self.gui['offset_list_store'].append(color)
 
 		if 'direction' in keys:
-			self.direction_list_store.clear()
+			self.gui['direction_list_store'].clear()
 			for coord in self.db[section]['direction'][self.gradient.tag]:
-				self.direction_list_store.append(coord)
+				self.gui['direction_list_store'].append(coord)
 
 		if 'autooffset' in keys:
 			self.autooffset = self.db[section]['autooffset']
-			self.offset_switch.set_active(not self.autooffset)
+			self.gui['offset_switch'].set_active(not self.autooffset)
 
 		if 'gradtype' in keys:
-			self.gradient_combo.set_active(self.gradient.profile['index'])
+			self.gui['gradient_combo'].set_active(self.gradient.profile['index'])
 
 		if 'filter' in keys:
 			filter_ = self.db[section]['filter']
-			self.filters_combo.set_active(self.filters.names.index(filter_) if filter_ in self.filters.names else 0)
+			self.gui['filters_combo'].set_active(self.filters.names.index(filter_) if filter_ in self.filters.names else 0)
 
 		self.is_preview_locked = False
 		self.change_icon(self.preview_file.name)
@@ -308,11 +295,11 @@ class Handler:
 		if 'autooffset' in keys:
 			dump['autooffset'] = self.autooffset
 		if 'filter' in keys:
-			dump['filter'] = self.filters_combo.get_active_text()
+			dump['filter'] = self.gui['filters_combo'].get_active_text()
 		if 'colors' in keys:
-			dump['colors'] = [list(row) for row in self.offset_list_store]
+			dump['colors'] = [list(row) for row in self.gui['offset_list_store']]
 		if 'direction' in keys:
-			dump['direction'][self.gradient.tag] = [list(row) for row in self.direction_list_store]
+			dump['direction'][self.gradient.tag] = [list(row) for row in self.gui['direction_list_store']]
 
 		# if 'filtername' in dump: del dump['filtername']
 		# if 'custom' in self.db: del self.db['custom']
@@ -325,8 +312,8 @@ class Handler:
 			self.set_offset_auto()
 
 		if len(model) > 0:
-			self.offset_tree_view.set_cursor(len(model) - 1)
-			self.offset_scale.set_value(model[len(model) - 1][2]) # fix this!!!
+			self.gui['offset_tree_view'].set_cursor(len(model) - 1)
+			self.gui['offset_scale'].set_value(model[len(model) - 1][2]) # fix this!!!
 
 	def on_offset_selection_changed(self, selection):
 		model, sel = selection.get_selected()
@@ -338,54 +325,54 @@ class Handler:
 			self.color_selector_wr.set_hex_color(color, alpha)
 
 			offset = model[sel][2]
-			self.offset_scale.set_value(offset)
+			self.gui['offset_scale'].set_value(offset)
 
 	def on_autooffset_toggled(self, switch, *args):
 		is_active = switch.get_active()
-		self.offset_scale.set_sensitive(is_active)
+		self.gui['offset_scale'].set_sensitive(is_active)
 		self.autooffset = not is_active
 
 		if self.autooffset:
 			self.set_offset_auto()
 
-		self.offset_scale.set_value(self.offset_list_store[self.offset_selected][2])
+		self.gui['offset_scale'].set_value(self.gui['offset_list_store'][self.offset_selected][2])
 		self.real_time_render()
 
 	def on_offset_value_changed(self, scale):
 		offset = scale.get_value()
-		self.offset_list_store.set_value(self.offset_selected, 2, int(offset))
+		self.gui['offset_list_store'].set_value(self.offset_selected, 2, int(offset))
 		self.real_time_render()
 
 	def on_color_change(self, *args):
 		color, alpha = self.color_selector_wr.get_hex_color()
-		self.offset_list_store.set_value(self.offset_selected, 0, color)
-		self.offset_list_store.set_value(self.offset_selected, 1, alpha)
+		self.gui['offset_list_store'].set_value(self.offset_selected, 0, color)
+		self.gui['offset_list_store'].set_value(self.offset_selected, 1, alpha)
 		self.real_time_render()
 
 	def on_direction_edited(self, widget, path, text):
-		self.direction_list_store[path][1] = int(text)
+		self.gui['direction_list_store'][path][1] = int(text)
 		self.real_time_render()
 
 	def add_offset_line(self, *args):
 		color, alpha = self.color_selector_wr.get_hex_color()
-		self.offset_list_store.append([color, alpha, 100])
+		self.gui['offset_list_store'].append([color, alpha, 100])
 
 	def remove_offset_line(self, *args):
-		if len(self.offset_list_store) > 1:
-			self.offset_list_store.remove(self.offset_selected)
+		if len(self.gui['offset_list_store']) > 1:
+			self.gui['offset_list_store'].remove(self.offset_selected)
 
 	def set_offset_auto(self):
-		rownum = len(self.offset_list_store)
+		rownum = len(self.gui['offset_list_store'])
 		if rownum > 1:
 			step = 100 / (rownum - 1)
-			for i, row in enumerate(self.offset_list_store):
+			for i, row in enumerate(self.gui['offset_list_store']):
 				row[2] = i * step
 		elif rownum == 1:
-			self.offset_list_store[0][2] = 100
+			self.gui['offset_list_store'][0][2] = 100
 
 	def on_custom_icon_toggled(self, widget, path):
-		self.custom_icons_store[path][1] = not self.custom_icons_store[path][1]
-		name = self.custom_icons_store[path][0].lower()
+		self.gui['custom_icons_store'][path][1] = not self.gui['custom_icons_store'][path][1]
+		name = self.gui['custom_icons_store'][path][0].lower()
 		self.icongroups.current.switch_state(name)
 		self.icongroups.current.cache_preview(self.preview_file)
 

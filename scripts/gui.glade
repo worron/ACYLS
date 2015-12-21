@@ -87,7 +87,7 @@
     <property name="can_focus">False</property>
     <property name="stock">gtk-remove</property>
   </object>
-  <object class="GtkWindow" id="mainwindow">
+  <object class="GtkWindow" id="window">
     <property name="can_focus">False</property>
     <signal name="delete-event" handler="on_close_window" swapped="no"/>
     <child>
@@ -214,7 +214,7 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkImage" id="icon_preview">
+                  <object class="GtkImage" id="preview_icon">
                     <property name="width_request">210</property>
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
@@ -236,7 +236,7 @@
                     <property name="can_focus">True</property>
                     <property name="shadow_type">in</property>
                     <child>
-                      <object class="GtkTreeView" id="custom_group_tree_view">
+                      <object class="GtkTreeView" id="custom_icon_tree_view">
                         <property name="visible">True</property>
                         <property name="sensitive">False</property>
                         <property name="can_focus">True</property>
