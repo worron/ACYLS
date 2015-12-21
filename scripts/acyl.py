@@ -66,45 +66,45 @@ class ColorSelectWrapper:
 		self.selector.set_current_rgba(Gdk.RGBA(*rgba))
 
 
-class ActionHandler:
-	"""Small helper to control an action"""
-	def __init__(self, action, is_allowed=False):
-		self.action = action
-		self.is_allowed = is_allowed
-
-	def set_state(self, state):
-		self.is_allowed = state
-
-	def run(self, *args, forced=False):
-		if self.is_allowed or forced: self.action(*args)
-
-
 class ACYL:
 	def __init__(self):
-		self.builder = Gtk.Builder()
-		self.builder.add_from_file('gui.glade')
-
+		# Set config files manager
 		self.keeper = common.FileKeeper(DIRS['data']['default'], DIRS['data']['current'])
 
+		# Config file setup
 		self.configfile = self.keeper.get("config")
 		self.config = configparser.ConfigParser()
 		self.config.read(self.configfile)
 
+		# Set temporary file for icon preview
 		self.preview_file = tempfile.NamedTemporaryFile(dir="/tmp", prefix="tempsvg")
 
+		# Set data file for saving icon render settings
+		# Icon render setting will stored for every icon group separately
 		self.dbfile = self.keeper.get("store")
 		self.db = shelve.open(self.dbfile)
 
+		# Create objects for alternative and real icon full prewiew
 		self.iconview = common.Prospector(DIRS['main']['real'])
 		self.alternatives = common.Prospector(DIRS['main']['alternative'])
 
+		# Load icon groups from config file
 		self.icongroups = common.IconGroupCollector(self.config)
+		self.icongroups.current.cache_preview(self.preview_file)
 
-		self.render = ActionHandler(self.fullrefresh)
+		# Create object for preview render control
+		self.render = common.ActionHandler(self.fullrefresh)
+		# Connect preview render controller to filters class
 		common.CustomFilterBase.set_render(self.render)
+		# Load filters from certain  directory
 		self.filters = common.FilterCollector(DIRS['filters'])
 
+		# Build griadient object
 		self.gradient = common.Gradient()
+
+		# Load GUI
+		self.builder = Gtk.Builder()
+		self.builder.add_from_file('gui.glade')
 
 		gui_elements = (
 			'window', 'preview_icon', 'offset_list_store', 'offset_tree_view', 'direction_list_store',
@@ -117,15 +117,18 @@ class ACYL:
 		self.gui = {element: self.builder.get_object(element) for element in gui_elements}
 		self.color_selector_wr = ColorSelectWrapper(self.gui['color_selector'])
 
-		self.gui['window'].show_all()
-
+		# Other
 		self.offset_selected = None
 		self.preview_icon_size = int(self.config.get("PreviewSize", "single"))
 		self.view_icon_size = int(self.config.get("PreviewSize", "group"))
-		self.icongroups.current.cache_preview(self.preview_file)
+
 		self.autooffset = False
 		self.current_page_index = 0
 		self.is_preview_locked = False
+
+		# Activate GUI
+		self.gui['window'].show_all()
+		self.fill_up_gui()
 
 	# GUI handlers
 	def on_rtr_toggled(self, switch, *args):
@@ -200,10 +203,6 @@ class ACYL:
 
 	def on_refresh_click(self, *args):
 		self.render.run(forced=True)
-		# if not self.is_preview_locked:
-		# 	self.database_write()
-		# 	self.change_icon(self.preview_file.name)
-		# 	self.preview_update()
 
 	def on_apply_click(self, widget, data=None):
 		if self.current_page_index == 0:
@@ -238,8 +237,9 @@ class ACYL:
 			self.set_offset_auto()
 
 		if len(model) > 0:
-			self.gui['offset_tree_view'].set_cursor(len(model) - 1)
-			self.gui['offset_scale'].set_value(model[len(model) - 1][2]) # fix this!!!
+			last = len(model) - 1
+			self.gui['offset_tree_view'].set_cursor(last)
+			self.gui['offset_scale'].set_value(model[last][2]) # fix this!!!
 
 	def on_offset_selection_changed(self, selection):
 		model, sel = selection.get_selected()
@@ -286,7 +286,14 @@ class ACYL:
 		self.icongroups.current.cache_preview(self.preview_file)
 
 		self.render.run(forced=True)
-		# self.preview_update()
+
+	def on_add_offset_button_click(self, *args):
+		color, alpha = self.color_selector_wr.get_hex_color()
+		self.gui['offset_list_store'].append([color, alpha, 100])
+
+	def on_remove_offset_button_click(self, *args):
+		if len(self.gui['offset_list_store']) > 1:
+			self.gui['offset_list_store'].remove(self.offset_selected)
 
 	# Support methods
 	def fill_up_gui(self):
@@ -336,6 +343,7 @@ class ACYL:
 		self.fullrefresh(savedata=False)
 
 	def fullrefresh(self, savedata=True):
+		"""Refresh icon preview and update data if needed"""
 		if not self.is_preview_locked:
 			if savedata: self.database_write()
 			self.change_icon(self.preview_file.name)
@@ -366,7 +374,8 @@ class ACYL:
 
 		if 'filter' in keys:
 			filter_ = self.db[section]['filter']
-			self.gui['filters_combo'].set_active(self.filters.names.index(filter_) if filter_ in self.filters.names else 0)
+			self.gui['filters_combo'].set_active(
+				self.filters.names.index(filter_) if filter_ in self.filters.names else 0)
 
 		self.is_preview_locked = False
 		self.fullrefresh(savedata=False)
@@ -409,14 +418,6 @@ class ACYL:
 
 		self.gui['preview_icon'].set_from_pixbuf(pixbuf)
 
-	def add_offset_line(self, *args):
-		color, alpha = self.color_selector_wr.get_hex_color()
-		self.gui['offset_list_store'].append([color, alpha, 100])
-
-	def remove_offset_line(self, *args):
-		if len(self.gui['offset_list_store']) > 1:
-			self.gui['offset_list_store'].remove(self.offset_selected)
-
 	def set_offset_auto(self):
 		rownum = len(self.gui['offset_list_store'])
 		if rownum > 1:
@@ -428,6 +429,4 @@ class ACYL:
 
 if __name__ == "__main__":
 	main = ACYL()
-	main.fill_up_gui()
-
 	Gtk.main()

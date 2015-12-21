@@ -145,7 +145,7 @@
                             <property name="receives_default">True</property>
                             <property name="image">stock_image_add</property>
                             <property name="always_show_image">True</property>
-                            <signal name="clicked" handler="add_offset_line" swapped="no"/>
+                            <signal name="clicked" handler="on_add_offset_button_click" swapped="no"/>
                           </object>
                           <packing>
                             <property name="expand">False</property>
@@ -160,7 +160,7 @@
                             <property name="receives_default">True</property>
                             <property name="image">stock_image_remove</property>
                             <property name="image_position">right</property>
-                            <signal name="clicked" handler="remove_offset_line" swapped="no"/>
+                            <signal name="clicked" handler="on_remove_offset_button_click" swapped="no"/>
                           </object>
                           <packing>
                             <property name="expand">False</property>

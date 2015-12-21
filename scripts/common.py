@@ -45,6 +45,21 @@ class ItemPack:
 		self.current = self.pack[self.names[0]]
 
 
+class ActionHandler:
+	"""Small helper to control an action"""
+	def __init__(self, action, is_allowed=False):
+		self.action = action
+		self.is_allowed = is_allowed
+
+	def set_state(self, state):
+		"""Allow/block action"""
+		self.is_allowed = state
+
+	def run(self, *args, forced=False):
+		"""Try to action"""
+		if self.is_allowed or forced: self.action(*args)
+
+
 class FilterParameter:
 	"""Helper to find, change, save and restore certain value in xml tag attrubute.
 	Used to work with svg filter parameters.
