@@ -29,6 +29,25 @@ DIRS = dict(
 	preview = {name: "preview/" + name for name in ("main", "unknown", "custom")}
 )
 
+class PixbufCreator(GdkPixbuf.Pixbuf):
+	"""Advanced pixbuf"""
+	def new_double_from_files_at_size(*files, size):
+		"""Merge two icon in one"""
+		pixbuf = [GdkPixbuf.Pixbuf.new_from_file_at_size(f, size, size) for f in files]
+
+		GdkPixbuf.Pixbuf.composite(
+			pixbuf[1], pixbuf[0],
+			0, 0,
+			size, size,
+			size / 2, size / 2,
+			0.5, 0.5,
+			GdkPixbuf.InterpType.BILINEAR,
+			255)
+
+		return pixbuf[0]
+
+	def new_single_from_file_at_size(file_, size):
+		return GdkPixbuf.Pixbuf.new_from_file_at_size(file_, size, size)
 
 class ColorSelectWrapper:
 
@@ -37,7 +56,7 @@ class ColorSelectWrapper:
 
 	def get_hex_color(self):
 		rgba = self.selector.get_current_rgba()
-		color = "#%02X%02X%02X" % tuple([rgba.__getattribute__(name) * 255 for name in ("red", "green", "blue")])
+		color = "#%02X%02X%02X" % tuple([getattr(rgba, name) * 255 for name in ("red", "green", "blue")])
 		# color = "#" + "%02X" % (rgba.red * 255) + "%02X" % (rgba.green * 255) + "%02X" % (rgba.blue * 255)
 		return color, rgba.alpha
 
@@ -363,16 +382,12 @@ class ACYL:
 		"""Update icon preview"""
 		if self.icongroups.current.is_double:
 			icon1, icon2 = self.preview_file.name, self.icongroups.current.pair
-
 			if self.icongroups.current.pairsw:
 				icon1, icon2 = icon2, icon1
 
-			pixbuf = self.icon_compose(icon1, icon2, self.preview_icon_size)
+			pixbuf = PixbufCreator.new_double_from_files_at_size(icon1, icon2, size=self.preview_icon_size)
 		else:
-			pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(
-				self.preview_file.name,
-				self.preview_icon_size, self.preview_icon_size
-			)
+			pixbuf = PixbufCreator.new_single_from_file_at_size(self.preview_file.name, size=self.preview_icon_size)
 
 		self.gui['preview_icon'].set_from_pixbuf(pixbuf)
 
@@ -396,23 +411,6 @@ class ACYL:
 				row[2] = i * step
 		elif rownum == 1:
 			self.gui['offset_list_store'][0][2] = 100
-
-	def icon_compose(self, icon1, icon2, size):
-		"""merge two icon in one"""
-		pix = []
-		pix.append(GdkPixbuf.Pixbuf.new_from_file_at_size(icon1, size, size))
-		pix.append(GdkPixbuf.Pixbuf.new_from_file_at_size(icon2, size, size))
-
-		GdkPixbuf.Pixbuf.composite(
-			pix[1], pix[0],
-			0, 0,
-			size, size,
-			size / 2, size / 2,
-			0.5, 0.5,
-			GdkPixbuf.InterpType.BILINEAR,
-			255)
-
-		return pix[0]
 
 if __name__ == "__main__":
 	main = ACYL()
