@@ -239,7 +239,7 @@ class Handler:
 
 	def on_apply_click(self, widget, data=None):
 		if self.current_page_index == 0:
-			files = common.get_svg_list(*self.icongroups.current.realdirs)
+			files = self.icongroups.current.get_real()
 			self.change_icon(*files)
 		else:
 			self.alternatives.send_icons(2, DIRS['main']['real'])
@@ -248,9 +248,8 @@ class Handler:
 		self.filters.current.gui['window'].show_all()
 
 	def on_icongroup_combo_changed(self, combo):
-
 		self.offset_write_to_config()
-		files = common.get_svg_list(*self.icongroups.current.testdirs)
+		files = self.icongroups.current.get_test()
 		self.change_icon(*files)
 
 		self.icongroups.switch(combo.get_active_text())

@@ -9,17 +9,24 @@ from copy import deepcopy
 from lxml import etree
 from itertools import count
 
-# Module functions
-def get_svg_list(*dirlist):
-	"""Build svg icon list."""
-	filelist = []
-	for path in dirlist:
-		for root, _, files in os.walk(path):
-			filelist.extend([os.path.join(root, name) for name in files if name.endswith('.svg')])
-
-	return filelist
-
 # Module classes
+class IconFinder:
+	"""SVG icon seach"""
+	def get_svg_all(self, *dirlist):
+		"""Find all SVG icon in directories"""
+		filelist = []
+		for path in dirlist:
+			for root, _, files in os.walk(path):
+				filelist.extend([os.path.join(root, name) for name in files if name.endswith('.svg')])
+		return filelist
+
+	def get_svg_first(self, *dirlist):
+		"""Find first SVG icon in directories"""
+		for path in dirlist:
+			for root, _, files in os.walk(path):
+				for filename in files:
+					if filename.endswith('.svg'): return os.path.join(root, filename)
+
 class Parser:
 	"""Define lxml parser here"""
 	parser = etree.XMLParser(remove_blank_text=True)
@@ -172,47 +179,62 @@ class FileKeeper:
 			shutil.copy(os.path.join(self.bakdir, name), self.curdir)
 		return fullname
 
-class BasicIconGroup:
+
+class BasicIconGroup(IconFinder):
 	"""Object with fixed list of real and preview pathes for icon group"""
-	def __init__(self, name, emptydir, testdirs, realdirs, pairdir=None, pairsw=False, index=0):
+	def __init__(self, name, testdirs, realdirs, pairdir=None, pairsw=False, index=0):
 		self.name = name
 		self.index = index
 		self.testdirs = testdirs
 		self.realdirs = realdirs
 		self.is_custom = False
 		self.is_double = pairdir is not None
-		self.emptydir = emptydir
 		self.pairsw = pairsw
 
 		if self.is_double:
-			self.pair = get_svg_list(pairdir)[0]
+			self.pair = self.get_svg_first(pairdir)
 
 	def cache_preview(self, cachefile):
 		"""Save current preview icon to temporary file"""
-		with open(self.get_real_preview(), 'rb') as f:
+		with open(self.get_preview(), 'rb') as f:
 			cachefile.seek(0)
 			cachefile.write(f.read())
 			cachefile.truncate()
 
-	def get_real_preview(self):
+	def get_preview(self):
 		"""Get active preview for icon group"""
-		return get_svg_list(*self.testdirs if self.testdirs else [self.emptydir])[0]
+		return self.get_svg_first(*self.testdirs)
+
+	def get_real(self):
+		"""Get list of all real icons for group"""
+		return self.get_svg_all(*self.realdirs)
+
+	def get_test(self):
+		"""Get list of all testing icons for group"""
+		return self.get_svg_all(*self.testdirs)
 
 
 class CustomIconGroup(BasicIconGroup):
 	"""Object with customizible list of real and preview pathes for icon group"""
 	def __init__(self, name, emptydir, testbase, realbase, pairdir=None, pairsw=False, index=0):
-		BasicIconGroup.__init__(self, name, emptydir, [], [], pairdir, pairsw, index)
+		BasicIconGroup.__init__(self, name, [], [], pairdir, pairsw, index)
 		self.is_custom = True
 		self.testbase = testbase
 		self.realbase = realbase
+		self.emptydir = emptydir
 		self.state = dict.fromkeys(next(os.walk(testbase))[1], False)
 
 	def switch_state(self, name):
+		"""Ebable/disable one of the subgroup by name"""
 		self.state[name] = not self.state[name]
 
 		self.testdirs = [os.path.join(self.testbase, name) for name in self.state if self.state[name]]
 		self.realdirs = [os.path.join(self.realbase, name) for name in self.state if self.state[name]]
+
+	def get_preview(self):
+		"""Get active preview for icon group"""
+		return self.get_svg_first(*self.testdirs if self.testdirs else [self.emptydir])
+
 
 class IconGroupCollector(ItemPack):
 	"""Object to load, store and switch between icon groups"""
@@ -250,7 +272,7 @@ class IconGroupCollector(ItemPack):
 		self.build_names(sortkey=lambda name: self.pack[name].index)
 
 
-class Prospector:
+class Prospector(IconFinder):
 	""""Find icons on diffrent deep level in directory tree"""
 	def __init__(self, root):
 		self.root = root
@@ -267,7 +289,7 @@ class Prospector:
 	def get_icons(self, level):
 		"""Get icon list from given level"""
 		if level in self.structure:
-			return get_svg_list(self.structure[level]['root'])
+			return self.get_svg_all(self.structure[level]['root'])
 
 	def send_icons(self, level, dest):
 		"""Merge files form given level to destination place"""
