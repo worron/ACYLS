@@ -25,7 +25,9 @@ class Filter(CustomFilterBase):
 	def on_width_changed(self, scale):
 		value = scale.get_value()
 		self.param['width'].set_value(value)
+		self.render.run(False)
 
 	def on_scale_changed(self, scale):
 		value = scale.get_value()
 		self.param['scale'].set_value(value)
+		self.render.run(False)

@@ -106,10 +106,10 @@ class SimpleFilterBase(Parser):
 
 class CustomFilterBase(SimpleFilterBase):
 	"""Base class for advanced filter with custimizible parametrs"""
-	fullrefresh = lambda: None
+	render = None
 
-	def connect_refresh(updater):
-		CustomFilterBase.fullrefresh = updater
+	def set_render(render):
+		CustomFilterBase.render = render
 
 	def __init__(self, sourse_path):
 		SimpleFilterBase.__init__(self, sourse_path)
@@ -127,13 +127,13 @@ class CustomFilterBase(SimpleFilterBase):
 		raise NotImplementedError('gui_load is not defined!')
 
 	def on_apply_click(self, *args):
-		CustomFilterBase.fullrefresh()
+		CustomFilterBase.render.run(False, forced=True)
 
 	def on_save_click(self, *args):
 		for parameter in self.param.values():
 			parameter.remember()
 
-		CustomFilterBase.fullrefresh()
+		CustomFilterBase.render.run(False, forced=True)
 		if 'window' in self.gui: self.gui['window'].hide()
 
 		self.save()
@@ -143,7 +143,7 @@ class CustomFilterBase(SimpleFilterBase):
 			parameter.restore()
 
 		self.gui_setup()
-		CustomFilterBase.fullrefresh()
+		CustomFilterBase.render.run(False, forced=True)
 
 	def on_close_window(self, *args):
 		if 'window' in self.gui: self.gui['window'].hide()
