@@ -10,7 +10,8 @@ class Filter(CustomFilterBase):
 		gui_elements = ("window", "width", "scale")
 		self.gui_load(gui_elements)
 
-		stroke_tag = self.dull['filter'].find(".//*[@id='support1']")
+		# stroke_tag = self.dull['filter'].find(".//*[@id='support1']")
+		stroke_tag = self.dull['visual'].find(".//*[@id='visible1']")
 		self.param['width'] = FilterParameter(stroke_tag, 'style', r'width:(.+)', 'width:%.1f')
 
 		scale_tag = self.dull['visual'].find(".//*[@id='visible1']")
