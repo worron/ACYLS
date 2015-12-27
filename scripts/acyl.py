@@ -49,22 +49,6 @@ class PixbufCreator(GdkPixbuf.Pixbuf):
 	def new_single_from_file_at_size(file_, size):
 		return GdkPixbuf.Pixbuf.new_from_file_at_size(file_, size, size)
 
-class ColorSelectWrapper:
-
-	def __init__(self, selector):
-		self.selector = selector
-
-	def get_hex_color(self):
-		rgba = self.selector.get_current_rgba()
-		color = "#%02X%02X%02X" % tuple([getattr(rgba, name) * 255 for name in ("red", "green", "blue")])
-		# color = "#" + "%02X" % (rgba.red * 255) + "%02X" % (rgba.green * 255) + "%02X" % (rgba.blue * 255)
-		return color, rgba.alpha
-
-	def set_hex_color(self, color, alpha):
-		rgba = [int(c, 16) / 255.0 for c in [color[i:i+2] for i in range(1, 7, 2)]] + [alpha]
-		# rgba = (int(color[1:3], 16) / 255.0, int(color[3:5], 16) / 255.0, int(color[5:7], 16) / 255.0, alpha)
-		self.selector.set_current_rgba(Gdk.RGBA(*rgba))
-
 
 class ACYL:
 	def __init__(self):
@@ -115,7 +99,6 @@ class ACYL:
 		)
 
 		self.gui = {element: self.builder.get_object(element) for element in gui_elements}
-		self.color_selector_wr = ColorSelectWrapper(self.gui['color_selector'])
 
 		# Other
 		self.offset_selected = None
@@ -239,16 +222,17 @@ class ACYL:
 		if len(model) > 0:
 			last = len(model) - 1
 			self.gui['offset_tree_view'].set_cursor(last)
-			self.gui['offset_scale'].set_value(model[last][2]) # fix this!!!
+			self.gui['offset_scale'].set_value(model[last][2])
 
 	def on_offset_selection_changed(self, selection):
 		model, sel = selection.get_selected()
 
 		if sel:
 			self.offset_selected = sel
-			color = model[sel][0]
-			alpha = model[sel][1]
-			self.color_selector_wr.set_hex_color(color, alpha)
+			rgba = Gdk.RGBA()
+			rgba.parse(model[sel][3])
+			rgba.alpha = model[sel][1]
+			self.gui['color_selector'].set_current_rgba(rgba)
 
 			offset = model[sel][2]
 			self.gui['offset_scale'].set_value(offset)
@@ -270,9 +254,10 @@ class ACYL:
 		self.render.run()
 
 	def on_color_change(self, *args):
-		color, alpha = self.color_selector_wr.get_hex_color()
-		self.gui['offset_list_store'].set_value(self.offset_selected, 0, color)
-		self.gui['offset_list_store'].set_value(self.offset_selected, 1, alpha)
+		rgba = self.gui['color_selector'].get_current_rgba()
+		self.gui['offset_list_store'].set_value(self.offset_selected, 0, self.hex_from_rgba(rgba))
+		self.gui['offset_list_store'].set_value(self.offset_selected, 1, rgba.alpha)
+		self.gui['offset_list_store'].set_value(self.offset_selected, 3, rgba.to_string())
 		self.render.run()
 
 	def on_direction_edited(self, widget, path, text):
@@ -288,8 +273,9 @@ class ACYL:
 		self.render.run(forced=True)
 
 	def on_add_offset_button_click(self, *args):
-		color, alpha = self.color_selector_wr.get_hex_color()
-		self.gui['offset_list_store'].append([color, alpha, 100])
+		rgba = self.gui['color_selector'].get_current_rgba()
+		hexcolor = self.hex_from_rgba(rgba)
+		self.gui['offset_list_store'].append([hexcolor, rgba.alpha, 100, rgba.to_string()])
 
 	def on_remove_offset_button_click(self, *args):
 		if len(self.gui['offset_list_store']) > 1:
@@ -401,7 +387,7 @@ class ACYL:
 			dump['direction'][self.gradient.tag] = [list(row) for row in self.gui['direction_list_store']]
 
 		# if 'filtername' in dump: del dump['filtername']
-		# self.db['default'] = deepcopy(self.db['Custom'])
+		self.db['default'] = deepcopy(self.db['Custom'])
 
 		self.db[section] = dump
 
@@ -426,6 +412,9 @@ class ACYL:
 				row[2] = i * step
 		elif rownum == 1:
 			self.gui['offset_list_store'][0][2] = 100
+
+	def hex_from_rgba(self, rgba):
+		return "#%02X%02X%02X" % tuple([getattr(rgba, name) * 255 for name in ("red", "green", "blue")])
 
 if __name__ == "__main__":
 	main = ACYL()

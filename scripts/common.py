@@ -352,7 +352,8 @@ class Gradient:
 		gradient = etree.Element(self.tag, attrib=attr_dict)
 
 		# add colors to gradient tag
-		for color, alpha, offset in data['colors']:
+		for colordata in data['colors']:
+			color, alpha, offset = colordata[:3]
 			color_attr = {
 				'offset': "%d%%" % offset,
 				'style': "stop-color:%s;stop-opacity:%f" % (color, alpha)

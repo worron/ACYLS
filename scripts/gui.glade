@@ -62,12 +62,14 @@
   </object>
   <object class="GtkListStore" id="offset_list_store">
     <columns>
-      <!-- column-name color -->
+      <!-- column-name hexcolor -->
       <column type="gchararray"/>
       <!-- column-name alpha -->
       <column type="gfloat"/>
       <!-- column-name offset -->
       <column type="gint"/>
+      <!-- column-name rgba -->
+      <column type="gchararray"/>
     </columns>
     <signal name="row-deleted" handler="on_offset_structure_changed" swapped="no"/>
     <signal name="row-inserted" handler="on_offset_structure_changed" swapped="no"/>
