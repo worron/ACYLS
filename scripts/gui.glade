@@ -8,6 +8,20 @@
       <column type="GdkPixbuf"/>
     </columns>
   </object>
+  <object class="GtkListStore" id="color_list_store">
+    <columns>
+      <!-- column-name hexcolor -->
+      <column type="gchararray"/>
+      <!-- column-name alpha -->
+      <column type="gfloat"/>
+      <!-- column-name offset -->
+      <column type="gint"/>
+      <!-- column-name rgba -->
+      <column type="gchararray"/>
+    </columns>
+    <signal name="row-deleted" handler="on_offset_structure_changed" swapped="no"/>
+    <signal name="row-inserted" handler="on_offset_structure_changed" swapped="no"/>
+  </object>
   <object class="GtkListStore" id="custom_icons_store">
     <columns>
       <!-- column-name icon_name -->
@@ -59,20 +73,6 @@
   <object class="GtkAdjustment" id="offset_adjustment">
     <property name="upper">100</property>
     <property name="step_increment">1</property>
-  </object>
-  <object class="GtkListStore" id="offset_list_store">
-    <columns>
-      <!-- column-name hexcolor -->
-      <column type="gchararray"/>
-      <!-- column-name alpha -->
-      <column type="gfloat"/>
-      <!-- column-name offset -->
-      <column type="gint"/>
-      <!-- column-name rgba -->
-      <column type="gchararray"/>
-    </columns>
-    <signal name="row-deleted" handler="on_offset_structure_changed" swapped="no"/>
-    <signal name="row-inserted" handler="on_offset_structure_changed" swapped="no"/>
   </object>
   <object class="GtkImage" id="settings_image">
     <property name="visible">True</property>
@@ -290,20 +290,20 @@
                     <property name="can_focus">True</property>
                     <property name="shadow_type">in</property>
                     <child>
-                      <object class="GtkTreeView" id="offset_tree_view">
+                      <object class="GtkTreeView" id="color_tree_view">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="hexpand">True</property>
-                        <property name="model">offset_list_store</property>
+                        <property name="model">color_list_store</property>
                         <property name="headers_visible">False</property>
                         <property name="level_indentation">1</property>
                         <child internal-child="selection">
-                          <object class="GtkTreeSelection" id="offset_tree_selector">
-                            <signal name="changed" handler="on_offset_selection_changed" swapped="no"/>
+                          <object class="GtkTreeSelection" id="color_tree_selector">
+                            <signal name="changed" handler="on_color_selection_changed" swapped="no"/>
                           </object>
                         </child>
                         <child>
-                          <object class="GtkTreeViewColumn" id="offset_tree_column_color">
+                          <object class="GtkTreeViewColumn" id="color_tree_column_color">
                             <property name="title" translatable="yes">Color</property>
                             <child>
                               <object class="GtkCellRendererText" id="render_color"/>
@@ -314,7 +314,7 @@
                           </object>
                         </child>
                         <child>
-                          <object class="GtkTreeViewColumn" id="offset_tree_column_alpha">
+                          <object class="GtkTreeViewColumn" id="color_tree_column_alpha">
                             <property name="title" translatable="yes">Alpha</property>
                             <child>
                               <object class="GtkCellRendererText" id="render_alpha"/>
@@ -325,7 +325,7 @@
                           </object>
                         </child>
                         <child>
-                          <object class="GtkTreeViewColumn" id="offset_tree_column_offset">
+                          <object class="GtkTreeViewColumn" id="color_tree_column_offset">
                             <property name="title" translatable="yes">Offset</property>
                             <child>
                               <object class="GtkCellRendererText" id="render_offset"/>

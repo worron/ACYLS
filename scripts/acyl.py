@@ -32,7 +32,7 @@ DIRS = dict(
 class PixbufCreator(GdkPixbuf.Pixbuf):
 	"""Advanced pixbuf"""
 	def new_double_from_files_at_size(*files, size):
-		"""Merge two icon in one"""
+		"""Merge two icon in one pixbuf"""
 		pixbuf = [GdkPixbuf.Pixbuf.new_from_file_at_size(f, size, size) for f in files]
 
 		GdkPixbuf.Pixbuf.composite(
@@ -47,6 +47,7 @@ class PixbufCreator(GdkPixbuf.Pixbuf):
 		return pixbuf[0]
 
 	def new_single_from_file_at_size(file_, size):
+		"""Alias for creatinng pixbuf from file at size"""
 		return GdkPixbuf.Pixbuf.new_from_file_at_size(file_, size, size)
 
 
@@ -91,7 +92,7 @@ class ACYL:
 		self.builder.add_from_file('gui.glade')
 
 		gui_elements = (
-			'window', 'preview_icon', 'offset_list_store', 'offset_tree_view', 'direction_list_store',
+			'window', 'preview_icon', 'color_list_store', 'color_tree_view', 'direction_list_store',
 			'offset_scale', 'offset_switch', 'alt_group_combo', 'alt_theme_combo', 'gradient_combo',
 			'filters_combo', 'iconview_combo', 'icongroup_combo', 'alt_icon_store', 'iconview_store',
 			'custom_icon_tree_view', 'refresh_button', 'filter_settings_button', 'apply_button',
@@ -101,14 +102,12 @@ class ACYL:
 		self.gui = {element: self.builder.get_object(element) for element in gui_elements}
 
 		# Other
-		self.offset_selected = None
-		self.preview_icon_size = int(self.config.get("PreviewSize", "single"))
-		self.view_icon_size = int(self.config.get("PreviewSize", "group"))
-
-		self.autooffset = False
+		self.color_selected = None
 		self.is_preview_locked = False
 
-		# Fix this!
+		self.PREVIEW_ICON_SIZE = int(self.config.get("PreviewSize", "single"))
+		self.VIEW_ICON_SIZE = int(self.config.get("PreviewSize", "group"))
+
 		# Colors store index
 		self.HEXCOLOR = 0
 		self.ALPHA = 1
@@ -150,7 +149,7 @@ class ACYL:
 			self.gui['alt_icon_store'].clear()
 
 			for icon in self.alternatives.get_icons(DIG_LEVEL):
-				pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(icon, self.view_icon_size, self.view_icon_size)
+				pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(icon, self.VIEW_ICON_SIZE, self.VIEW_ICON_SIZE)
 				self.gui['alt_icon_store'].append([pixbuf])
 
 	def on_iconview_combo_changed(self, combo):
@@ -161,7 +160,7 @@ class ACYL:
 			self.gui['iconview_store'].clear()
 
 			for icon in self.iconview.get_icons(DIG_LEVEL):
-				pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(icon, self.view_icon_size, self.view_icon_size)
+				pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(icon, self.VIEW_ICON_SIZE, self.VIEW_ICON_SIZE)
 				self.gui['iconview_store'].append([pixbuf])
 
 	def on_gradient_type_switched(self, combo):
@@ -207,19 +206,19 @@ class ACYL:
 		self.preview_update()
 
 	def on_offset_structure_changed(self, model, *args):
-		if self.autooffset:
+		if self.db[self.icongroups.current.name]['autooffset']:
 			self.set_offset_auto()
 
 		if len(model) > 0:
 			last = len(model) - 1
-			self.gui['offset_tree_view'].set_cursor(last)
+			self.gui['color_tree_view'].set_cursor(last)
 			self.gui['offset_scale'].set_value(model[last][2])
 
-	def on_offset_selection_changed(self, selection):
+	def on_color_selection_changed(self, selection):
 		model, sel = selection.get_selected()
 
 		if sel is not None:
-			self.offset_selected = sel
+			self.color_selected = sel
 			rgba = Gdk.RGBA()
 			rgba.parse(model[sel][self.RGBCOLOR])
 			rgba.alpha = model[sel][self.ALPHA]
@@ -231,24 +230,24 @@ class ACYL:
 	def on_autooffset_toggled(self, switch, *args):
 		is_active = switch.get_active()
 		self.gui['offset_scale'].set_sensitive(is_active)
-		self.autooffset = not is_active
+		self.database_write(['autooffset'])
 
-		if self.autooffset:
+		if self.db[self.icongroups.current.name]['autooffset']:
 			self.set_offset_auto()
 
-		self.gui['offset_scale'].set_value(self.gui['offset_list_store'][self.offset_selected][self.OFFSET])
+		self.gui['offset_scale'].set_value(self.gui['color_list_store'][self.color_selected][self.OFFSET])
 		self.render.run()
 
 	def on_offset_value_changed(self, scale):
 		offset = scale.get_value()
-		self.gui['offset_list_store'].set_value(self.offset_selected, self.OFFSET, int(offset))
+		self.gui['color_list_store'].set_value(self.color_selected, self.OFFSET, int(offset))
 		self.render.run()
 
 	def on_color_change(self, *args):
 		rgba = self.gui['color_selector'].get_current_rgba()
-		self.gui['offset_list_store'].set_value(self.offset_selected, self.HEXCOLOR, self.hex_from_rgba(rgba))
-		self.gui['offset_list_store'].set_value(self.offset_selected, self.ALPHA, rgba.alpha)
-		self.gui['offset_list_store'].set_value(self.offset_selected, self.RGBCOLOR, rgba.to_string())
+		self.gui['color_list_store'].set_value(self.color_selected, self.HEXCOLOR, self.hex_from_rgba(rgba))
+		self.gui['color_list_store'].set_value(self.color_selected, self.ALPHA, rgba.alpha)
+		self.gui['color_list_store'].set_value(self.color_selected, self.RGBCOLOR, rgba.to_string())
 		self.render.run()
 
 	def on_direction_edited(self, widget, path, text):
@@ -266,11 +265,11 @@ class ACYL:
 	def on_add_offset_button_click(self, *args):
 		rgba = self.gui['color_selector'].get_current_rgba()
 		hexcolor = self.hex_from_rgba(rgba)
-		self.gui['offset_list_store'].append([hexcolor, rgba.alpha, 100, rgba.to_string()])
+		self.gui['color_list_store'].append([hexcolor, rgba.alpha, 100, rgba.to_string()])
 
 	def on_remove_offset_button_click(self, *args):
-		if len(self.gui['offset_list_store']) > 1:
-			self.gui['offset_list_store'].remove(self.offset_selected)
+		if len(self.gui['color_list_store']) > 1:
+			self.gui['color_list_store'].remove(self.color_selected)
 
 	# Support methods
 	def fill_up_gui(self):
@@ -351,9 +350,9 @@ class ACYL:
 		section = self.icongroups.current.name if self.icongroups.current.name in self.db else 'default'
 
 		if 'colors' in keys:
-			self.gui['offset_list_store'].clear()
+			self.gui['color_list_store'].clear()
 			for color in self.db[section]['colors']:
-				self.gui['offset_list_store'].append(color)
+				self.gui['color_list_store'].append(color)
 
 		if 'direction' in keys:
 			self.gui['direction_list_store'].clear()
@@ -361,8 +360,7 @@ class ACYL:
 				self.gui['direction_list_store'].append(coord)
 
 		if 'autooffset' in keys:
-			self.autooffset = self.db[section]['autooffset']
-			self.gui['offset_switch'].set_active(not self.autooffset)
+			self.gui['offset_switch'].set_active(not self.db[section]['autooffset'])
 
 		if 'gradtype' in keys:
 			self.gui['gradient_combo'].set_active(self.gradient.profile['index'])
@@ -387,11 +385,11 @@ class ACYL:
 		if 'gradtype' in keys:
 			dump['gradtype'] = self.gradient.tag
 		if 'autooffset' in keys:
-			dump['autooffset'] = self.autooffset
+			dump['autooffset'] = not self.gui['offset_switch'].get_active()
 		if 'filter' in keys:
 			dump['filter'] = self.gui['filters_combo'].get_active_text()
 		if 'colors' in keys:
-			dump['colors'] = [list(row) for row in self.gui['offset_list_store']]
+			dump['colors'] = [list(row) for row in self.gui['color_list_store']]
 		if 'direction' in keys:
 			dump['direction'][self.gradient.tag] = [list(row) for row in self.gui['direction_list_store']]
 
@@ -407,22 +405,24 @@ class ACYL:
 			if self.icongroups.current.pairsw:
 				icon1, icon2 = icon2, icon1
 
-			pixbuf = PixbufCreator.new_double_from_files_at_size(icon1, icon2, size=self.preview_icon_size)
+			pixbuf = PixbufCreator.new_double_from_files_at_size(icon1, icon2, size=self.PREVIEW_ICON_SIZE)
 		else:
-			pixbuf = PixbufCreator.new_single_from_file_at_size(self.preview_file.name, size=self.preview_icon_size)
+			pixbuf = PixbufCreator.new_single_from_file_at_size(self.preview_file.name, size=self.PREVIEW_ICON_SIZE)
 
 		self.gui['preview_icon'].set_from_pixbuf(pixbuf)
 
 	def set_offset_auto(self):
-		rownum = len(self.gui['offset_list_store'])
+		"""Calculate fair offset for all colors"""
+		rownum = len(self.gui['color_list_store'])
 		if rownum > 1:
 			step = 100 / (rownum - 1)
-			for i, row in enumerate(self.gui['offset_list_store']):
+			for i, row in enumerate(self.gui['color_list_store']):
 				row[self.OFFSET] = i * step
 		elif rownum == 1:
-			self.gui['offset_list_store'][0][self.OFFSET] = 100
+			self.gui['color_list_store'][0][self.OFFSET] = 100
 
 	def hex_from_rgba(self, rgba):
+		"""Translate color from Gdk.RGBA to html hex format"""
 		return "#%02X%02X%02X" % tuple([getattr(rgba, name) * 255 for name in ("red", "green", "blue")])
 
 if __name__ == "__main__":

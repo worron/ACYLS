@@ -183,12 +183,15 @@ class FilterCollector(ItemPack):
 
 
 class FileKeeper:
-
+	"""Helper to work with user files.
+	Trying to get file from current user directory, copy from backup directory if not found.
+	"""
 	def __init__(self, bakdir, curdir):
 		self.bakdir = bakdir
 		self.curdir = curdir
 
 	def get(self, name):
+		"""Get file by name"""
 		fullname = os.path.join(self.curdir, name)
 		if not os.path.isfile(fullname):
 			shutil.copy(os.path.join(self.bakdir, name), self.curdir)
