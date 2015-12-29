@@ -106,8 +106,14 @@ class ACYL:
 		self.view_icon_size = int(self.config.get("PreviewSize", "group"))
 
 		self.autooffset = False
-		self.current_page_index = 0
 		self.is_preview_locked = False
+
+		# Fix this!
+		# Colors store index
+		self.HEXCOLOR = 0
+		self.ALPHA = 1
+		self.OFFSET = 2
+		self.RGBCOLOR = 3
 
 		# Activate GUI
 		self.gui['window'].show_all()
@@ -164,9 +170,9 @@ class ACYL:
 		self.database_read(['gradtype', 'direction'])
 
 	def on_page_changed(self, nb, page, page_index):
+		self.gui['apply_button'].connect("clicked", self.apply_colors if page_index == 0 else self.apply_alternatives)
 		self.gui['refresh_button'].set_sensitive(page_index == 0 and not self.render.is_allowed)
 		self.gui['apply_button'].set_sensitive(page_index in (0, 1))
-		self.current_page_index = page_index
 
 	def on_close_window(self, *args):
 		self.preview_file.close()
@@ -176,23 +182,8 @@ class ACYL:
 		self.db.close()
 		Gtk.main_quit(*args)
 
-	def change_icon(self, *files):
-		common.IconChanger.rebuild(
-			*files,
-			gradient=self.gradient,
-			gfilter = self.filters.current,
-			data = self.db.get(self.icongroups.current.name, self.db['default'])
-		)
-
 	def on_refresh_click(self, *args):
 		self.render.run(forced=True)
-
-	def on_apply_click(self, widget, data=None):
-		if self.current_page_index == 0:
-			files = self.icongroups.current.get_real()
-			self.change_icon(*files)
-		else:
-			self.alternatives.send_icons(2, DIRS['main']['real'])
 
 	def on_filter_settings_click(self, widget, data=None):
 		self.filters.current.gui['window'].show_all()
@@ -227,14 +218,14 @@ class ACYL:
 	def on_offset_selection_changed(self, selection):
 		model, sel = selection.get_selected()
 
-		if sel:
+		if sel is not None:
 			self.offset_selected = sel
 			rgba = Gdk.RGBA()
-			rgba.parse(model[sel][3])
-			rgba.alpha = model[sel][1]
+			rgba.parse(model[sel][self.RGBCOLOR])
+			rgba.alpha = model[sel][self.ALPHA]
 			self.gui['color_selector'].set_current_rgba(rgba)
 
-			offset = model[sel][2]
+			offset = model[sel][self.OFFSET]
 			self.gui['offset_scale'].set_value(offset)
 
 	def on_autooffset_toggled(self, switch, *args):
@@ -245,19 +236,19 @@ class ACYL:
 		if self.autooffset:
 			self.set_offset_auto()
 
-		self.gui['offset_scale'].set_value(self.gui['offset_list_store'][self.offset_selected][2])
+		self.gui['offset_scale'].set_value(self.gui['offset_list_store'][self.offset_selected][self.OFFSET])
 		self.render.run()
 
 	def on_offset_value_changed(self, scale):
 		offset = scale.get_value()
-		self.gui['offset_list_store'].set_value(self.offset_selected, 2, int(offset))
+		self.gui['offset_list_store'].set_value(self.offset_selected, self.OFFSET, int(offset))
 		self.render.run()
 
 	def on_color_change(self, *args):
 		rgba = self.gui['color_selector'].get_current_rgba()
-		self.gui['offset_list_store'].set_value(self.offset_selected, 0, self.hex_from_rgba(rgba))
-		self.gui['offset_list_store'].set_value(self.offset_selected, 1, rgba.alpha)
-		self.gui['offset_list_store'].set_value(self.offset_selected, 3, rgba.to_string())
+		self.gui['offset_list_store'].set_value(self.offset_selected, self.HEXCOLOR, self.hex_from_rgba(rgba))
+		self.gui['offset_list_store'].set_value(self.offset_selected, self.ALPHA, rgba.alpha)
+		self.gui['offset_list_store'].set_value(self.offset_selected, self.RGBCOLOR, rgba.to_string())
 		self.render.run()
 
 	def on_direction_edited(self, widget, path, text):
@@ -328,6 +319,24 @@ class ACYL:
 		self.database_read()
 		self.fullrefresh(savedata=False)
 
+	def change_icon(self, *files):
+		"""Rebuild given icons according current GUI state"""
+		common.IconChanger.rebuild(
+			*files,
+			gradient=self.gradient,
+			gfilter = self.filters.current,
+			data = self.db.get(self.icongroups.current.name, self.db['default'])
+		)
+
+	def apply_colors(self, *args):
+		"""Function for apply button on color GUI page"""
+		files = self.icongroups.current.get_real()
+		self.change_icon(*files)
+
+	def apply_alternatives(self, *args):
+		"""Function for apply button on alternatives GUI page"""
+		self.alternatives.send_icons(2, DIRS['main']['real'])
+
 	def fullrefresh(self, savedata=True):
 		"""Refresh icon preview and update data if needed"""
 		if not self.is_preview_locked:
@@ -387,7 +396,7 @@ class ACYL:
 			dump['direction'][self.gradient.tag] = [list(row) for row in self.gui['direction_list_store']]
 
 		# if 'filtername' in dump: del dump['filtername']
-		self.db['default'] = deepcopy(self.db['Custom'])
+		# self.db['default'] = deepcopy(self.db['Custom'])
 
 		self.db[section] = dump
 
@@ -409,9 +418,9 @@ class ACYL:
 		if rownum > 1:
 			step = 100 / (rownum - 1)
 			for i, row in enumerate(self.gui['offset_list_store']):
-				row[2] = i * step
+				row[self.OFFSET] = i * step
 		elif rownum == 1:
-			self.gui['offset_list_store'][0][2] = 100
+			self.gui['offset_list_store'][0][self.OFFSET] = 100
 
 	def hex_from_rgba(self, rgba):
 		return "#%02X%02X%02X" % tuple([getattr(rgba, name) * 255 for name in ("red", "green", "blue")])
