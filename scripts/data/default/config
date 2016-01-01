@@ -2,10 +2,12 @@
 group = 48
 single = 196
 
+[Settings]
+autorender = False
+
 [Directories]
 tmpfs = /tmp
 filters = filters
-# real = {name: "../scalable/" + name + "_icons" for name in ("real", "alternative")},
 real = ../scalable/real_icons
 alternatives = ../scalable/alternative_icons
 
@@ -37,3 +39,4 @@ emptydir = preview/unknown
 testbase = preview/alternative
 realbase = ../scalable/alternative_icons
 custom = True
+
