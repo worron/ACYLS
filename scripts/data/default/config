@@ -2,6 +2,13 @@
 group = 48
 single = 196
 
+[Directories]
+tmpfs = /tmp
+filters = filters
+# real = {name: "../scalable/" + name + "_icons" for name in ("real", "alternative")},
+real = ../scalable/real_icons
+alternatives = ../scalable/alternative_icons
+
 [IconGroup1]
 name = All (exept emblems)
 testdirs = preview/main

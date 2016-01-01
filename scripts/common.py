@@ -9,7 +9,6 @@ from copy import deepcopy
 from lxml import etree
 from itertools import count
 
-# Module classes
 class IconFinder:
 	"""SVG icon seach"""
 	def get_svg_all(self, *dirlist):

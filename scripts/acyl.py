@@ -22,12 +22,7 @@ Gtk.StyleContext.add_provider_for_screen(
 	Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
 )
 
-DIRS = dict(
-	main = {name: "../scalable/" + name + "_icons" for name in ("real", "alternative")},
-	data = {'current': "data/current", 'default': "data/default"},
-	filters = "filters",
-	preview = {name: "preview/" + name for name in ("main", "unknown", "custom")}
-)
+DIRS = dict(data = {'current': "data/current", 'default': "data/default"})
 
 class PixbufCreator(GdkPixbuf.Pixbuf):
 	"""Advanced pixbuf"""
@@ -62,7 +57,7 @@ class ACYL:
 		self.config.read(self.configfile)
 
 		# Set temporary file for icon preview
-		self.preview_file = tempfile.NamedTemporaryFile(dir="/tmp", prefix="tempsvg")
+		self.preview_file = tempfile.NamedTemporaryFile(dir=self.config.get("Directories", "tmpfs"), prefix="acyl")
 
 		# Set data file for saving icon render settings
 		# Icon render setting will stored for every icon group separately
@@ -70,8 +65,8 @@ class ACYL:
 		self.db = shelve.open(self.dbfile)
 
 		# Create objects for alternative and real icon full prewiew
-		self.iconview = common.Prospector(DIRS['main']['real'])
-		self.alternatives = common.Prospector(DIRS['main']['alternative'])
+		self.iconview = common.Prospector(self.config.get("Directories", "real"))
+		self.alternatives = common.Prospector(self.config.get("Directories", "alternatives"))
 
 		# Load icon groups from config file
 		self.icongroups = common.IconGroupCollector(self.config)
@@ -82,7 +77,7 @@ class ACYL:
 		# Connect preview render controller to filters class
 		common.CustomFilterBase.set_render(self.render)
 		# Load filters from certain  directory
-		self.filters = common.FilterCollector(DIRS['filters'])
+		self.filters = common.FilterCollector(self.config.get("Directories", "filters"))
 
 		# Build griadient object
 		self.gradient = common.Gradient()
@@ -334,7 +329,7 @@ class ACYL:
 
 	def apply_alternatives(self, *args):
 		"""Function for apply button on alternatives GUI page"""
-		self.alternatives.send_icons(2, DIRS['main']['real'])
+		self.alternatives.send_icons(2, self.config.get("Directories", "real"))
 
 	def fullrefresh(self, savedata=True):
 		"""Refresh icon preview and update data if needed"""
