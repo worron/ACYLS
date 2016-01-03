@@ -143,9 +143,16 @@ class ACYL:
 		self.database_read(['gradtype', 'direction'])
 
 	def on_page_changed(self, nb, page, page_index):
-		self.gui['apply_button'].connect("clicked", self.apply_colors if page_index == 0 else self.apply_alternatives)
-		self.gui['refresh_button'].set_sensitive(page_index == 0 and not self.render.is_allowed)
-		self.gui['apply_button'].set_sensitive(page_index in (0, 1))
+		COLORS, ALTERNATIVES, ICONVIEW = 0, 1, 2
+		apply_action = self.apply_colors if page_index == COLORS else self.apply_alternatives
+		self.gui['apply_button'].connect("clicked", apply_action)
+		self.gui['refresh_button'].set_sensitive(page_index == COLORS and not self.render.is_allowed)
+		self.gui['apply_button'].set_sensitive(page_index in (COLORS, ALTERNATIVES))
+
+		if page_index == ALTERNATIVES:
+			self.gui['alt_theme_combo'].emit("changed")
+		elif page_index == ICONVIEW:
+			self.gui['iconview_combo'].emit("changed")
 
 	def on_close_window(self, *args):
 		self.preview_file.close()
