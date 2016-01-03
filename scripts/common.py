@@ -4,7 +4,7 @@ import os
 import sys
 import imp
 
-from gi.repository import Gtk
+from gi.repository import Gtk, GdkPixbuf
 from copy import deepcopy
 from lxml import etree
 from itertools import count
@@ -122,8 +122,11 @@ class CustomFilterBase(SimpleFilterBase):
 	"""Base class for advanced filter with custimizible parametrs"""
 	render = None
 
-	def set_render(render):
-		CustomFilterBase.render = render
+	def __new__(cls, *args, **kargs):
+		if CustomFilterBase.render is None:
+			raise NotImplementedError(
+				"Attribbute 'render' of 'CustomFilterBase' should be defined before subclass init")
+		return object.__new__(cls,*args,**kargs)
 
 	def __init__(self, sourse_path):
 		SimpleFilterBase.__init__(self, sourse_path)
@@ -138,7 +141,7 @@ class CustomFilterBase(SimpleFilterBase):
 		self.gui = {name: self.builder.get_object(name) for name in gui_elements}
 
 	def gui_setup(self):
-		raise NotImplementedError('gui_load is not defined!')
+		raise NotImplementedError("Method 'gui_setup' 'CustomFilterBase' should be defined in subclass")
 
 	def on_apply_click(self, *args):
 		CustomFilterBase.render.run(False, forced=True)
@@ -162,7 +165,6 @@ class CustomFilterBase(SimpleFilterBase):
 	def on_close_window(self, *args):
 		if 'window' in self.gui: self.gui['window'].hide()
 		return True
-
 
 class FilterCollector(ItemPack):
 	"""Object to load, store and switch between acyl-filters"""
@@ -388,3 +390,24 @@ class IconChanger(Parser):
 			old_gradient_tag.getparent().replace(old_gradient_tag, new_gradient_tag)
 
 			tree.write(icon, pretty_print=True)
+
+class PixbufCreator(GdkPixbuf.Pixbuf):
+	"""Advanced pixbuf"""
+	def new_double_from_files_at_size(*files, size):
+		"""Merge two icon in one pixbuf"""
+		pixbuf = [GdkPixbuf.Pixbuf.new_from_file_at_size(f, size, size) for f in files]
+
+		GdkPixbuf.Pixbuf.composite(
+			pixbuf[1], pixbuf[0],
+			0, 0,
+			size, size,
+			size / 2, size / 2,
+			0.5, 0.5,
+			GdkPixbuf.InterpType.BILINEAR,
+			255)
+
+		return pixbuf[0]
+
+	def new_single_from_file_at_size(file_, size):
+		"""Alias for creatinng pixbuf from file at size"""
+		return GdkPixbuf.Pixbuf.new_from_file_at_size(file_, size, size)

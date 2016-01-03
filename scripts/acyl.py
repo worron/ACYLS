@@ -1,15 +1,15 @@
 import sys, os
 if sys.version_info < (3, 0):
-	sys.stdout.write("Requires Python 3.x")
+	sys.stdout.write("Requires Python 3.x\n")
 	sys.exit(1)
+
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 import shelve
 import tempfile
 import configparser
-from gi.repository import Gtk, Gdk, GdkPixbuf, GObject
+from gi.repository import Gtk, Gdk
 from copy import deepcopy
-
-os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 import common
 
@@ -23,28 +23,6 @@ Gtk.StyleContext.add_provider_for_screen(
 )
 
 DIRS = dict(data = {'current': "data/current", 'default': "data/default"})
-
-class PixbufCreator(GdkPixbuf.Pixbuf):
-	"""Advanced pixbuf"""
-	def new_double_from_files_at_size(*files, size):
-		"""Merge two icon in one pixbuf"""
-		pixbuf = [GdkPixbuf.Pixbuf.new_from_file_at_size(f, size, size) for f in files]
-
-		GdkPixbuf.Pixbuf.composite(
-			pixbuf[1], pixbuf[0],
-			0, 0,
-			size, size,
-			size / 2, size / 2,
-			0.5, 0.5,
-			GdkPixbuf.InterpType.BILINEAR,
-			255)
-
-		return pixbuf[0]
-
-	def new_single_from_file_at_size(file_, size):
-		"""Alias for creatinng pixbuf from file at size"""
-		return GdkPixbuf.Pixbuf.new_from_file_at_size(file_, size, size)
-
 
 class ACYL:
 	def __init__(self):
@@ -75,7 +53,7 @@ class ACYL:
 		# Create object for preview render control
 		self.render = common.ActionHandler(self.fullrefresh)
 		# Connect preview render controller to filters class
-		common.CustomFilterBase.set_render(self.render)
+		common.CustomFilterBase.render = self.render
 		# Load filters from certain  directory
 		self.filters = common.FilterCollector(self.config.get("Directories", "filters"))
 
@@ -145,7 +123,7 @@ class ACYL:
 			self.gui['alt_icon_store'].clear()
 
 			for icon in self.alternatives.get_icons(DIG_LEVEL):
-				pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(icon, self.VIEW_ICON_SIZE, self.VIEW_ICON_SIZE)
+				pixbuf = common.PixbufCreator.new_single_from_file_at_size(icon, self.VIEW_ICON_SIZE)
 				self.gui['alt_icon_store'].append([pixbuf])
 
 	def on_iconview_combo_changed(self, combo):
@@ -156,7 +134,7 @@ class ACYL:
 			self.gui['iconview_store'].clear()
 
 			for icon in self.iconview.get_icons(DIG_LEVEL):
-				pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(icon, self.VIEW_ICON_SIZE, self.VIEW_ICON_SIZE)
+				pixbuf = common.PixbufCreator.new_single_from_file_at_size(icon, self.VIEW_ICON_SIZE)
 				self.gui['iconview_store'].append([pixbuf])
 
 	def on_gradient_type_switched(self, combo):
@@ -319,6 +297,7 @@ class ACYL:
 		self.database_read()
 		self.fullrefresh(savedata=False)
 
+		# Restore curtain GUI elements state from last session
 		self.gui['rtr_button'].set_active(self.config.getboolean("Settings", "autorender"))
 
 	def change_icon(self, *files):
@@ -408,14 +387,14 @@ class ACYL:
 			if self.icongroups.current.pairsw:
 				icon1, icon2 = icon2, icon1
 
-			pixbuf = PixbufCreator.new_double_from_files_at_size(icon1, icon2, size=self.PREVIEW_ICON_SIZE)
+			pixbuf = common.PixbufCreator.new_double_from_files_at_size(icon1, icon2, size=self.PREVIEW_ICON_SIZE)
 		else:
-			pixbuf = PixbufCreator.new_single_from_file_at_size(self.preview_file.name, size=self.PREVIEW_ICON_SIZE)
+			pixbuf = common.PixbufCreator.new_single_from_file_at_size(self.preview_file.name, self.PREVIEW_ICON_SIZE)
 
 		self.gui['preview_icon'].set_from_pixbuf(pixbuf)
 
 	def set_offset_auto(self):
-		"""Calculate fair offset for all colors"""
+		"""Set fair offset for all colors in gradient"""
 		rownum = len(self.gui['color_list_store'])
 		if rownum > 1:
 			step = 100 / (rownum - 1)
