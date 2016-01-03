@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import sys, os
 if sys.version_info < (3, 0):
 	sys.stdout.write("Requires Python 3.x\n")
