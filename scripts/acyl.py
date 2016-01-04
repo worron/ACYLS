@@ -1,17 +1,17 @@
+#!/usr/bin/env python3
+
 import sys, os
 if sys.version_info < (3, 0):
-	sys.stdout.write("Requires Python 3.x")
+	sys.stdout.write("Requires Python 3.x\n")
 	sys.exit(1)
 
-import imp
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
+
 import shelve
 import tempfile
 import configparser
-from gi.repository import Gtk, Gdk, GdkPixbuf, GObject
+from gi.repository import Gtk, Gdk
 from copy import deepcopy
-from itertools import count
-
-os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 import common
 
@@ -24,273 +24,293 @@ Gtk.StyleContext.add_provider_for_screen(
 	Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
 )
 
-DIRS = dict(
-	main = {name: "../scalable/" + name + "_icons" for name in ("real", "alternative")},
-	data = {'current': "data/current", 'default': "data/default"},
-	filters = "filters",
-	preview = {name: "preview/" + name for name in ("main", "unknown", "custom")}
-)
+DIRS = dict(data = {'current': "data/current", 'default': "data/default"})
 
-
-class ColorSelectWrapper:
-
-	def __init__(self, selector):
-		self.selector = selector
-
-	def get_hex_color(self):
-		rgba = self.selector.get_current_rgba()
-		color = "#%02X%02X%02X" % tuple([rgba.__getattribute__(name) * 255 for name in ("red", "green", "blue")])
-		# color = "#" + "%02X" % (rgba.red * 255) + "%02X" % (rgba.green * 255) + "%02X" % (rgba.blue * 255)
-		return color, rgba.alpha
-
-	def set_hex_color(self, color, alpha):
-		rgba = [int(c, 16) / 255.0 for c in [color[i:i+2] for i in range(1, 7, 2)]] + [alpha]
-		# rgba = (int(color[1:3], 16) / 255.0, int(color[3:5], 16) / 255.0, int(color[5:7], 16) / 255.0, alpha)
-		self.selector.set_current_rgba(Gdk.RGBA(*rgba))
-
-
-class FilterGroup:
-
+class ACYL:
 	def __init__(self):
-		self.pack = dict()
-
-		for root, _, files in os.walk(DIRS['filters']):
-			if 'filter.py' in files:
-				try:
-					module=imp.load_source('filter', os.path.join(root, 'filter.py'))
-					filter_ = module.Filter()
-					self.pack[filter_.name] = filter_
-				except Exception:
-					print("Fail to load filter from %s" % root)
-
-		self.names = [key for key in self.pack]
-		self.names.sort(key=lambda key: 1 if key == 'Empty' else 2)
-
-		self.current = self.pack[self.names[0]]
-
-	def switch(self, name):
-		if name in self.pack:
-			self.current = self.pack[name]
-
-
-class IconGroups:
-
-	def __init__(self, config):
-		self.allgroups = dict()
-		counter = count(1)
-
-		while True:
-			index = next(counter)
-			section = "IconGroup" + str(index)
-			if not config.has_section(section): break
-			try:
-				is_custom = config.getboolean(section, 'custom')
-
-				args = ("name", "pairdir", "emptydir", "testbase", "realbase")
-				kargs = {k: config.get(section, k) for k in args if config.has_option(section, k)}
-
-				l_args = ("testdirs", "realdirs")
-				l_kargs = {k: config.get(section, k).split(";") for k in l_args if config.has_option(section, k)}
-
-				b_args = ("pairsw",)
-				b_kargs = {k: config.getboolean(section, k) for k in b_args if config.has_option(section, k)}
-
-				for d in (l_kargs, b_kargs): kargs.update(d)
-				kargs['index'] = index
-
-				if is_custom:
-					self.allgroups[kargs['name']] = common.CustomIconGroup(**kargs)
-				else:
-					self.allgroups[kargs['name']] = common.BasicIconGroup(**kargs)
-			except Exception:
-				print("Fail to load icon group №%d" % index)
-
-		self.names = [key for key in self.allgroups]
-		self.names.sort(key=lambda name: self.allgroups[name].index)
-
-		self.current = self.allgroups[self.names[0]]
-
-	def switch(self, name):
-		if name in self.allgroups:
-			self.current = self.allgroups[name]
-
-class Handler:
-	def __init__(self):
-		self.builder = Gtk.Builder()
-		self.builder.add_from_file('gui.glade')
-
+		# Set config files manager
 		self.keeper = common.FileKeeper(DIRS['data']['default'], DIRS['data']['current'])
 
+		# Config file setup
 		self.configfile = self.keeper.get("config")
 		self.config = configparser.ConfigParser()
 		self.config.read(self.configfile)
 
-		self.preview_file = tempfile.NamedTemporaryFile(dir="/tmp", prefix="tempsvg")
+		# Set temporary file for icon preview
+		self.preview_file = tempfile.NamedTemporaryFile(dir=self.config.get("Directories", "tmpfs"), prefix="acyl")
 
+		# Set data file for saving icon render settings
+		# Icon render setting will stored for every icon group separately
 		self.dbfile = self.keeper.get("store")
 		self.db = shelve.open(self.dbfile)
 
-		self.iconview = common.Prospector(DIRS['main']['real'])
-		self.alternatives = common.Prospector(DIRS['main']['alternative'])
+		# Create objects for alternative and real icon full prewiew
+		self.iconview = common.Prospector(self.config.get("Directories", "real"))
+		self.alternatives = common.Prospector(self.config.get("Directories", "alternatives"))
 
-		self.icongroups = IconGroups(self.config)
+		# Load icon groups from config file
+		self.icongroups = common.IconGroupCollector(self.config)
+		self.icongroups.current.cache_preview(self.preview_file)
 
-		common.CustomFilterBase.connect_refresh(self.on_test_click)
-		self.filters = FilterGroup()
+		# Create object for preview render control
+		self.render = common.ActionHandler(self.fullrefresh)
+		# Connect preview render controller to filters class
+		common.CustomFilterBase.render = self.render
+		# Load filters from certain  directory
+		self.filters = common.FilterCollector(self.config.get("Directories", "filters"))
 
+		# Build griadient object
 		self.gradient = common.Gradient()
 
-		self.window = self.builder.get_object('mainwindow')
-		self.preview_icon = self.builder.get_object('icon_preview')
-		self.offset_list_store = self.builder.get_object('offset_list_store')
-		self.offset_tree_view = self.builder.get_object('offset_tree_view')
-		self.direction_list_store = self.builder.get_object('direction_list_store')
-		self.offset_scale = self.builder.get_object('offset_scale')
-		self.offset_switch = self.builder.get_object('offset_switch')
-		self.alt_group_combo = self.builder.get_object('alt_group_combo')
-		self.alt_theme_combo = self.builder.get_object('alt_theme_combo')
-		self.gradient_combo = self.builder.get_object('gradient_combo')
-		self.filters_combo = self.builder.get_object('filters_combo')
-		self.iconview_combo = self.builder.get_object('iconview_combo')
-		self.icongroup_combo = self.builder.get_object('icongroup_combo')
-		self.alt_icon_store = self.builder.get_object('alt_icon_store')
-		self.iconview_store = self.builder.get_object('iconview_store')
-		self.alt_icon_view = self.builder.get_object('alt_icon_view')
-		self.iconview_view = self.builder.get_object('iconview_view')
-		self.custom_icon_tree_view = self.builder.get_object('custom_group_tree_view')
-		self.test_button = self.builder.get_object('test_button')
-		self.filter_settings_button = self.builder.get_object('filter_settings_button')
-		self.apply_button = self.builder.get_object('apply_button')
-		self.custom_icons_store = self.builder.get_object('custom_icons_store')
-		self.color_selector_wr = ColorSelectWrapper(self.builder.get_object('color_selector'))
+		# Load GUI
+		self.builder = Gtk.Builder()
+		self.builder.add_from_file('gui.glade')
 
-		self.window.show_all()
+		gui_elements = (
+			'window', 'preview_icon', 'color_list_store', 'color_tree_view', 'direction_list_store',
+			'offset_scale', 'offset_switch', 'alt_group_combo', 'alt_theme_combo', 'gradient_combo',
+			'filters_combo', 'iconview_combo', 'icongroup_combo', 'alt_icon_store', 'iconview_store',
+			'custom_icon_tree_view', 'refresh_button', 'filter_settings_button', 'apply_button',
+			'custom_icons_store', 'color_selector', 'notebook', 'rtr_button'
+		)
 
-		self.offset_selected = None
-		self.preview_icon_size = int(self.config.get("PreviewSize", "single"))
-		self.view_icon_size = int(self.config.get("PreviewSize", "group"))
-		self.icongroups.current.cache_preview(self.preview_file)
-		self.autooffset = False
-		self.current_page_index = 0
+		self.gui = {element: self.builder.get_object(element) for element in gui_elements}
+
+		# Other
+		self.color_selected = None
 		self.is_preview_locked = False
-		self.is_rtr_allowed = False
 
-	def fill_up_gui(self):
-		for group in self.icongroups.allgroups.values():
-			if group.is_custom:
-				for key, value in group.state.items():
-					self.custom_icons_store.append([key.capitalize(), value])
-				break
+		self.PREVIEW_ICON_SIZE = int(self.config.get("PreviewSize", "single"))
+		self.VIEW_ICON_SIZE = int(self.config.get("PreviewSize", "group"))
 
-		for name in self.filters.names:
-			self.filters_combo.append_text(name)
+		# Colors store index
+		self.HEXCOLOR = 0
+		self.ALPHA = 1
+		self.OFFSET = 2
+		self.RGBCOLOR = 3
 
-		for tag in sorted(common.Gradient.profiles):
-			self.gradient_combo.append_text(tag)
-		self.gradient_combo.set_active(0)
+		# Activate GUI
+		self.gui['window'].show_all()
+		self.fill_up_gui()
 
-		for name in self.icongroups.names:
-			self.icongroup_combo.append_text(name)
-		self.icongroup_combo.set_active(0)
-
-		self.builder.connect_signals(self)
-
-		for name in self.alternatives.structure[0]['directories']:
-			self.alt_group_combo.append_text(name.capitalize())
-		self.alt_group_combo.set_active(0)
-
-		for name in self.iconview.structure[0]['directories']:
-			self.iconview_combo.append_text(name.capitalize())
-		self.iconview_combo.set_active(0)
-
-		self.offset_read_from_config()
-		self.change_icon(self.preview_file.name)
-		self.preview_update()
-
-	def real_time_render(self):
-		if self.is_rtr_allowed:
-			self.on_test_click()
-
+	# GUI handlers
 	def on_rtr_toggled(self, switch, *args):
-		self.is_rtr_allowed = switch.get_active()
-		self.test_button.set_sensitive(not self.is_rtr_allowed)
-		self.on_test_click()
+		self.render.set_state(switch.get_active())
+		self.gui['refresh_button'].set_sensitive(not self.render.is_allowed)
+		self.config.set("Settings", "autorender", str(self.render.is_allowed))
+		self.render.run(forced=True)
 
 	def on_filter_combo_changed(self, combo):
 		self.filters.switch(combo.get_active_text())
+		self.gui['filter_settings_button'].set_sensitive(self.filters.current.is_custom)
+		self.database_write(['filter'])
 
-		self.filter_settings_button.set_sensitive(self.filters.current.is_custom)
-
-		self.offset_write_to_config()
-		self.change_icon(self.preview_file.name)
-		self.preview_update()
+		self.fullrefresh(savedata=False)
 
 	def on_alt_group_combo_changed(self, combo):
-		self.alternatives.dig(combo.get_active_text().lower(), 1)
-		self.alt_theme_combo.remove_all()
+		DIG_LEVEL = 1
+		self.alternatives.dig(combo.get_active_text().lower(), DIG_LEVEL)
+		self.gui['alt_theme_combo'].remove_all()
 
-		for name in self.alternatives.structure[1]['directories']:
-			self.alt_theme_combo.append_text(name.capitalize())
+		for name in self.alternatives.structure[DIG_LEVEL]['directories']:
+			self.gui['alt_theme_combo'].append_text(name.capitalize())
 
-		self.alt_theme_combo.set_active(0)
+		self.gui['alt_theme_combo'].set_active(0)
 
 	def on_alt_theme_combo_changed(self, combo):
+		DIG_LEVEL = 2
 		text = combo.get_active_text()
 		if text:
-			self.alternatives.dig(text.lower(), 2)
-			self.alt_icon_store.clear()
+			self.alternatives.dig(text.lower(), DIG_LEVEL)
+			self.gui['alt_icon_store'].clear()
 
-			for icon in self.alternatives.get_icons(2):
-				pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(icon, self.view_icon_size, self.view_icon_size)
-				self.alt_icon_store.append([pixbuf])
+			for icon in self.alternatives.get_icons(DIG_LEVEL):
+				pixbuf = common.PixbufCreator.new_single_from_file_at_size(icon, self.VIEW_ICON_SIZE)
+				self.gui['alt_icon_store'].append([pixbuf])
 
 	def on_iconview_combo_changed(self, combo):
+		DIG_LEVEL = 1
 		text = combo.get_active_text()
 		if text:
-			self.iconview.dig(text.lower(), 1)
-			self.iconview_store.clear()
+			self.iconview.dig(text.lower(), DIG_LEVEL)
+			self.gui['iconview_store'].clear()
 
-			for icon in self.iconview.get_icons(1):
-				pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(icon, self.view_icon_size, self.view_icon_size)
-				self.iconview_store.append([pixbuf])
+			for icon in self.iconview.get_icons(DIG_LEVEL):
+				pixbuf = common.PixbufCreator.new_single_from_file_at_size(icon, self.VIEW_ICON_SIZE)
+				self.gui['iconview_store'].append([pixbuf])
 
 	def on_gradient_type_switched(self, combo):
 		self.gradient.set_tag(combo.get_active_text())
-		self.offset_write_to_config(['gradtype'])
-		self.offset_read_from_config(['gradtype', 'direction'])
+		self.database_write(['gradtype'])
+		self.database_read(['gradtype', 'direction'])
 
 	def on_page_changed(self, nb, page, page_index):
-		self.test_button.set_sensitive(page_index == 0 and not self.is_rtr_allowed)
-		self.apply_button.set_sensitive(page_index in (0, 1))
-		self.current_page_index = page_index
+		COLORS, ALTERNATIVES, ICONVIEW = 0, 1, 2
+		apply_action = self.apply_colors if page_index == COLORS else self.apply_alternatives
+		self.gui['apply_button'].connect("clicked", apply_action)
+		self.gui['refresh_button'].set_sensitive(page_index == COLORS and not self.render.is_allowed)
+		self.gui['apply_button'].set_sensitive(page_index in (COLORS, ALTERNATIVES))
 
-	def preview_update(self):
-		"""Update icon preview"""
-
-		if self.icongroups.current.is_double:
-			icon1, icon2 = self.preview_file.name, self.icongroups.current.pair
-
-			if self.icongroups.current.pairsw:
-				icon1, icon2 = icon2, icon1
-
-			pixbuf = self.icon_compose(icon1, icon2, self.preview_icon_size)
-		else:
-			pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(
-				self.preview_file.name,
-				self.preview_icon_size, self.preview_icon_size
-			)
-
-		self.preview_icon.set_from_pixbuf(pixbuf)
+		if page_index == ALTERNATIVES:
+			self.gui['alt_theme_combo'].emit("changed")
+		elif page_index == ICONVIEW:
+			self.gui['iconview_combo'].emit("changed")
 
 	def on_close_window(self, *args):
 		self.preview_file.close()
+
 		for key in filter(lambda key: key != 'default' and key not in self.icongroups.names, self.db.keys()):
 			del self.db[key]
 			print("Key %s was removed from data store" % key)
 		self.db.close()
+
+		with open(self.configfile, 'w') as configfile:
+			self.config.write(configfile)
+
 		Gtk.main_quit(*args)
 
+	def on_refresh_click(self, *args):
+		self.render.run(forced=True)
+
+	def on_filter_settings_click(self, widget, data=None):
+		self.filters.current.gui['window'].show_all()
+
+	def on_icongroup_combo_changed(self, combo):
+		self.database_write()
+		files = self.icongroups.current.get_test()
+		self.change_icon(*files)
+
+		self.icongroups.switch(combo.get_active_text())
+		self.icongroups.current.cache_preview(self.preview_file)
+
+		if self.icongroups.current.is_custom:
+			self.gui['custom_icons_store'].clear()
+			for key, value in self.icongroups.current.state.items():
+				self.gui['custom_icons_store'].append([key.capitalize(), value])
+
+		self.gui['custom_icon_tree_view'].set_sensitive(self.icongroups.current.is_custom)
+
+		self.database_read()
+		self.preview_update()
+
+	def on_offset_structure_changed(self, model, *args):
+		if self.db[self.icongroups.current.name]['autooffset']:
+			self.set_offset_auto()
+
+		if len(model) > 0:
+			last = len(model) - 1
+			self.gui['color_tree_view'].set_cursor(last)
+			self.gui['offset_scale'].set_value(model[last][2])
+
+	def on_color_selection_changed(self, selection):
+		model, sel = selection.get_selected()
+
+		if sel is not None:
+			self.color_selected = sel
+			rgba = Gdk.RGBA()
+			rgba.parse(model[sel][self.RGBCOLOR])
+			rgba.alpha = model[sel][self.ALPHA]
+			self.gui['color_selector'].set_current_rgba(rgba)
+
+			offset = model[sel][self.OFFSET]
+			self.gui['offset_scale'].set_value(offset)
+
+	def on_autooffset_toggled(self, switch, *args):
+		is_active = switch.get_active()
+		self.gui['offset_scale'].set_sensitive(is_active)
+		self.database_write(['autooffset'])
+
+		if self.db[self.icongroups.current.name]['autooffset']:
+			self.set_offset_auto()
+
+		self.gui['offset_scale'].set_value(self.gui['color_list_store'][self.color_selected][self.OFFSET])
+		self.render.run()
+
+	def on_offset_value_changed(self, scale):
+		offset = scale.get_value()
+		self.gui['color_list_store'].set_value(self.color_selected, self.OFFSET, int(offset))
+		self.render.run()
+
+	def on_color_change(self, *args):
+		rgba = self.gui['color_selector'].get_current_rgba()
+		self.gui['color_list_store'].set_value(self.color_selected, self.HEXCOLOR, self.hex_from_rgba(rgba))
+		self.gui['color_list_store'].set_value(self.color_selected, self.ALPHA, rgba.alpha)
+		self.gui['color_list_store'].set_value(self.color_selected, self.RGBCOLOR, rgba.to_string())
+		self.render.run()
+
+	def on_direction_edited(self, widget, path, text):
+		self.gui['direction_list_store'][path][1] = int(text)
+		self.render.run()
+
+	def on_custom_icon_toggled(self, widget, path):
+		self.gui['custom_icons_store'][path][1] = not self.gui['custom_icons_store'][path][1]
+		name = self.gui['custom_icons_store'][path][0].lower()
+		self.icongroups.current.switch_state(name)
+		self.icongroups.current.cache_preview(self.preview_file)
+
+		self.render.run(forced=True)
+
+	def on_add_offset_button_click(self, *args):
+		rgba = self.gui['color_selector'].get_current_rgba()
+		hexcolor = self.hex_from_rgba(rgba)
+		self.gui['color_list_store'].append([hexcolor, rgba.alpha, 100, rgba.to_string()])
+
+	def on_remove_offset_button_click(self, *args):
+		if len(self.gui['color_list_store']) > 1:
+			self.gui['color_list_store'].remove(self.color_selected)
+
+	# Support methods
+	def fill_up_gui(self):
+		"""Fill all dynamic gui elemets"""
+		# Set GUI element in 'silent' mode
+		# There is no reaction on setup for elements below
+
+		# Custom icon names
+		for group in self.icongroups.pack.values():
+			if group.is_custom:
+				for key, value in group.state.items():
+					self.gui['custom_icons_store'].append([key.capitalize(), value])
+				break
+
+		# Filters list
+		for name in self.filters.names:
+			self.gui['filters_combo'].append_text(name)
+
+		# Gradient type list
+		for tag in sorted(common.Gradient.profiles):
+			self.gui['gradient_combo'].append_text(tag)
+		self.gui['gradient_combo'].set_active(0)
+
+		# Icon groups list
+		for name in self.icongroups.names:
+			self.gui['icongroup_combo'].append_text(name)
+		self.gui['icongroup_combo'].set_active(0)
+
+		# Connect gui hanlers now
+		self.builder.connect_signals(self)
+
+		# Set GUI element in 'active' mode
+		# All elements below will trigger its handlers
+
+		# Alternative icon groups list
+		for name in self.alternatives.structure[0]['directories']:
+			self.gui['alt_group_combo'].append_text(name.capitalize())
+		self.gui['alt_group_combo'].set_active(0)
+
+		# Icon view groups list
+		for name in self.iconview.structure[0]['directories']:
+			self.gui['iconview_combo'].append_text(name.capitalize())
+		self.gui['iconview_combo'].set_active(0)
+
+		# GUI setup finished, now update autogenerated elements which depended on current GUI state
+		self.database_read()
+		self.fullrefresh(savedata=False)
+
+		# Restore curtain GUI elements state from last session
+		self.gui['rtr_button'].set_active(self.config.getboolean("Settings", "autorender"))
+
 	def change_icon(self, *files):
+		"""Rebuild given icons according current GUI state"""
 		common.IconChanger.rebuild(
 			*files,
 			gradient=self.gradient,
@@ -298,72 +318,54 @@ class Handler:
 			data = self.db.get(self.icongroups.current.name, self.db['default'])
 		)
 
-	def on_test_click(self, *args):
+	def apply_colors(self, *args):
+		"""Function for apply button on color GUI page"""
+		files = self.icongroups.current.get_real()
+		self.change_icon(*files)
+
+	def apply_alternatives(self, *args):
+		"""Function for apply button on alternatives GUI page"""
+		self.alternatives.send_icons(2, self.config.get("Directories", "real"))
+
+	def fullrefresh(self, savedata=True):
+		"""Refresh icon preview and update data if needed"""
 		if not self.is_preview_locked:
-			self.offset_write_to_config()
+			if savedata: self.database_write()
 			self.change_icon(self.preview_file.name)
 			self.preview_update()
 
-	def on_apply_click(self, widget, data=None):
-		if self.current_page_index == 0:
-			files = common.get_svg_list(*self.icongroups.current.realdirs)
-			self.change_icon(*files)
-		else:
-			self.alternatives.send_icons(2, DIRS['main']['real'])
-
-	def on_filter_settings_click(self, widget, data=None):
-		self.filters.current.gui['window'].show_all()
-
-	def on_icongroup_combo_changed(self, combo):
-
-		self.offset_write_to_config()
-		files = common.get_svg_list(*self.icongroups.current.testdirs)
-		self.change_icon(*files)
-
-		self.icongroups.switch(combo.get_active_text())
-		self.icongroups.current.cache_preview(self.preview_file)
-
-		if self.icongroups.current.is_custom:
-			self.custom_icons_store.clear()
-			for key, value in self.icongroups.current.state.items():
-				self.custom_icons_store.append([key.capitalize(), value])
-
-		self.custom_icon_tree_view.set_sensitive(self.icongroups.current.is_custom)
-
-		self.offset_read_from_config()
-		self.preview_update()
-
-	def offset_read_from_config(self, keys=['direction', 'colors', 'filter', 'autooffset', 'gradtype']):
+	def database_read(self, keys=['direction', 'colors', 'filter', 'autooffset', 'gradtype']):
+		"""Read data from file and set GUI according it"""
 		self.is_preview_locked = True
 
 		section = self.icongroups.current.name if self.icongroups.current.name in self.db else 'default'
 
 		if 'colors' in keys:
-			self.offset_list_store.clear()
+			self.gui['color_list_store'].clear()
 			for color in self.db[section]['colors']:
-				self.offset_list_store.append(color)
+				self.gui['color_list_store'].append(color)
 
 		if 'direction' in keys:
-			self.direction_list_store.clear()
+			self.gui['direction_list_store'].clear()
 			for coord in self.db[section]['direction'][self.gradient.tag]:
-				self.direction_list_store.append(coord)
+				self.gui['direction_list_store'].append(coord)
 
 		if 'autooffset' in keys:
-			self.autooffset = self.db[section]['autooffset']
-			self.offset_switch.set_active(not self.autooffset)
+			self.gui['offset_switch'].set_active(not self.db[section]['autooffset'])
 
 		if 'gradtype' in keys:
-			self.gradient_combo.set_active(self.gradient.profile['index'])
+			self.gui['gradient_combo'].set_active(self.gradient.profile['index'])
 
 		if 'filter' in keys:
 			filter_ = self.db[section]['filter']
-			self.filters_combo.set_active(self.filters.names.index(filter_) if filter_ in self.filters.names else 0)
+			self.gui['filters_combo'].set_active(
+				self.filters.names.index(filter_) if filter_ in self.filters.names else 0)
 
 		self.is_preview_locked = False
-		self.change_icon(self.preview_file.name)
-		self.preview_update()
+		self.fullrefresh(savedata=False)
 
-	def offset_write_to_config(self, keys=['direction', 'colors', 'filter', 'autooffset', 'gradtype']):
+	def database_write(self, keys=['direction', 'colors', 'filter', 'autooffset', 'gradtype']):
+		"""Write data to file"""
 		section = self.icongroups.current.name
 
 		if section not in self.db:
@@ -374,111 +376,46 @@ class Handler:
 		if 'gradtype' in keys:
 			dump['gradtype'] = self.gradient.tag
 		if 'autooffset' in keys:
-			dump['autooffset'] = self.autooffset
+			dump['autooffset'] = not self.gui['offset_switch'].get_active()
 		if 'filter' in keys:
-			dump['filter'] = self.filters_combo.get_active_text()
+			dump['filter'] = self.gui['filters_combo'].get_active_text()
 		if 'colors' in keys:
-			dump['colors'] = [list(row) for row in self.offset_list_store]
+			dump['colors'] = [list(row) for row in self.gui['color_list_store']]
 		if 'direction' in keys:
-			dump['direction'][self.gradient.tag] = [list(row) for row in self.direction_list_store]
+			dump['direction'][self.gradient.tag] = [list(row) for row in self.gui['direction_list_store']]
 
 		# if 'filtername' in dump: del dump['filtername']
-		# if 'custom' in self.db: del self.db['custom']
 		# self.db['default'] = deepcopy(self.db['Custom'])
 
 		self.db[section] = dump
 
-	def on_offset_structure_changed(self, model, *args):
-		if self.autooffset:
-			self.set_offset_auto()
+	def preview_update(self):
+		"""Update icon preview"""
+		if self.icongroups.current.is_double:
+			icon1, icon2 = self.preview_file.name, self.icongroups.current.pair
+			if self.icongroups.current.pairsw:
+				icon1, icon2 = icon2, icon1
 
-		if len(model) > 0:
-			self.offset_tree_view.set_cursor(len(model) - 1)
-			self.offset_scale.set_value(model[len(model) - 1][2]) # fix this!!!
+			pixbuf = common.PixbufCreator.new_double_from_files_at_size(icon1, icon2, size=self.PREVIEW_ICON_SIZE)
+		else:
+			pixbuf = common.PixbufCreator.new_single_from_file_at_size(self.preview_file.name, self.PREVIEW_ICON_SIZE)
 
-	def on_offset_selection_changed(self, selection):
-		model, sel = selection.get_selected()
-
-		if sel:
-			self.offset_selected = sel
-			color = model[sel][0]
-			alpha = model[sel][1]
-			self.color_selector_wr.set_hex_color(color, alpha)
-
-			offset = model[sel][2]
-			self.offset_scale.set_value(offset)
-
-	def on_autooffset_toggled(self, switch, *args):
-		is_active = switch.get_active()
-		self.offset_scale.set_sensitive(is_active)
-		self.autooffset = not is_active
-
-		if self.autooffset:
-			self.set_offset_auto()
-
-		self.offset_scale.set_value(self.offset_list_store[self.offset_selected][2])
-		self.real_time_render()
-
-	def on_offset_value_changed(self, scale):
-		offset = scale.get_value()
-		self.offset_list_store.set_value(self.offset_selected, 2, int(offset))
-		self.real_time_render()
-
-	def on_color_change(self, *args):
-		color, alpha = self.color_selector_wr.get_hex_color()
-		self.offset_list_store.set_value(self.offset_selected, 0, color)
-		self.offset_list_store.set_value(self.offset_selected, 1, alpha)
-		self.real_time_render()
-
-	def on_direction_edited(self, widget, path, text):
-		self.direction_list_store[path][1] = int(text)
-		self.real_time_render()
-
-	def add_offset_line(self, *args):
-		color, alpha = self.color_selector_wr.get_hex_color()
-		self.offset_list_store.append([color, alpha, 100])
-
-	def remove_offset_line(self, *args):
-		if len(self.offset_list_store) > 1:
-			self.offset_list_store.remove(self.offset_selected)
+		self.gui['preview_icon'].set_from_pixbuf(pixbuf)
 
 	def set_offset_auto(self):
-		rownum = len(self.offset_list_store)
+		"""Set fair offset for all colors in gradient"""
+		rownum = len(self.gui['color_list_store'])
 		if rownum > 1:
 			step = 100 / (rownum - 1)
-			for i, row in enumerate(self.offset_list_store):
-				row[2] = i * step
+			for i, row in enumerate(self.gui['color_list_store']):
+				row[self.OFFSET] = i * step
 		elif rownum == 1:
-			self.offset_list_store[0][2] = 100
+			self.gui['color_list_store'][0][self.OFFSET] = 100
 
-	def on_custom_icon_toggled(self, widget, path):
-		self.custom_icons_store[path][1] = not self.custom_icons_store[path][1]
-		name = self.custom_icons_store[path][0].lower()
-		self.icongroups.current.switch_state(name)
-		self.icongroups.current.cache_preview(self.preview_file)
-
-		self.real_time_render()
-		self.preview_update()
-
-	def icon_compose(self, icon1, icon2, size):
-		"""merge two icon in one"""
-		pix = []
-		pix.append(GdkPixbuf.Pixbuf.new_from_file_at_size(icon1, size, size))
-		pix.append(GdkPixbuf.Pixbuf.new_from_file_at_size(icon2, size, size))
-
-		GdkPixbuf.Pixbuf.composite(
-			pix[1], pix[0],
-			0, 0,
-			size, size,
-			size / 2, size / 2,
-			0.5, 0.5,
-			GdkPixbuf.InterpType.BILINEAR,
-			255)
-
-		return pix[0]
+	def hex_from_rgba(self, rgba):
+		"""Translate color from Gdk.RGBA to html hex format"""
+		return "#%02X%02X%02X" % tuple([getattr(rgba, name) * 255 for name in ("red", "green", "blue")])
 
 if __name__ == "__main__":
-	main = Handler()
-	main.fill_up_gui()
-
+	main = ACYL()
 	Gtk.main()

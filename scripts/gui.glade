@@ -8,6 +8,20 @@
       <column type="GdkPixbuf"/>
     </columns>
   </object>
+  <object class="GtkListStore" id="color_list_store">
+    <columns>
+      <!-- column-name hexcolor -->
+      <column type="gchararray"/>
+      <!-- column-name alpha -->
+      <column type="gfloat"/>
+      <!-- column-name offset -->
+      <column type="gint"/>
+      <!-- column-name rgba -->
+      <column type="gchararray"/>
+    </columns>
+    <signal name="row-deleted" handler="on_offset_structure_changed" swapped="no"/>
+    <signal name="row-inserted" handler="on_offset_structure_changed" swapped="no"/>
+  </object>
   <object class="GtkListStore" id="custom_icons_store">
     <columns>
       <!-- column-name icon_name -->
@@ -60,18 +74,6 @@
     <property name="upper">100</property>
     <property name="step_increment">1</property>
   </object>
-  <object class="GtkListStore" id="offset_list_store">
-    <columns>
-      <!-- column-name color -->
-      <column type="gchararray"/>
-      <!-- column-name alpha -->
-      <column type="gfloat"/>
-      <!-- column-name offset -->
-      <column type="gint"/>
-    </columns>
-    <signal name="row-deleted" handler="on_offset_structure_changed" swapped="no"/>
-    <signal name="row-inserted" handler="on_offset_structure_changed" swapped="no"/>
-  </object>
   <object class="GtkImage" id="settings_image">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
@@ -87,7 +89,7 @@
     <property name="can_focus">False</property>
     <property name="stock">gtk-remove</property>
   </object>
-  <object class="GtkWindow" id="mainwindow">
+  <object class="GtkWindow" id="window">
     <property name="can_focus">False</property>
     <signal name="delete-event" handler="on_close_window" swapped="no"/>
     <child>
@@ -101,7 +103,7 @@
         <property name="orientation">vertical</property>
         <property name="spacing">12</property>
         <child>
-          <object class="GtkNotebook" id="notebook1">
+          <object class="GtkNotebook" id="notebook">
             <property name="visible">True</property>
             <property name="can_focus">True</property>
             <signal name="switch-page" handler="on_page_changed" swapped="no"/>
@@ -145,7 +147,7 @@
                             <property name="receives_default">True</property>
                             <property name="image">stock_image_add</property>
                             <property name="always_show_image">True</property>
-                            <signal name="clicked" handler="add_offset_line" swapped="no"/>
+                            <signal name="clicked" handler="on_add_offset_button_click" swapped="no"/>
                           </object>
                           <packing>
                             <property name="expand">False</property>
@@ -160,7 +162,7 @@
                             <property name="receives_default">True</property>
                             <property name="image">stock_image_remove</property>
                             <property name="image_position">right</property>
-                            <signal name="clicked" handler="remove_offset_line" swapped="no"/>
+                            <signal name="clicked" handler="on_remove_offset_button_click" swapped="no"/>
                           </object>
                           <packing>
                             <property name="expand">False</property>
@@ -214,7 +216,7 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkImage" id="icon_preview">
+                  <object class="GtkImage" id="preview_icon">
                     <property name="width_request">210</property>
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
@@ -236,7 +238,7 @@
                     <property name="can_focus">True</property>
                     <property name="shadow_type">in</property>
                     <child>
-                      <object class="GtkTreeView" id="custom_group_tree_view">
+                      <object class="GtkTreeView" id="custom_icon_tree_view">
                         <property name="visible">True</property>
                         <property name="sensitive">False</property>
                         <property name="can_focus">True</property>
@@ -288,20 +290,20 @@
                     <property name="can_focus">True</property>
                     <property name="shadow_type">in</property>
                     <child>
-                      <object class="GtkTreeView" id="offset_tree_view">
+                      <object class="GtkTreeView" id="color_tree_view">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="hexpand">True</property>
-                        <property name="model">offset_list_store</property>
+                        <property name="model">color_list_store</property>
                         <property name="headers_visible">False</property>
                         <property name="level_indentation">1</property>
                         <child internal-child="selection">
-                          <object class="GtkTreeSelection" id="offset_tree_selector">
-                            <signal name="changed" handler="on_offset_selection_changed" swapped="no"/>
+                          <object class="GtkTreeSelection" id="color_tree_selector">
+                            <signal name="changed" handler="on_color_selection_changed" swapped="no"/>
                           </object>
                         </child>
                         <child>
-                          <object class="GtkTreeViewColumn" id="offset_tree_column_color">
+                          <object class="GtkTreeViewColumn" id="color_tree_column_color">
                             <property name="title" translatable="yes">Color</property>
                             <child>
                               <object class="GtkCellRendererText" id="render_color"/>
@@ -312,7 +314,7 @@
                           </object>
                         </child>
                         <child>
-                          <object class="GtkTreeViewColumn" id="offset_tree_column_alpha">
+                          <object class="GtkTreeViewColumn" id="color_tree_column_alpha">
                             <property name="title" translatable="yes">Alpha</property>
                             <child>
                               <object class="GtkCellRendererText" id="render_alpha"/>
@@ -323,7 +325,7 @@
                           </object>
                         </child>
                         <child>
-                          <object class="GtkTreeViewColumn" id="offset_tree_column_offset">
+                          <object class="GtkTreeViewColumn" id="color_tree_column_offset">
                             <property name="title" translatable="yes">Offset</property>
                             <child>
                               <object class="GtkCellRendererText" id="render_offset"/>
@@ -450,35 +452,13 @@
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkBox" id="rtr_box">
+                      <object class="GtkToggleButton" id="rtr_button">
+                        <property name="label" translatable="yes">RTR</property>
                         <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="spacing">12</property>
-                        <child>
-                          <object class="GtkLabel" id="rtr_label">
-                            <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="label" translatable="yes">RTR</property>
-                          </object>
-                          <packing>
-                            <property name="expand">False</property>
-                            <property name="fill">True</property>
-                            <property name="position">0</property>
-                          </packing>
-                        </child>
-                        <child>
-                          <object class="GtkSwitch" id="rtr_switch">
-                            <property name="visible">True</property>
-                            <property name="can_focus">True</property>
-                            <property name="valign">center</property>
-                            <signal name="notify::active" handler="on_rtr_toggled" swapped="no"/>
-                          </object>
-                          <packing>
-                            <property name="expand">False</property>
-                            <property name="fill">True</property>
-                            <property name="position">1</property>
-                          </packing>
-                        </child>
+                        <property name="can_focus">True</property>
+                        <property name="receives_default">True</property>
+                        <property name="xalign">0.47999998927116394</property>
+                        <signal name="toggled" handler="on_rtr_toggled" swapped="no"/>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -697,7 +677,7 @@
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <signal name="clicked" handler="on_apply_click" swapped="no"/>
+                <signal name="clicked" handler="apply_colors" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -706,12 +686,12 @@
               </packing>
             </child>
             <child>
-              <object class="GtkButton" id="test_button">
-                <property name="label" translatable="yes">Test</property>
+              <object class="GtkButton" id="refresh_button">
+                <property name="label" translatable="yes">Refresh</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <signal name="clicked" handler="on_test_click" swapped="no"/>
+                <signal name="clicked" handler="on_refresh_click" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>

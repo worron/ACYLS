@@ -1,29 +1,63 @@
-#!/usr/bin/python
-
 import shutil
 import re
 import os
 import sys
+import imp
 
-from gi.repository import Gtk
+from gi.repository import Gtk, GdkPixbuf
 from copy import deepcopy
 from lxml import etree
+from itertools import count
 
-# Module functions
-def get_svg_list(*dirlist):
-	"""Build svg icon list."""
-	filelist = []
-	for path in dirlist:
-		for root, _, files in os.walk(path):
-			filelist.extend([os.path.join(root, name) for name in files if name.endswith('.svg')])
+class IconFinder:
+	"""SVG icon seach"""
+	def get_svg_all(self, *dirlist):
+		"""Find all SVG icon in directories"""
+		filelist = []
+		for path in dirlist:
+			for root, _, files in os.walk(path):
+				filelist.extend([os.path.join(root, name) for name in files if name.endswith('.svg')])
+		return filelist
 
-	return filelist
+	def get_svg_first(self, *dirlist):
+		"""Find first SVG icon in directories"""
+		for path in dirlist:
+			for root, _, files in os.walk(path):
+				for filename in files:
+					if filename.endswith('.svg'): return os.path.join(root, filename)
 
-# Module classes
 class Parser:
 	"""Define lxml parser here"""
 	parser = etree.XMLParser(remove_blank_text=True)
-	# parser = etree.XMLParser(recover=True, remove_blank_text=True)
+
+class ItemPack:
+	"""Base for work with groups of items"""
+	def switch(self, name):
+		"""Set current item by name"""
+		if name in self.pack:
+			self.current = self.pack[name]
+
+	def build_names(self, sortkey):
+		"""Build sorted list of item names and set active first"""
+		self.names = [key for key in self.pack]
+		self.names.sort(key=sortkey)
+		self.current = self.pack[self.names[0]]
+
+
+class ActionHandler:
+	"""Small helper to control an action"""
+	def __init__(self, action, is_allowed=False):
+		self.action = action
+		self.is_allowed = is_allowed
+
+	def set_state(self, state):
+		"""Allow/block action"""
+		self.is_allowed = state
+
+	def run(self, *args, forced=False):
+		"""Try to action"""
+		if self.is_allowed or forced: self.action(*args)
+
 
 class FilterParameter:
 	"""Helper to find, change, save and restore certain value in xml tag attrubute.
@@ -86,10 +120,13 @@ class SimpleFilterBase(Parser):
 
 class CustomFilterBase(SimpleFilterBase):
 	"""Base class for advanced filter with custimizible parametrs"""
-	fullrefresh = lambda: None
+	render = None
 
-	def connect_refresh(updater):
-		CustomFilterBase.fullrefresh = updater
+	def __new__(cls, *args, **kargs):
+		if CustomFilterBase.render is None:
+			raise NotImplementedError(
+				"Attribbute 'render' of 'CustomFilterBase' should be defined before subclass init")
+		return object.__new__(cls,*args,**kargs)
 
 	def __init__(self, sourse_path):
 		SimpleFilterBase.__init__(self, sourse_path)
@@ -104,16 +141,16 @@ class CustomFilterBase(SimpleFilterBase):
 		self.gui = {name: self.builder.get_object(name) for name in gui_elements}
 
 	def gui_setup(self):
-		raise NotImplementedError('gui_load is not defined!')
+		raise NotImplementedError("Method 'gui_setup' 'CustomFilterBase' should be defined in subclass")
 
 	def on_apply_click(self, *args):
-		CustomFilterBase.fullrefresh()
+		CustomFilterBase.render.run(False, forced=True)
 
 	def on_save_click(self, *args):
 		for parameter in self.param.values():
 			parameter.remember()
 
-		CustomFilterBase.fullrefresh()
+		CustomFilterBase.render.run(False, forced=True)
 		if 'window' in self.gui: self.gui['window'].hide()
 
 		self.save()
@@ -123,68 +160,138 @@ class CustomFilterBase(SimpleFilterBase):
 			parameter.restore()
 
 		self.gui_setup()
-		CustomFilterBase.fullrefresh()
+		CustomFilterBase.render.run(False, forced=True)
 
 	def on_close_window(self, *args):
 		if 'window' in self.gui: self.gui['window'].hide()
 		return True
 
-class FileKeeper:
+class FilterCollector(ItemPack):
+	"""Object to load, store and switch between acyl-filters"""
+	def __init__(self, path, filename='filter.py', default='Empty'):
+		self.pack = dict()
 
+		for root, _, files in os.walk(path):
+			if filename in files:
+				try:
+					module=imp.load_source(filename.split('.')[0], os.path.join(root, filename))
+					filter_ = module.Filter()
+					self.pack[filter_.name] = filter_
+				except Exception:
+					print("Fail to load filter from %s" % root)
+
+		self.build_names(sortkey=lambda key: 1 if key == default else 2)
+
+
+class FileKeeper:
+	"""Helper to work with user files.
+	Trying to get file from current user directory, copy from backup directory if not found.
+	"""
 	def __init__(self, bakdir, curdir):
 		self.bakdir = bakdir
 		self.curdir = curdir
 
 	def get(self, name):
+		"""Get file by name"""
 		fullname = os.path.join(self.curdir, name)
 		if not os.path.isfile(fullname):
 			shutil.copy(os.path.join(self.bakdir, name), self.curdir)
 		return fullname
 
-class BasicIconGroup:
+
+class BasicIconGroup(IconFinder):
 	"""Object with fixed list of real and preview pathes for icon group"""
-	def __init__(self, name, emptydir, testdirs, realdirs, pairdir=None, pairsw=False, index=0):
+	def __init__(self, name, testdirs, realdirs, pairdir=None, pairsw=False, index=0):
 		self.name = name
 		self.index = index
 		self.testdirs = testdirs
 		self.realdirs = realdirs
 		self.is_custom = False
 		self.is_double = pairdir is not None
-		self.emptydir = emptydir
 		self.pairsw = pairsw
 
 		if self.is_double:
-			self.pair = get_svg_list(pairdir)[0]
+			self.pair = self.get_svg_first(pairdir)
 
 	def cache_preview(self, cachefile):
 		"""Save current preview icon to temporary file"""
-		with open(self.get_real_preview(), 'rb') as f:
+		with open(self.get_preview(), 'rb') as f:
 			cachefile.seek(0)
 			cachefile.write(f.read())
 			cachefile.truncate()
 
-	def get_real_preview(self):
+	def get_preview(self):
 		"""Get active preview for icon group"""
-		return get_svg_list(*self.testdirs if self.testdirs else [self.emptydir])[0]
+		return self.get_svg_first(*self.testdirs)
+
+	def get_real(self):
+		"""Get list of all real icons for group"""
+		return self.get_svg_all(*self.realdirs)
+
+	def get_test(self):
+		"""Get list of all testing icons for group"""
+		return self.get_svg_all(*self.testdirs)
 
 
 class CustomIconGroup(BasicIconGroup):
 	"""Object with customizible list of real and preview pathes for icon group"""
 	def __init__(self, name, emptydir, testbase, realbase, pairdir=None, pairsw=False, index=0):
-		BasicIconGroup.__init__(self, name, emptydir, [], [], pairdir, pairsw, index)
+		BasicIconGroup.__init__(self, name, [], [], pairdir, pairsw, index)
 		self.is_custom = True
 		self.testbase = testbase
 		self.realbase = realbase
+		self.emptydir = emptydir
 		self.state = dict.fromkeys(next(os.walk(testbase))[1], False)
 
 	def switch_state(self, name):
+		"""Ebable/disable one of the subgroup by name"""
 		self.state[name] = not self.state[name]
 
 		self.testdirs = [os.path.join(self.testbase, name) for name in self.state if self.state[name]]
 		self.realdirs = [os.path.join(self.realbase, name) for name in self.state if self.state[name]]
 
+	def get_preview(self):
+		"""Get active preview for icon group"""
+		return self.get_svg_first(*self.testdirs if self.testdirs else [self.emptydir])
 
-class Prospector:
+
+class IconGroupCollector(ItemPack):
+	"""Object to load, store and switch between icon groups"""
+	def __init__(self, config):
+		self.pack = dict()
+		counter = count(1)
+
+		while True:
+			index = next(counter)
+			section = "IconGroup" + str(index)
+			if not config.has_section(section): break
+			try:
+				# group type
+				is_custom = config.getboolean(section, 'custom')
+
+				# plain text arguments
+				args = ("name", "pairdir", "emptydir", "testbase", "realbase")
+				kargs = {k: config.get(section, k) for k in args if config.has_option(section, k)}
+
+				# list type arguments
+				args_l = ("testdirs", "realdirs")
+				kargs_l = {k: config.get(section, k).split(";") for k in args_l if config.has_option(section, k)}
+
+				# boolean type  arguments
+				args_b = ("pairsw",)
+				kargs_b = {k: config.getboolean(section, k) for k in args_b if config.has_option(section, k)}
+
+				for d in (kargs_l, kargs_b): kargs.update(d)
+				kargs['index'] = index
+
+				self.pack[kargs['name']] = CustomIconGroup(**kargs) if is_custom else BasicIconGroup(**kargs)
+			except Exception:
+				print("Fail to load icon group №%d" % index)
+
+		self.build_names(sortkey=lambda name: self.pack[name].index)
+
+
+class Prospector(IconFinder):
 	""""Find icons on diffrent deep level in directory tree"""
 	def __init__(self, root):
 		self.root = root
@@ -201,7 +308,7 @@ class Prospector:
 	def get_icons(self, level):
 		"""Get icon list from given level"""
 		if level in self.structure:
-			return get_svg_list(self.structure[level]['root'])
+			return self.get_svg_all(self.structure[level]['root'])
 
 	def send_icons(self, level, dest):
 		"""Merge files form given level to destination place"""
@@ -249,7 +356,8 @@ class Gradient:
 		gradient = etree.Element(self.tag, attrib=attr_dict)
 
 		# add colors to gradient tag
-		for color, alpha, offset in data['colors']:
+		for colordata in data['colors']:
+			color, alpha, offset = colordata[:3]
 			color_attr = {
 				'offset': "%d%%" % offset,
 				'style': "stop-color:%s;stop-opacity:%f" % (color, alpha)
@@ -282,3 +390,24 @@ class IconChanger(Parser):
 			old_gradient_tag.getparent().replace(old_gradient_tag, new_gradient_tag)
 
 			tree.write(icon, pretty_print=True)
+
+class PixbufCreator(GdkPixbuf.Pixbuf):
+	"""Advanced pixbuf"""
+	def new_double_from_files_at_size(*files, size):
+		"""Merge two icon in one pixbuf"""
+		pixbuf = [GdkPixbuf.Pixbuf.new_from_file_at_size(f, size, size) for f in files]
+
+		GdkPixbuf.Pixbuf.composite(
+			pixbuf[1], pixbuf[0],
+			0, 0,
+			size, size,
+			size / 2, size / 2,
+			0.5, 0.5,
+			GdkPixbuf.InterpType.BILINEAR,
+			255)
+
+		return pixbuf[0]
+
+	def new_single_from_file_at_size(file_, size):
+		"""Alias for creatinng pixbuf from file at size"""
+		return GdkPixbuf.Pixbuf.new_from_file_at_size(file_, size, size)

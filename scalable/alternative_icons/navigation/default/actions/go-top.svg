@@ -4,10 +4,10 @@
       <stop offset="100%" style="stop-color:#A0A0A0;stop-opacity:1.000000"/>
     </linearGradient>
     <g id="acyl-filter">
-      <filter/>
+      <filter id="filter"/>
     </g>
     <g id="acyl-drawing">
-      <path d="M 7,3 L 7,8 L 23.78125,8 L 6.40625,28 L 15,28 L 15,43 L 33.0625,43 L 33.0625,28 L 41.53125,28 L 24.21875,8 L 41,8 L 41,3 L 7,3 z" id="path-main" sodipodi:nodetypes="ccccccccccccc"/>
+      <path d="M 7,3 L 7,8 L 23.78125,8 L 6.40625,28 L 15,28 L 15,43 L 33.0625,43 L 33.0625,28 L 41.53125,28 L 24.21875,8 L 41,8 L 41,3 L 7,3 z" id="path-main"/>
     </g>
   </defs>
   <g id="acyl-visual">

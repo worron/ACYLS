@@ -4,7 +4,7 @@
       <stop offset="100%" style="stop-color:#A0A0A0;stop-opacity:1.000000"/>
     </linearGradient>
     <g id="acyl-filter">
-      <filter/>
+      <filter id="filter"/>
     </g>
     <g id="acyl-drawing">
       <path d="M 14.222222,3.4444444 2,15.666667 l 7.333333,0 9.777778,0 7.333333,0 L 14.222222,3.4444444 z m 14.666667,12.2222226 0,17.111111 -7.333333,0 L 33.777778,45 46,32.777778 l -7.333333,0 0,-17.111111 -9.777778,0 z" id="path-main"/>
