@@ -1,0 +1,15 @@
+<root xmlns:xlink="http://www.w3.org/1999/xlink">
+  <g id="acyl-filter">
+    <filter id="filter" x="-100%" y="-100%" width="300%" height="300%">
+      <feImage id="feImage1" xlink:href="#support1" result="result1"/>
+      <feImage id="feImage1" xlink:href="#support2" result="result2"/>
+      <feComposite id="feComposite1" in="result1" in2="SourceGraphic" operator="xor" result="xor"/>
+      <feComposite id="feComposite2" in="xor" in2="result2" operator="over"/>
+    </filter>
+    <use id="support1" transform="translate(24,24) scale(1.00) translate(-24,-24)" style="fill:#000000" xlink:href="#acyl-drawing"/>
+    <use id="support2" style="fill:rgb(0,0,0);fill-opacity:0.00" xlink:href="#support1"/>
+  </g>
+  <g id="acyl-visual">
+    <rect id="visible1" transform="translate(24,24) scale(0.95) translate(-24,-24)" style="fill:url(#acyl-gradient);filter:url(#filter)" width="48" height="48" x="0" y="0" rx="4.0" ry="4.0"/>
+  </g>
+</root>
