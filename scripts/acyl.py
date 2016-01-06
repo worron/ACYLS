@@ -314,8 +314,8 @@ class ACYL:
 		common.IconChanger.rebuild(
 			*files,
 			gradient=self.gradient,
-			gfilter = self.filters.current,
-			data = self.db.get(self.icongroups.current.name, self.db['default'])
+			gfilter=self.filters.current,
+			data=self.db.get(self.icongroups.current.name, self.db['default'])
 		)
 
 	def apply_colors(self, *args):
@@ -354,7 +354,7 @@ class ACYL:
 			self.gui['offset_switch'].set_active(not self.db[section]['autooffset'])
 
 		if 'gradtype' in keys:
-			self.gui['gradient_combo'].set_active(self.gradient.profile['index'])
+			self.gui['gradient_combo'].set_active(common.Gradient.profiles[self.db[section]['gradtype']]['index'])
 
 		if 'filter' in keys:
 			filter_ = self.db[section]['filter']
