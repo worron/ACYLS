@@ -22,6 +22,11 @@
     <signal name="row-deleted" handler="on_offset_structure_changed" swapped="no"/>
     <signal name="row-inserted" handler="on_offset_structure_changed" swapped="no"/>
   </object>
+  <object class="GtkImage" id="copy_image">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="stock">gtk-copy</property>
+  </object>
   <object class="GtkListStore" id="custom_icons_store">
     <columns>
       <!-- column-name icon_name -->
@@ -73,6 +78,11 @@
   <object class="GtkAdjustment" id="offset_adjustment">
     <property name="upper">100</property>
     <property name="step_increment">1</property>
+  </object>
+  <object class="GtkImage" id="paste_image">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="stock">gtk-paste</property>
   </object>
   <object class="GtkImage" id="settings_image">
     <property name="visible">True</property>
@@ -168,6 +178,34 @@
                             <property name="expand">False</property>
                             <property name="fill">True</property>
                             <property name="position">1</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkButton" id="copy_state_button">
+                            <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                            <property name="receives_default">True</property>
+                            <property name="image">copy_image</property>
+                            <signal name="clicked" handler="on_copy_settings_button_click" swapped="no"/>
+                          </object>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">True</property>
+                            <property name="position">2</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkButton" id="paste_state_button">
+                            <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                            <property name="receives_default">True</property>
+                            <property name="image">paste_image</property>
+                            <signal name="clicked" handler="on_paste_settings_button_click" swapped="no"/>
+                          </object>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">True</property>
+                            <property name="position">3</property>
                           </packing>
                         </child>
                       </object>

@@ -78,6 +78,7 @@ class ACYL:
 
 		# Other
 		self.color_selected = None
+		self.state_buffer = None
 		self.is_preview_locked = False
 
 		self.PREVIEW_ICON_SIZE = int(self.config.get("PreviewSize", "single"))
@@ -259,6 +260,13 @@ class ACYL:
 		if len(self.gui['color_list_store']) > 1:
 			self.gui['color_list_store'].remove(self.color_selected)
 
+	def on_copy_settings_button_click(self, *args):
+		self.state_buffer = deepcopy(self.db[self.icongroups.current.name])
+
+	def on_paste_settings_button_click(self, *args):
+		self.db[self.icongroups.current.name] = deepcopy(self.state_buffer)
+		self.database_read()
+
 	# Support methods
 	def fill_up_gui(self):
 		"""Fill all dynamic gui elemets"""
@@ -276,7 +284,7 @@ class ACYL:
 		for name in self.filters.names:
 			self.gui['filters_combo'].append_text(name)
 
-		# Gradient type list
+		# GRADIENT type list
 		for tag in sorted(common.Gradient.profiles):
 			self.gui['gradient_combo'].append_text(tag)
 		self.gui['gradient_combo'].set_active(0)
