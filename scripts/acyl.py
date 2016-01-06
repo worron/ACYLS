@@ -71,7 +71,7 @@ class ACYL:
 			'offset_scale', 'offset_switch', 'alt_group_combo', 'alt_theme_combo', 'gradient_combo',
 			'filters_combo', 'iconview_combo', 'icongroup_combo', 'alt_icon_store', 'iconview_store',
 			'custom_icon_tree_view', 'refresh_button', 'filter_settings_button', 'apply_button',
-			'custom_icons_store', 'color_selector', 'notebook', 'rtr_button'
+			'custom_icons_store', 'color_selector', 'notebook', 'rtr_button', 'filter_group_combo'
 		)
 
 		self.gui = {element: self.builder.get_object(element) for element in gui_elements}
@@ -101,12 +101,25 @@ class ACYL:
 		self.config.set("Settings", "autorender", str(self.render.is_allowed))
 		self.render.run(forced=True)
 
-	def on_filter_combo_changed(self, combo):
-		self.filters.switch(combo.get_active_text())
-		self.gui['filter_settings_button'].set_sensitive(self.filters.current.is_custom)
-		self.database_write(['filter'])
+	def on_filter_group_combo_changed(self, combo):
+		group = combo.get_active_text()
+		self.filters.set_group(group)
 
-		self.fullrefresh(savedata=False)
+		self.gui['filters_combo'].remove_all()
+		for name in self.filters.names:
+			self.gui['filters_combo'].append_text(name)
+
+		if not self.is_preview_locked:
+			self.gui['filters_combo'].set_active(0)
+
+	def on_filter_combo_changed(self, combo):
+		name = combo.get_active_text()
+		if name is not None:
+			self.filters.switch(name)
+			self.gui['filter_settings_button'].set_sensitive(self.filters.current.is_custom)
+			self.database_write(['filter'])
+
+			self.fullrefresh(savedata=False)
 
 	def on_alt_group_combo_changed(self, combo):
 		DIG_LEVEL = 1
@@ -280,11 +293,12 @@ class ACYL:
 					self.gui['custom_icons_store'].append([key.capitalize(), value])
 				break
 
-		# Filters list
-		for name in self.filters.names:
-			self.gui['filters_combo'].append_text(name)
+		# Filter groups
+		for group in self.filters.groupnames:
+			self.gui['filter_group_combo'].append_text(group)
+		# self.gui['filter_group_combo'].set_active(0)
 
-		# GRADIENT type list
+		# gradient type list
 		for tag in sorted(common.Gradient.profiles):
 			self.gui['gradient_combo'].append_text(tag)
 		self.gui['gradient_combo'].set_active(0)
@@ -366,8 +380,10 @@ class ACYL:
 
 		if 'filter' in keys:
 			filter_ = self.db[section]['filter']
-			self.gui['filters_combo'].set_active(
-				self.filters.names.index(filter_) if filter_ in self.filters.names else 0)
+			self.gui['filter_group_combo'].set_active(self.filters.get_group_index(filter_))
+
+			filter_index = self.filters.names.index(filter_) if filter_ in self.filters.names else 0
+			self.gui['filters_combo'].set_active(filter_index)
 
 		self.is_preview_locked = False
 		self.fullrefresh(savedata=False)

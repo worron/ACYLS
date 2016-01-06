@@ -6,7 +6,8 @@ class Filter(CustomFilterBase):
 
 	def __init__(self):
 		CustomFilterBase.__init__(self, os.path.dirname(__file__))
-		self.name = "Shadow"
+		self.name = "Drop Shadow"
+		self.group = "Shadow"
 
 		gui_elements = ("window", "alpha", "scale", "colorbutton", "blur", "dx", "dy")
 		self.gui_load(gui_elements)

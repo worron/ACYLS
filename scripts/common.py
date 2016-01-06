@@ -93,6 +93,7 @@ class FilterParameter:
 class SimpleFilterBase(Parser):
 	"""Base class for simple filter with fixes parameters."""
 	def __init__(self, sourse_path):
+		self.group = "General"
 		self.is_custom = False
 		self.path = sourse_path
 		self.fstore = os.path.join(sourse_path, "filter.xml")
@@ -168,20 +169,40 @@ class CustomFilterBase(SimpleFilterBase):
 
 class FilterCollector(ItemPack):
 	"""Object to load, store and switch between acyl-filters"""
-	def __init__(self, path, filename='filter.py', default='Empty'):
-		self.pack = dict()
+	def __init__(self, path, filename='filter.py', dfilter='Disabled', dgroup='General'):
+		self.default_filter = dfilter
+		self.default_group = dgroup
+		self.groups = dict()
 
 		for root, _, files in os.walk(path):
 			if filename in files:
 				try:
 					module=imp.load_source(filename.split('.')[0], os.path.join(root, filename))
 					filter_ = module.Filter()
-					self.pack[filter_.name] = filter_
+					self.add(filter_)
 				except Exception:
 					print("Fail to load filter from %s" % root)
 
-		self.build_names(sortkey=lambda key: 1 if key == default else 2)
+		self.groupnames = list(self.groups.keys())
+		self.groupnames.sort(key=lambda key: 1 if key == self.default_group else 2)
+		self.set_group(self.groupnames[0])
 
+	def add(self, filter_):
+		group = filter_.group
+		if group in self.groups:
+			self.groups[group].update({filter_.name: filter_})
+		else:
+			self.groups[group] = {filter_.name: filter_}
+
+	def set_group(self, group):
+		self.pack = self.groups[group]
+		self.build_names(sortkey=lambda key: 1 if key == self.default_filter else 2)
+
+	def get_group_index(self, name):
+		for group, names in self.groups.items():
+			if name in names: return self.groupnames.index(group)
+		else:
+			return 0
 
 class FileKeeper:
 	"""Helper to work with user files.

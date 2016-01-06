@@ -7,6 +7,7 @@ class Filter(CustomFilterBase):
 	def __init__(self):
 		CustomFilterBase.__init__(self, os.path.dirname(__file__))
 		self.name = "Speckle"
+		self.group = "Overlays"
 
 		gui_elements = ("window", "scale", "octaves", "frequency_x", "frequency_y", "sensation")
 		self.gui_load(gui_elements)
