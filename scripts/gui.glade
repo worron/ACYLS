@@ -121,7 +121,7 @@
               <object class="GtkGrid" id="colors_grid">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="margin_top">8</property>
+                <property name="margin_top">4</property>
                 <property name="row_spacing">16</property>
                 <property name="column_spacing">16</property>
                 <child>
@@ -148,7 +148,7 @@
                       <object class="GtkBox" id="offset_buttons_box">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="spacing">8</property>
+                        <property name="spacing">6</property>
                         <property name="homogeneous">True</property>
                         <child>
                           <object class="GtkButton" id="add_offset_button">
@@ -435,10 +435,10 @@
                   <object class="GtkBox" id="settings_box">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="spacing">8</property>
+                    <property name="spacing">6</property>
                     <child>
                       <object class="GtkToggleButton" id="rtr_button">
-                        <property name="label" translatable="yes">RTR</property>
+                        <property name="label" translatable="yes">Render</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
@@ -455,7 +455,7 @@
                       <object class="GtkBox" id="filter_box">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="spacing">4</property>
+                        <property name="spacing">6</property>
                         <child>
                           <object class="GtkButton" id="filter_settings_button">
                             <property name="visible">True</property>
@@ -561,6 +561,7 @@
               <object class="GtkGrid" id="alternatives_grid">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
+                <property name="margin_top">4</property>
                 <property name="row_spacing">8</property>
                 <property name="column_spacing">8</property>
                 <child>
@@ -636,6 +637,7 @@
               <object class="GtkBox" id="iconview_box">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
+                <property name="margin_top">4</property>
                 <property name="orientation">vertical</property>
                 <property name="spacing">8</property>
                 <child>
@@ -709,7 +711,7 @@
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <property name="halign">end</property>
-            <property name="spacing">10</property>
+            <property name="spacing">6</property>
             <property name="layout_style">end</property>
             <child>
               <object class="GtkButton" id="exit_button">
