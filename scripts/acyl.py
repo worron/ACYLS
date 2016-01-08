@@ -278,6 +278,10 @@ class ACYL:
 		self.db[self.icongroups.current.name] = deepcopy(self.state_buffer)
 		self.database_read()
 
+	def on_reset_settings_button_click(self, *args):
+		self.db[self.icongroups.current.name] = deepcopy(self.db['default'])
+		self.database_read()
+
 	# Support methods
 	def fill_up_gui(self):
 		"""Fill all dynamic gui elemets"""

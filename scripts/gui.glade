@@ -84,6 +84,11 @@
     <property name="can_focus">False</property>
     <property name="stock">gtk-paste</property>
   </object>
+  <object class="GtkImage" id="reset_image">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="stock">gtk-cancel</property>
+  </object>
   <object class="GtkImage" id="settings_image">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
@@ -207,6 +212,20 @@
                             <property name="expand">False</property>
                             <property name="fill">True</property>
                             <property name="position">3</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkButton" id="reset_state_button">
+                            <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                            <property name="receives_default">True</property>
+                            <property name="image">reset_image</property>
+                            <signal name="clicked" handler="on_reset_settings_button_click" swapped="no"/>
+                          </object>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">True</property>
+                            <property name="position">4</property>
                           </packing>
                         </child>
                       </object>
