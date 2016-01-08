@@ -127,7 +127,7 @@ class CustomFilterBase(SimpleFilterBase):
 		if CustomFilterBase.render is None:
 			raise NotImplementedError(
 				"Attribbute 'render' of 'CustomFilterBase' should be defined before subclass init")
-		return object.__new__(cls,*args,**kargs)
+		return object.__new__(cls, *args, **kargs)
 
 	def __init__(self, sourse_path):
 		SimpleFilterBase.__init__(self, sourse_path)
@@ -140,6 +140,9 @@ class CustomFilterBase(SimpleFilterBase):
 		self.builder.add_from_file(os.path.join(self.path, "gui.glade"))
 		self.builder.connect_signals(self)
 		self.gui = {name: self.builder.get_object(name) for name in gui_elements}
+
+		# May cause exeption but should be catched by FilterCollector
+		self.gui['window'].set_property("title", "ACYL Filter - %s" % self.name)
 
 	def gui_setup(self):
 		raise NotImplementedError("Method 'gui_setup' 'CustomFilterBase' should be defined in subclass")
