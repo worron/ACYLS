@@ -4,7 +4,7 @@ import os
 import sys
 import imp
 
-from gi.repository import Gtk, GdkPixbuf
+from gi.repository import Gtk, GdkPixbuf, Gio, GLib
 from copy import deepcopy
 from lxml import etree
 from itertools import count
@@ -237,6 +237,10 @@ class BasicIconGroup(IconFinder):
 		if self.is_double:
 			self.pair = self.get_svg_first(pairdir)
 
+	def cache(self):
+		"""Save current preview icon as text"""
+		with open(self.get_preview(), 'rb') as f: self.preview = f.read()
+
 	def cache_preview(self, cachefile):
 		"""Save current preview icon to temporary file"""
 		with open(self.get_preview(), 'rb') as f:
@@ -393,33 +397,43 @@ class Gradient:
 
 class IconChanger(Parser):
 	"""SVG icon corrector"""
-	def rebuild(*files, gradient, gfilter, data):
-		"""Replace gradient and filter in svg icon file"""
-		new_gradient_tag = gradient.build(data)
-		new_filter_info = gfilter.get()
+	def rebuild(self, *files, gradient, gfilter, data):
+		"""Replace gradient and filter in svg icon files"""
 
 		for icon in files:
-			tree = etree.parse(icon, IconChanger.parser)
+			tree = etree.parse(icon, self.parser)
 			root = tree.getroot()
-
-			XHTML = "{%s}" % root.nsmap[None]
-			# XLINK = "{%s}" % root.nsmap['xlink']
-
-			old_filter_tag = root.find(".//%s*[@id='acyl-filter']" % XHTML)
-			old_visual_tag = root.find(".//%s*[@id='acyl-visual']" % XHTML)
-			old_filter_tag.getparent().replace(old_filter_tag, new_filter_info['filter'])
-			old_visual_tag.getparent().replace(old_visual_tag, new_filter_info['visual'])
-
-			old_gradient_tag = root.find(".//%s*[@id='acyl-gradient']" % XHTML)
-			old_gradient_tag.getparent().replace(old_gradient_tag, new_gradient_tag)
-
+			self.change_root(root, gradient, gfilter, data)
 			tree.write(icon, pretty_print=True)
 
-class PixbufCreator(GdkPixbuf.Pixbuf):
-	"""Advanced pixbuf"""
-	def new_double_from_files_at_size(*files, size):
+	# def change_root(self, root, new_gradient_tag, new_filter_info):
+	def change_root(self, root, gradient, gfilter, data):
+		"""Replace gradient and filter in lxml element"""
+		new_gradient_tag = gradient.build(data)
+		new_filter_info = gfilter.get()
+		XHTML = "{%s}" % root.nsmap[None]
+
+		old_filter_tag = root.find(".//%s*[@id='acyl-filter']" % XHTML)
+		old_visual_tag = root.find(".//%s*[@id='acyl-visual']" % XHTML)
+		old_filter_tag.getparent().replace(old_filter_tag, new_filter_info['filter'])
+		old_visual_tag.getparent().replace(old_visual_tag, new_filter_info['visual'])
+
+		old_gradient_tag = root.find(".//%s*[@id='acyl-gradient']" % XHTML)
+		old_gradient_tag.getparent().replace(old_gradient_tag, new_gradient_tag)
+
+	def rebuild_text(self, text, gradient, gfilter, data):
+		"""Replace gradient and filter in given text"""
+
+		root = etree.fromstring(text, self.parser)
+		self.change_root(root, gradient, gfilter, data)
+		return etree.tostring(root)
+
+
+class PixbufCreator():
+	"""Advanced pixbuf creator"""
+	def new_double_at_size(self, *icons, size):
 		"""Merge two icon in one pixbuf"""
-		pixbuf = [GdkPixbuf.Pixbuf.new_from_file_at_size(f, size, size) for f in files]
+		pixbuf = [self.new_single_at_size(icon, size) for icon in icons]
 
 		GdkPixbuf.Pixbuf.composite(
 			pixbuf[1], pixbuf[0],
@@ -432,6 +446,11 @@ class PixbufCreator(GdkPixbuf.Pixbuf):
 
 		return pixbuf[0]
 
-	def new_single_from_file_at_size(file_, size):
-		"""Alias for creatinng pixbuf from file at size"""
-		return GdkPixbuf.Pixbuf.new_from_file_at_size(file_, size, size)
+	def new_single_at_size(self, icon, size):
+		"""Alias for creatinng pixbuf from file or string at size"""
+		if os.path.isfile(icon):
+			pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(icon, size, size)
+		else:
+			stream = Gio.MemoryInputStream.new_from_bytes(GLib.Bytes.new(icon))
+			pixbuf = GdkPixbuf.Pixbuf.new_from_stream_at_scale(stream, size, size, True)
+		return pixbuf

@@ -6,7 +6,6 @@ single = 196
 autorender = False
 
 [Directories]
-tmpfs = /tmp
 filters = filters
 real = ../scalable/real_icons
 alternatives = ../scalable/alternative_icons

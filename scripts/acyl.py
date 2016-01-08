@@ -8,7 +8,6 @@ if sys.version_info < (3, 0):
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 import shelve
-import tempfile
 import configparser
 from gi.repository import Gtk, Gdk
 from copy import deepcopy
@@ -31,13 +30,14 @@ class ACYL:
 		# Set config files manager
 		self.keeper = common.FileKeeper(DIRS['data']['default'], DIRS['data']['current'])
 
+		# Helpers
+		self.pixcreator = common.PixbufCreator()
+		self.iconchanger = common.IconChanger()
+
 		# Config file setup
 		self.configfile = self.keeper.get("config")
 		self.config = configparser.ConfigParser()
 		self.config.read(self.configfile)
-
-		# Set temporary file for icon preview
-		self.preview_file = tempfile.NamedTemporaryFile(dir=self.config.get("Directories", "tmpfs"), prefix="acyl")
 
 		# Set data file for saving icon render settings
 		# Icon render setting will stored for every icon group separately
@@ -50,7 +50,7 @@ class ACYL:
 
 		# Load icon groups from config file
 		self.icongroups = common.IconGroupCollector(self.config)
-		self.icongroups.current.cache_preview(self.preview_file)
+		self.icongroups.current.cache()
 
 		# Create object for preview render control
 		self.render = common.ActionHandler(self.fullrefresh)
@@ -139,7 +139,7 @@ class ACYL:
 			self.gui['alt_icon_store'].clear()
 
 			for icon in self.alternatives.get_icons(DIG_LEVEL):
-				pixbuf = common.PixbufCreator.new_single_from_file_at_size(icon, self.VIEW_ICON_SIZE)
+				pixbuf = self.pixcreator.new_single_at_size(icon, self.VIEW_ICON_SIZE)
 				self.gui['alt_icon_store'].append([pixbuf])
 
 	def on_iconview_combo_changed(self, combo):
@@ -150,7 +150,7 @@ class ACYL:
 			self.gui['iconview_store'].clear()
 
 			for icon in self.iconview.get_icons(DIG_LEVEL):
-				pixbuf = common.PixbufCreator.new_single_from_file_at_size(icon, self.VIEW_ICON_SIZE)
+				pixbuf = self.pixcreator.new_single_at_size(icon, self.VIEW_ICON_SIZE)
 				self.gui['iconview_store'].append([pixbuf])
 
 	def on_gradient_type_switched(self, combo):
@@ -171,8 +171,6 @@ class ACYL:
 			self.gui['iconview_combo'].emit("changed")
 
 	def on_close_window(self, *args):
-		self.preview_file.close()
-
 		for key in filter(lambda key: key != 'default' and key not in self.icongroups.names, self.db.keys()):
 			del self.db[key]
 			print("Key %s was removed from data store" % key)
@@ -192,10 +190,10 @@ class ACYL:
 	def on_icongroup_combo_changed(self, combo):
 		self.database_write()
 		files = self.icongroups.current.get_test()
-		self.change_icon(*files)
+		self.iconchanger.rebuild(*files, **self.current_state())
 
 		self.icongroups.switch(combo.get_active_text())
-		self.icongroups.current.cache_preview(self.preview_file)
+		self.icongroups.current.cache()
 
 		if self.icongroups.current.is_custom:
 			self.gui['custom_icons_store'].clear()
@@ -260,7 +258,7 @@ class ACYL:
 		self.gui['custom_icons_store'][path][1] = not self.gui['custom_icons_store'][path][1]
 		name = self.gui['custom_icons_store'][path][0].lower()
 		self.icongroups.current.switch_state(name)
-		self.icongroups.current.cache_preview(self.preview_file)
+		self.icongroups.current.cache()
 
 		self.render.run(forced=True)
 
@@ -331,10 +329,9 @@ class ACYL:
 		# Restore curtain GUI elements state from last session
 		self.gui['rtr_button'].set_active(self.config.getboolean("Settings", "autorender"))
 
-	def change_icon(self, *files):
-		"""Rebuild given icons according current GUI state"""
-		common.IconChanger.rebuild(
-			*files,
+	def current_state(self):
+		"""Get current icon settings"""
+		return dict(
 			gradient=self.gradient,
 			gfilter=self.filters.current,
 			data=self.db.get(self.icongroups.current.name, self.db['default'])
@@ -343,7 +340,7 @@ class ACYL:
 	def apply_colors(self, *args):
 		"""Function for apply button on color GUI page"""
 		files = self.icongroups.current.get_real()
-		self.change_icon(*files)
+		self.iconchanger.rebuild(*files, **self.current_state())
 
 	def apply_alternatives(self, *args):
 		"""Function for apply button on alternatives GUI page"""
@@ -353,7 +350,8 @@ class ACYL:
 		"""Refresh icon preview and update data if needed"""
 		if not self.is_preview_locked:
 			if savedata: self.database_write()
-			self.change_icon(self.preview_file.name)
+			state = self.current_state()
+			self.icongroups.current.preview = self.iconchanger.rebuild_text(self.icongroups.current.preview, **state)
 			self.preview_update()
 
 	def database_read(self, keys=['direction', 'colors', 'filter', 'autooffset', 'gradtype']):
@@ -416,13 +414,13 @@ class ACYL:
 	def preview_update(self):
 		"""Update icon preview"""
 		if self.icongroups.current.is_double:
-			icon1, icon2 = self.preview_file.name, self.icongroups.current.pair
+			icon1, icon2 = self.icongroups.current.preview, self.icongroups.current.pair
 			if self.icongroups.current.pairsw:
 				icon1, icon2 = icon2, icon1
 
-			pixbuf = common.PixbufCreator.new_double_from_files_at_size(icon1, icon2, size=self.PREVIEW_ICON_SIZE)
+			pixbuf = self.pixcreator.new_double_at_size(icon1, icon2, size=self.PREVIEW_ICON_SIZE)
 		else:
-			pixbuf = common.PixbufCreator.new_single_from_file_at_size(self.preview_file.name, self.PREVIEW_ICON_SIZE)
+			pixbuf = self.pixcreator.new_single_at_size(self.icongroups.current.preview, self.PREVIEW_ICON_SIZE)
 
 		self.gui['preview_icon'].set_from_pixbuf(pixbuf)
 
