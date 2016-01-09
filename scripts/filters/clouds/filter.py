@@ -9,9 +9,6 @@ class Filter(CustomFilterBase):
 		self.name = "Clouds"
 		self.group = "Overlays"
 
-		gui_elements = ("window", "scale", "octaves", "frequency_x", "frequency_y", "colorbutton")
-		self.gui_load(gui_elements)
-
 		visible_tag = self.dull['visual'].find(".//*[@id='visible1']")
 		turbulence_tag = self.dull['filter'].find(".//*[@id='feTurbulence1']")
 		flood_tag = self.dull['filter'].find(".//*[@id='feFlood1']")
@@ -23,6 +20,14 @@ class Filter(CustomFilterBase):
 		self.param['color'] = FilterParameter(flood_tag, 'flood-color', '(.+)', '%s')
 		self.param['alpha'] = FilterParameter(flood_tag, 'flood-opacity', '(.+)', '%.2f')
 
+		gui_elements = ("window", "scale", "octaves", "frequency_x", "frequency_y", "colorbutton")
+
+		self.on_scale_changed = self.build_plain_handler('scale')
+		self.on_frequency_x_changed = self.build_plain_handler('frequency_x')
+		self.on_frequency_y_changed = self.build_plain_handler('frequency_y')
+		self.on_octaves_changed = self.build_plain_handler('octaves', translate=int)
+
+		self.gui_load(gui_elements)
 		self.gui_setup()
 
 	def gui_setup(self):
@@ -36,11 +41,6 @@ class Filter(CustomFilterBase):
 		rgba.alpha = float(self.param['alpha'].match())
 		self.gui['colorbutton'].set_rgba(rgba)
 
-	def on_scale_changed(self, scale):
-		value = scale.get_value()
-		self.param['scale'].set_value(value)
-		self.render.run(False)
-
 	def on_colorbutton_set(self, widget, *args):
 		rgba = widget.get_rgba()
 		self.param['alpha'].set_value(rgba.alpha)
@@ -48,18 +48,3 @@ class Filter(CustomFilterBase):
 		self.param['color'].set_value(rgba.to_string())
 
 		self.render.run(False, forced=True)
-
-	def on_frequency_x_changed(self, spin):
-		value = spin.get_value()
-		self.param['frequency_x'].set_value(value)
-		self.render.run(False)
-
-	def on_frequency_y_changed(self, spin):
-		value = spin.get_value()
-		self.param['frequency_y'].set_value(value)
-		self.render.run(False)
-
-	def on_octaves_changed(self, scale):
-		value = int(scale.get_value())
-		self.param['octaves'].set_value(value)
-		self.render.run(False)

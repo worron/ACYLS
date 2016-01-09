@@ -9,9 +9,6 @@ class Filter(CustomFilterBase):
 		self.name = "Drop Shadow"
 		self.group = "Shadow"
 
-		gui_elements = ("window", "alpha", "scale", "colorbutton", "blur", "dx", "dy")
-		self.gui_load(gui_elements)
-
 		visible_tag = self.dull['visual'].find(".//*[@id='visible1']")
 		flood_tag = self.dull['filter'].find(".//*[@id='feFlood1']")
 		blur_tag = self.dull['filter'].find(".//*[@id='feGaussianBlur1']")
@@ -24,6 +21,15 @@ class Filter(CustomFilterBase):
 		self.param['scale'] = FilterParameter(visible_tag, 'transform', 'scale\((.+?)\) ', 'scale(%.2f) ')
 		self.param['color'] = FilterParameter(flood_tag, 'flood-color', '(.+)', '%s')
 
+		gui_elements = ("window", "alpha", "scale", "colorbutton", "blur", "dx", "dy")
+
+		self.on_scale_changed = self.build_plain_handler('scale')
+		self.on_dx_changed = self.build_plain_handler('dx')
+		self.on_dy_changed = self.build_plain_handler('dy')
+		self.on_alpha_changed = self.build_plain_handler('alpha')
+		self.on_blur_changed = self.build_plain_handler('blur')
+
+		self.gui_load(gui_elements)
 		self.gui_setup()
 
 	def gui_setup(self):
@@ -41,28 +47,3 @@ class Filter(CustomFilterBase):
 		rgba = widget.get_rgba()
 		self.param['color'].set_value(rgba.to_string())
 		self.render.run(False, forced=True)
-
-	def on_blur_changed(self, scale):
-		value = scale.get_value()
-		self.param['blur'].set_value(value)
-		self.render.run(False)
-
-	def on_alpha_changed(self, scale):
-		value = scale.get_value()
-		self.param['alpha'].set_value(value)
-		self.render.run(False)
-
-	def on_scale_changed(self, scale):
-		value = scale.get_value()
-		self.param['scale'].set_value(value)
-		self.render.run(False)
-
-	def on_dx_changed(self, spin):
-		value = spin.get_value()
-		self.param['dx'].set_value(value)
-		self.render.run(False)
-
-	def on_dy_changed(self, spin):
-		value = spin.get_value()
-		self.param['dy'].set_value(value)
-		self.render.run(False)

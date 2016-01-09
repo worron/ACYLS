@@ -147,6 +147,7 @@ class CustomFilterBase(SimpleFilterBase):
 	def gui_setup(self):
 		raise NotImplementedError("Method 'gui_setup' 'CustomFilterBase' should be defined in subclass")
 
+	# GUI handlers
 	def on_apply_click(self, *args):
 		CustomFilterBase.render.run(False, forced=True)
 
@@ -169,6 +170,26 @@ class CustomFilterBase(SimpleFilterBase):
 	def on_close_window(self, *args):
 		if 'window' in self.gui: self.gui['window'].hide()
 		return True
+
+	# def change_plain(self, widget, parameter):
+	# 	"""Change simple filter parameter according GUI scale widget"""
+	# 	value = widget.get_value()
+	# 	self.param[parameter].set_value(value)
+	# 	self.render.run(False)
+
+	def build_plain_handler(self, *parameters, translate=None):
+		"""Function factory.
+		New handler changing simple filter parameter according GUI scale widget.
+		"""
+		def change_handler(widget):
+			value = widget.get_value()
+			if translate is not None: value = translate(value)
+			for parameter in parameters:
+				self.param[parameter].set_value(value)
+			self.render.run(False)
+
+		return change_handler
+
 
 class FilterCollector(ItemPack):
 	"""Object to load, store and switch between acyl-filters"""

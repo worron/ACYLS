@@ -8,9 +8,6 @@ class Filter(CustomFilterBase):
 		self.name = "Flames"
 		self.group = "Old"
 
-		gui_elements = ("window", "scale", "octaves", "frequency_x", "frequency_y", "blur")
-		self.gui_load(gui_elements)
-
 		visible_tag = self.dull['visual'].find(".//*[@id='visible1']")
 		turbulence_tag = self.dull['filter'].find(".//*[@id='feTurbulence1']")
 		blur_tag = self.dull['filter'].find(".//*[@id='feGaussianBlur1']")
@@ -21,6 +18,15 @@ class Filter(CustomFilterBase):
 		self.param['frequency_x'] = FilterParameter(turbulence_tag, 'baseFrequency', '(.+?) ', '%.2f ')
 		self.param['frequency_y'] = FilterParameter(turbulence_tag, 'baseFrequency', ' (.+)', ' %.2f')
 
+		gui_elements = ("window", "scale", "octaves", "frequency_x", "frequency_y", "blur")
+
+		self.on_scale_changed = self.build_plain_handler('scale')
+		self.on_blur_changed = self.build_plain_handler('blur')
+		self.on_frequency_x_changed = self.build_plain_handler('frequency_x')
+		self.on_frequency_y_changed = self.build_plain_handler('frequency_y')
+		self.on_octaves_changed = self.build_plain_handler('octaves', translate=int)
+
+		self.gui_load(gui_elements)
 		self.gui_setup()
 
 	def gui_setup(self):
@@ -30,27 +36,3 @@ class Filter(CustomFilterBase):
 		self.gui['blur'].set_value(float(self.param['blur'].match()))
 		self.gui['octaves'].set_value(int(self.param['octaves'].match()))
 
-	def on_scale_changed(self, scale):
-		value = scale.get_value()
-		self.param['scale'].set_value(value)
-		self.render.run(False)
-
-	def on_frequency_x_changed(self, spin):
-		value = spin.get_value()
-		self.param['frequency_x'].set_value(value)
-		self.render.run(False)
-
-	def on_frequency_y_changed(self, spin):
-		value = spin.get_value()
-		self.param['frequency_y'].set_value(value)
-		self.render.run(False)
-
-	def on_blur_changed(self, spin):
-		value = spin.get_value()
-		self.param['blur'].set_value(value)
-		self.render.run(False)
-
-	def on_octaves_changed(self, scale):
-		value = int(scale.get_value())
-		self.param['octaves'].set_value(value)
-		self.render.run(False)
