@@ -241,13 +241,6 @@ class BasicIconGroup(IconFinder):
 		"""Save current preview icon as text"""
 		with open(self.get_preview(), 'rb') as f: self.preview = f.read()
 
-	def cache_preview(self, cachefile):
-		"""Save current preview icon to temporary file"""
-		with open(self.get_preview(), 'rb') as f:
-			cachefile.seek(0)
-			cachefile.write(f.read())
-			cachefile.truncate()
-
 	def get_preview(self):
 		"""Get active preview for icon group"""
 		return self.get_svg_first(*self.testdirs)
