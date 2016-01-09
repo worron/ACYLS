@@ -4,7 +4,7 @@ import os
 import sys
 import imp
 
-from gi.repository import Gtk, GdkPixbuf, Gio, GLib
+from gi.repository import Gtk, GdkPixbuf, Gio, GLib, Gdk
 from copy import deepcopy
 from lxml import etree
 from itertools import count
@@ -147,6 +147,7 @@ class CustomFilterBase(SimpleFilterBase):
 	def gui_setup(self):
 		raise NotImplementedError("Method 'gui_setup' 'CustomFilterBase' should be defined in subclass")
 
+	# GUI handlers
 	def on_apply_click(self, *args):
 		CustomFilterBase.render.run(False, forced=True)
 
@@ -169,6 +170,48 @@ class CustomFilterBase(SimpleFilterBase):
 	def on_close_window(self, *args):
 		if 'window' in self.gui: self.gui['window'].hide()
 		return True
+
+	# GUI setup helpers
+	def gui_settler_plain(self, *parameters, translate=float):
+		"""GUI setup helper - simple parameters"""
+		for parameter in parameters:
+			self.gui[parameter].set_value(translate(self.param[parameter].match()))
+
+	def gui_settler_color(self, button, color, alpha=None):
+		"""GUI setup helper - color"""
+		rgba = Gdk.RGBA()
+		rgba.parse(self.param[color].match())
+		if alpha is not None: rgba.alpha = float(self.param[alpha].match())
+		self.gui[button].set_rgba(rgba)
+
+	# Handler generators
+	def build_plain_handler(self, *parameters, translate=None):
+		"""Function factory.
+		New handler changing simple filter parameter according GUI scale widget.
+		"""
+		def change_handler(widget):
+			value = widget.get_value()
+			if translate is not None: value = translate(value)
+			for parameter in parameters:
+				self.param[parameter].set_value(value)
+			self.render.run(False)
+
+		return change_handler
+
+	def build_color_handler(self, color, alpha=None):
+		"""Function factory.
+		New handler changing color filter parameter according GUI colorbutton widget.
+		"""
+		def change_handler(widget):
+			rgba = widget.get_rgba()
+			if alpha is not None:
+				self.param[alpha].set_value(rgba.alpha)
+				rgba.alpha = 1 # dirty trick
+			self.param[color].set_value(rgba.to_string())
+			self.render.run(False, forced=True)
+
+		return change_handler
+
 
 class FilterCollector(ItemPack):
 	"""Object to load, store and switch between acyl-filters"""

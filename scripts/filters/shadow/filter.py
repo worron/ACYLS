@@ -1,6 +1,5 @@
 import os
 from common import FilterParameter, CustomFilterBase
-from gi.repository import Gdk
 
 class Filter(CustomFilterBase):
 
@@ -8,9 +7,6 @@ class Filter(CustomFilterBase):
 		CustomFilterBase.__init__(self, os.path.dirname(__file__))
 		self.name = "Drop Shadow"
 		self.group = "Shadow"
-
-		gui_elements = ("window", "alpha", "scale", "colorbutton", "blur", "dx", "dy")
-		self.gui_load(gui_elements)
 
 		visible_tag = self.dull['visual'].find(".//*[@id='visible1']")
 		flood_tag = self.dull['filter'].find(".//*[@id='feFlood1']")
@@ -24,45 +20,18 @@ class Filter(CustomFilterBase):
 		self.param['scale'] = FilterParameter(visible_tag, 'transform', 'scale\((.+?)\) ', 'scale(%.2f) ')
 		self.param['color'] = FilterParameter(flood_tag, 'flood-color', '(.+)', '%s')
 
+		gui_elements = ("window", "alpha", "scale", "colorbutton", "blur", "dx", "dy")
+
+		self.on_scale_changed = self.build_plain_handler('scale')
+		self.on_dx_changed = self.build_plain_handler('dx')
+		self.on_dy_changed = self.build_plain_handler('dy')
+		self.on_alpha_changed = self.build_plain_handler('alpha')
+		self.on_blur_changed = self.build_plain_handler('blur')
+		self.on_colorbutton_set = self.build_color_handler('color')
+
+		self.gui_load(gui_elements)
 		self.gui_setup()
 
 	def gui_setup(self):
-		self.gui['scale'].set_value(float(self.param['scale'].match()))
-		self.gui['alpha'].set_value(float(self.param['alpha'].match()))
-		self.gui['blur'].set_value(float(self.param['blur'].match()))
-		self.gui['dx'].set_value(float(self.param['dx'].match()))
-		self.gui['dy'].set_value(float(self.param['dy'].match()))
-
-		rgba = Gdk.RGBA()
-		rgba.parse(self.param['color'].match())
-		self.gui['colorbutton'].set_rgba(rgba)
-
-	def on_colorbutton_set(self, widget, *args):
-		rgba = widget.get_rgba()
-		self.param['color'].set_value(rgba.to_string())
-		self.render.run(False, forced=True)
-
-	def on_blur_changed(self, scale):
-		value = scale.get_value()
-		self.param['blur'].set_value(value)
-		self.render.run(False)
-
-	def on_alpha_changed(self, scale):
-		value = scale.get_value()
-		self.param['alpha'].set_value(value)
-		self.render.run(False)
-
-	def on_scale_changed(self, scale):
-		value = scale.get_value()
-		self.param['scale'].set_value(value)
-		self.render.run(False)
-
-	def on_dx_changed(self, spin):
-		value = spin.get_value()
-		self.param['dx'].set_value(value)
-		self.render.run(False)
-
-	def on_dy_changed(self, spin):
-		value = spin.get_value()
-		self.param['dy'].set_value(value)
-		self.render.run(False)
+		self.gui_settler_plain('scale', 'alpha', 'blur', 'dx', 'dy')
+		self.gui_settler_color('colorbutton', 'color')
