@@ -98,12 +98,12 @@
               </packing>
             </child>
             <child>
-              <object class="GtkColorButton" id="fill_colorbutton">
+              <object class="GtkColorButton" id="colorbutton">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="use_alpha">True</property>
-                <signal name="color-set" handler="on_bg_colorbutton_set" swapped="no"/>
+                <signal name="color-set" handler="on_colorbutton_set" swapped="no"/>
               </object>
               <packing>
                 <property name="left_attach">2</property>

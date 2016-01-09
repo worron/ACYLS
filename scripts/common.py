@@ -171,12 +171,7 @@ class CustomFilterBase(SimpleFilterBase):
 		if 'window' in self.gui: self.gui['window'].hide()
 		return True
 
-	# def change_plain(self, widget, parameter):
-	# 	"""Change simple filter parameter according GUI scale widget"""
-	# 	value = widget.get_value()
-	# 	self.param[parameter].set_value(value)
-	# 	self.render.run(False)
-
+	# Handler generators
 	def build_plain_handler(self, *parameters, translate=None):
 		"""Function factory.
 		New handler changing simple filter parameter according GUI scale widget.
@@ -187,6 +182,20 @@ class CustomFilterBase(SimpleFilterBase):
 			for parameter in parameters:
 				self.param[parameter].set_value(value)
 			self.render.run(False)
+
+		return change_handler
+
+	def build_color_handler(self, color, alpha=None):
+		"""Function factory.
+		New handler changing color filter parameter according GUI colorbutton widget.
+		"""
+		def change_handler(widget):
+			rgba = widget.get_rgba()
+			if alpha is not None:
+				self.param[alpha].set_value(rgba.alpha)
+				rgba.alpha = 1 # dirty trick
+			self.param[color].set_value(rgba.to_string())
+			self.render.run(False, forced=True)
 
 		return change_handler
 

@@ -28,6 +28,7 @@ class Filter(CustomFilterBase):
 		self.on_dy_changed = self.build_plain_handler('dy')
 		self.on_alpha_changed = self.build_plain_handler('alpha')
 		self.on_blur_changed = self.build_plain_handler('blur')
+		self.on_colorbutton_set = self.build_color_handler('color')
 
 		self.gui_load(gui_elements)
 		self.gui_setup()
@@ -42,8 +43,3 @@ class Filter(CustomFilterBase):
 		rgba = Gdk.RGBA()
 		rgba.parse(self.param['color'].match())
 		self.gui['colorbutton'].set_rgba(rgba)
-
-	def on_colorbutton_set(self, widget, *args):
-		rgba = widget.get_rgba()
-		self.param['color'].set_value(rgba.to_string())
-		self.render.run(False, forced=True)

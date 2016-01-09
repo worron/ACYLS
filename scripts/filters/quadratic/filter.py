@@ -16,14 +16,15 @@ class Filter(CustomFilterBase):
 		self.param['scale'] = FilterParameter(visible_tag, 'transform', 'scale\((.+?)\) ', 'scale(%.2f) ')
 		self.param['rx'] = FilterParameter(visible_tag, 'rx', '(.+)', '%.1f')
 		self.param['ry'] = FilterParameter(visible_tag, 'ry', '(.+)', '%.1f')
-		self.param['fill_color'] = FilterParameter(support2_tag, 'style', '(rgb\(.+?\));', '%s;')
-		self.param['fill_alpha'] = FilterParameter(support2_tag, 'style', 'fill-opacity:(.+)', 'fill-opacity:%.2f')
+		self.param['color'] = FilterParameter(support2_tag, 'style', '(rgb\(.+?\));', '%s;')
+		self.param['alpha'] = FilterParameter(support2_tag, 'style', 'fill-opacity:(.+)', 'fill-opacity:%.2f')
 
-		gui_elements = ("window", "scale", "scale_icon", "radius", "fill_colorbutton")
+		gui_elements = ("window", "scale", "scale_icon", "radius", "colorbutton")
 
 		self.on_scale_changed = self.build_plain_handler('scale')
 		self.on_scale_icon_changed = self.build_plain_handler('scale_icon')
 		self.on_radius_changed = self.build_plain_handler('rx', 'ry')
+		self.on_colorbutton_set = self.build_color_handler('color', 'alpha')
 
 		self.gui_load(gui_elements)
 		self.gui_setup()
@@ -34,14 +35,6 @@ class Filter(CustomFilterBase):
 		self.gui['radius'].set_value(float(self.param['rx'].match()))
 
 		rgba = Gdk.RGBA()
-		rgba.parse(self.param['fill_color'].match())
-		rgba.alpha = float(self.param['fill_alpha'].match())
-		self.gui['fill_colorbutton'].set_rgba(rgba)
-
-	def on_bg_colorbutton_set(self, widget, *args):
-		rgba = widget.get_rgba()
-		self.param['fill_alpha'].set_value(rgba.alpha)
-		rgba.alpha = 1 # dirty trick
-		self.param['fill_color'].set_value(rgba.to_string())
-
-		self.render.run(False, forced=True)
+		rgba.parse(self.param['color'].match())
+		rgba.alpha = float(self.param['alpha'].match())
+		self.gui['colorbutton'].set_rgba(rgba)

@@ -26,6 +26,7 @@ class Filter(CustomFilterBase):
 		self.on_frequency_x_changed = self.build_plain_handler('frequency_x')
 		self.on_frequency_y_changed = self.build_plain_handler('frequency_y')
 		self.on_octaves_changed = self.build_plain_handler('octaves', translate=int)
+		self.on_colorbutton_set = self.build_color_handler('color', 'alpha')
 
 		self.gui_load(gui_elements)
 		self.gui_setup()
@@ -40,11 +41,3 @@ class Filter(CustomFilterBase):
 		rgba.parse(self.param['color'].match())
 		rgba.alpha = float(self.param['alpha'].match())
 		self.gui['colorbutton'].set_rgba(rgba)
-
-	def on_colorbutton_set(self, widget, *args):
-		rgba = widget.get_rgba()
-		self.param['alpha'].set_value(rgba.alpha)
-		rgba.alpha = 1 # dirty trick
-		self.param['color'].set_value(rgba.to_string())
-
-		self.render.run(False, forced=True)
