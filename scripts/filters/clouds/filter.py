@@ -1,6 +1,5 @@
 import os
 from common import FilterParameter, CustomFilterBase
-from gi.repository import Gdk
 
 class Filter(CustomFilterBase):
 
@@ -32,12 +31,6 @@ class Filter(CustomFilterBase):
 		self.gui_setup()
 
 	def gui_setup(self):
-		self.gui['scale'].set_value(float(self.param['scale'].match()))
-		self.gui['frequency_x'].set_value(float(self.param['frequency_x'].match()))
-		self.gui['frequency_y'].set_value(float(self.param['frequency_y'].match()))
-		self.gui['octaves'].set_value(int(self.param['octaves'].match()))
-
-		rgba = Gdk.RGBA()
-		rgba.parse(self.param['color'].match())
-		rgba.alpha = float(self.param['alpha'].match())
-		self.gui['colorbutton'].set_rgba(rgba)
+		self.gui_settler_plain('scale', 'frequency_x', 'frequency_y')
+		self.gui_settler_plain('octaves', translate=int)
+		self.gui_settler_color('colorbutton', 'color', 'alpha')

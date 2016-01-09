@@ -31,8 +31,5 @@ class Filter(CustomFilterBase):
 		self.gui_setup()
 
 	def gui_setup(self):
-		self.gui['scale'].set_value(float(self.param['scale'].match()))
-		self.gui['frequency_x'].set_value(float(self.param['frequency_x'].match()))
-		self.gui['frequency_y'].set_value(float(self.param['frequency_y'].match()))
-		self.gui['octaves_x'].set_value(int(self.param['octaves_x'].match()))
-		self.gui['octaves_y'].set_value(int(self.param['octaves_y'].match()))
+		self.gui_settler_plain('scale', 'frequency_x', 'frequency_y')
+		self.gui_settler_plain('octaves_x', 'octaves_x', translate=int)

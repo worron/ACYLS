@@ -4,7 +4,7 @@ import os
 import sys
 import imp
 
-from gi.repository import Gtk, GdkPixbuf, Gio, GLib
+from gi.repository import Gtk, GdkPixbuf, Gio, GLib, Gdk
 from copy import deepcopy
 from lxml import etree
 from itertools import count
@@ -170,6 +170,19 @@ class CustomFilterBase(SimpleFilterBase):
 	def on_close_window(self, *args):
 		if 'window' in self.gui: self.gui['window'].hide()
 		return True
+
+	# GUI setup helpers
+	def gui_settler_plain(self, *parameters, translate=float):
+		"""GUI setup helper - simple parameters"""
+		for parameter in parameters:
+			self.gui[parameter].set_value(translate(self.param[parameter].match()))
+
+	def gui_settler_color(self, button, color, alpha=None):
+		"""GUI setup helper - color"""
+		rgba = Gdk.RGBA()
+		rgba.parse(self.param[color].match())
+		if alpha is not None: rgba.alpha = float(self.param[alpha].match())
+		self.gui[button].set_rgba(rgba)
 
 	# Handler generators
 	def build_plain_handler(self, *parameters, translate=None):

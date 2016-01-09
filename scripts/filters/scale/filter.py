@@ -18,4 +18,4 @@ class Filter(CustomFilterBase):
 		self.gui_setup()
 
 	def gui_setup(self):
-		self.gui['scale'].set_value(float(self.param['scale'].match()))
+		self.gui_settler_plain('scale')
