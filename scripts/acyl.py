@@ -9,8 +9,10 @@ os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 import shelve
 import configparser
-from gi.repository import Gtk, Gdk
+from gi.repository import Gtk, Gdk, GObject, GLib
 from copy import deepcopy
+import threading
+import time
 
 import common
 
@@ -24,8 +26,46 @@ Gtk.StyleContext.add_provider_for_screen(
 )
 
 DIRS = dict(data = {'current': "data/current", 'default': "data/default"})
+# GObject.threads_init()
 
 class ACYL:
+	lock = threading.Lock()
+
+	def spinner(handler):
+		# inst = None
+		def action(*args, **kwargs):
+			inst = args[0]
+			post_process_action = None
+			inst.gui['window'].get_window().set_cursor(Gdk.Cursor(Gdk.CursorType.WATCH))
+			with ACYL.lock:
+				try:
+					# nonlocal post_process_action
+					post_process_action = handler(*args, **kwargs)
+					GLib.idle_add(on_done, post_process_action)
+				except Exception as e:
+					print("Error in multithreading:\n%s" % str(e))
+				finally:
+					inst.gui['window'].get_window().set_cursor(None)
+			# post_process_action = handler(*args, **kwargs)
+			# GLib.idle_add(on_done, post_process_action)
+			# GLib.idle_add(on_done, inst)
+
+		def on_done(post_process_action):
+			# pass
+			# inst.gui['window'].get_window().set_cursor(None)
+			if callable(post_process_action): post_process_action()
+
+		def wrapper(*args, **kwargs):
+			# nonlocal inst
+			# inst = args[0]
+			# inst.gui['window'].get_window().set_cursor(Gdk.Cursor(Gdk.CursorType.WATCH))
+
+			thread = threading.Thread(target=action, args=args, kwargs=kwargs)
+			thread.daemon = True
+			thread.start()
+
+		return wrapper
+
 	def __init__(self):
 		# Set config files manager
 		self.keeper = common.FileKeeper(DIRS['data']['default'], DIRS['data']['current'])
@@ -80,6 +120,7 @@ class ACYL:
 		self.color_selected = None
 		self.state_buffer = None
 		self.is_preview_locked = False
+		self.pageindex = 0
 
 		self.PREVIEW_ICON_SIZE = int(self.config.get("PreviewSize", "single"))
 		self.VIEW_ICON_SIZE = int(self.config.get("PreviewSize", "group"))
@@ -90,7 +131,7 @@ class ACYL:
 		self.OFFSET = 2
 		self.RGBCOLOR = 3
 
-		# Activate GUI
+		# ACTIVATE GUI
 		self.gui['window'].show_all()
 		self.fill_up_gui()
 
@@ -142,16 +183,30 @@ class ACYL:
 				pixbuf = self.pixcreator.new_single_at_size(icon, self.VIEW_ICON_SIZE)
 				self.gui['alt_icon_store'].append([pixbuf])
 
+	@spinner
 	def on_iconview_combo_changed(self, combo):
 		DIG_LEVEL = 1
 		text = combo.get_active_text()
 		if text:
 			self.iconview.dig(text.lower(), DIG_LEVEL)
-			self.gui['iconview_store'].clear()
+			# self.gui['iconview_store'].clear()
 
-			for icon in self.iconview.get_icons(DIG_LEVEL):
-				pixbuf = self.pixcreator.new_single_at_size(icon, self.VIEW_ICON_SIZE)
-				self.gui['iconview_store'].append([pixbuf])
+			# for icon in self.iconview.get_icons(DIG_LEVEL):
+			# 	pixbuf = self.pixcreator.new_single_at_size(icon, self.VIEW_ICON_SIZE)
+				# self.gui['iconview_store'].append([pixbuf])
+
+			icons = self.iconview.get_icons(DIG_LEVEL)
+			pixbufs = [self.pixcreator.new_single_at_size(icon, self.VIEW_ICON_SIZE) for icon in icons]
+
+			# Because of trouble with Gtk threading
+			# Heavy GUI action catched in seperate function and moved to main thread
+			# Should be fixed if possible
+			def update_gui_with_new_icons():
+				self.gui['iconview_store'].clear()
+				for pix in pixbufs: self.gui['iconview_store'].append([pix])
+
+			# update_gui_with_new_icons()
+			return update_gui_with_new_icons
 
 	def on_gradient_type_switched(self, combo):
 		self.gradient.set_tag(combo.get_active_text())
@@ -160,8 +215,9 @@ class ACYL:
 
 	def on_page_changed(self, nb, page, page_index):
 		COLORS, ALTERNATIVES, ICONVIEW = 0, 1, 2
-		apply_action = self.apply_colors if page_index == COLORS else self.apply_alternatives
-		self.gui['apply_button'].connect("clicked", apply_action)
+		# apply_action = self.apply_colors if page_index == COLORS else self.apply_alternatives
+		# self.gui['apply_button'].connect("clicked", apply_action)
+		self.pageindex = page_index
 		self.gui['refresh_button'].set_sensitive(page_index == COLORS and not self.render.is_allowed)
 		self.gui['apply_button'].set_sensitive(page_index in (COLORS, ALTERNATIVES))
 
@@ -341,14 +397,33 @@ class ACYL:
 			data=self.db.get(self.icongroups.current.name, self.db['default'])
 		)
 
-	def apply_colors(self, *args):
-		"""Function for apply button on color GUI page"""
-		files = self.icongroups.current.get_real()
-		self.iconchanger.rebuild(*files, **self.current_state())
+	# @spinner
+	# def change(self, *files, **state):
+	# 	self.iconchanger.rebuild(*files, **state)
 
-	def apply_alternatives(self, *args):
-		"""Function for apply button on alternatives GUI page"""
-		self.alternatives.send_icons(2, self.config.get("Directories", "real"))
+	@spinner
+	def on_apply_click(self, *args):
+		"""Function for apply button"""
+		if self.pageindex == 0:
+			files = self.icongroups.current.get_real()
+			self.iconchanger.rebuild(*files, **self.current_state())
+		else:
+			self.alternatives.send_icons(2, self.config.get("Directories", "real"))
+
+	# @spinner
+	# def apply_colors(self, *args):
+	# 	"""Function for apply button on color GUI page"""
+	# 	files = self.icongroups.current.get_real()
+		# state = self.current_state()
+		# @spinner
+		# def change():
+		# 	self.iconchanger.rebuild(*files, **state)
+		# self.change(*files, **state)
+		# self.iconchanger.rebuild(*files, **self.current_state())
+
+	# def apply_alternatives(self, *args):
+	# 	"""Function for apply button on alternatives GUI page"""
+	# 	self.alternatives.send_icons(2, self.config.get("Directories", "real"))
 
 	def fullrefresh(self, savedata=True):
 		"""Refresh icon preview and update data if needed"""

@@ -442,7 +442,6 @@ class IconChanger(Parser):
 			self.change_root(root, gradient, gfilter, data)
 			tree.write(icon, pretty_print=True)
 
-	# def change_root(self, root, new_gradient_tag, new_filter_info):
 	def change_root(self, root, gradient, gfilter, data):
 		"""Replace gradient and filter in lxml element"""
 		new_gradient_tag = gradient.build(data)
@@ -459,7 +458,6 @@ class IconChanger(Parser):
 
 	def rebuild_text(self, text, gradient, gfilter, data):
 		"""Replace gradient and filter in given text"""
-
 		root = etree.fromstring(text, self.parser)
 		self.change_root(root, gradient, gfilter, data)
 		return etree.tostring(root)
