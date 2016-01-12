@@ -10,19 +10,19 @@
     <property name="page_increment">10</property>
   </object>
   <object class="GtkAdjustment" id="composite_k1_adjustment">
-    <property name="upper">1</property>
+    <property name="upper">2</property>
     <property name="value">0.10000000000000001</property>
     <property name="step_increment">0.10000000000000001</property>
     <property name="page_increment">10</property>
   </object>
   <object class="GtkAdjustment" id="composite_k2_adjustment">
-    <property name="upper">1</property>
+    <property name="upper">2</property>
     <property name="value">0.10000000000000001</property>
     <property name="step_increment">0.10000000000000001</property>
     <property name="page_increment">10</property>
   </object>
   <object class="GtkAdjustment" id="composite_k3_adjustment">
-    <property name="upper">1</property>
+    <property name="upper">2</property>
     <property name="value">0.10000000000000001</property>
     <property name="step_increment">0.10000000000000001</property>
     <property name="page_increment">10</property>
