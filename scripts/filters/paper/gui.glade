@@ -68,24 +68,6 @@
             <property name="row_spacing">8</property>
             <property name="column_spacing">8</property>
             <child>
-              <object class="GtkScale" id="octaves">
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="hexpand">True</property>
-                <property name="adjustment">octaves_adjustment</property>
-                <property name="round_digits">0</property>
-                <property name="digits">0</property>
-                <property name="value_pos">left</property>
-                <signal name="value-changed" handler="on_octaves_changed" swapped="no"/>
-              </object>
-              <packing>
-                <property name="left_attach">1</property>
-                <property name="top_attach">0</property>
-                <property name="width">1</property>
-                <property name="height">1</property>
-              </packing>
-            </child>
-            <child>
               <object class="GtkLabel" id="width_label">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
@@ -250,6 +232,20 @@
                 <property name="left_attach">1</property>
                 <property name="top_attach">3</property>
                 <property name="width">3</property>
+                <property name="height">1</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkSpinButton" id="octaves">
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="adjustment">octaves_adjustment</property>
+                <signal name="value-changed" handler="on_octaves_changed" swapped="no"/>
+              </object>
+              <packing>
+                <property name="left_attach">1</property>
+                <property name="top_attach">0</property>
+                <property name="width">1</property>
                 <property name="height">1</property>
               </packing>
             </child>
