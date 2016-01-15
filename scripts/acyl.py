@@ -32,9 +32,9 @@ class ACYL:
 	def spinner(handler):
 		"""Multithread decorator"""
 		def action(*args, **kwargs):
-			inst = args[0]
-			inst.gui['window'].get_window().set_cursor(Gdk.Cursor(Gdk.CursorType.WATCH))
 			with ACYL.lock:
+				inst = args[0]
+				inst.gui['window'].get_window().set_cursor(Gdk.Cursor(Gdk.CursorType.WATCH))
 				try:
 					post_process_action = handler(*args, **kwargs)
 					GLib.idle_add(on_done, post_process_action)
@@ -280,7 +280,7 @@ class ACYL:
 
 	def on_color_change(self, *args):
 		rgba = self.gui['color_selector'].get_current_rgba()
-		self.gui['color_list_store'].set_value(self.color_selected, self.HEXCOLOR, self.hex_from_rgba(rgba))
+		self.gui['color_list_store'].set_value(self.color_selected, self.HEXCOLOR, self.pixcreator.hex_from_rgba(rgba))
 		self.gui['color_list_store'].set_value(self.color_selected, self.ALPHA, rgba.alpha)
 		self.gui['color_list_store'].set_value(self.color_selected, self.RGBCOLOR, rgba.to_string())
 		self.render.run()
@@ -299,7 +299,7 @@ class ACYL:
 
 	def on_add_offset_button_click(self, *args):
 		rgba = self.gui['color_selector'].get_current_rgba()
-		hexcolor = self.hex_from_rgba(rgba)
+		hexcolor = self.pixcreator.hex_from_rgba(rgba)
 		self.gui['color_list_store'].append([hexcolor, rgba.alpha, 100, rgba.to_string()])
 
 	def on_remove_offset_button_click(self, *args):
@@ -471,10 +471,6 @@ class ACYL:
 				row[self.OFFSET] = i * step
 		elif rownum == 1:
 			self.gui['color_list_store'][0][self.OFFSET] = 100
-
-	def hex_from_rgba(self, rgba):
-		"""Translate color from Gdk.RGBA to html hex format"""
-		return "#%02X%02X%02X" % tuple([getattr(rgba, name) * 255 for name in ("red", "green", "blue")])
 
 if __name__ == "__main__":
 	main = ACYL()

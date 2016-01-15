@@ -11,7 +11,8 @@ from itertools import count
 
 class IconFinder:
 	"""SVG icon seach"""
-	def get_svg_all(self, *dirlist):
+	@staticmethod
+	def get_svg_all(*dirlist):
 		"""Find all SVG icon in directories"""
 		filelist = []
 		for path in dirlist:
@@ -19,7 +20,8 @@ class IconFinder:
 				filelist.extend([os.path.join(root, name) for name in files if name.endswith('.svg')])
 		return filelist
 
-	def get_svg_first(self, *dirlist):
+	@staticmethod
+	def get_svg_first(*dirlist):
 		"""Find first SVG icon in directories"""
 		for path in dirlist:
 			for root, _, files in os.walk(path):
@@ -480,7 +482,8 @@ class PixbufCreator():
 
 		return pixbuf[0]
 
-	def new_single_at_size(self, icon, size):
+	@staticmethod
+	def new_single_at_size(icon, size):
 		"""Alias for creatinng pixbuf from file or string at size"""
 		if os.path.isfile(icon):
 			pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(icon, size, size)
@@ -488,3 +491,8 @@ class PixbufCreator():
 			stream = Gio.MemoryInputStream.new_from_bytes(GLib.Bytes.new(icon))
 			pixbuf = GdkPixbuf.Pixbuf.new_from_stream_at_scale(stream, size, size, True)
 		return pixbuf
+
+	@staticmethod
+	def hex_from_rgba(rgba):
+		"""Translate color from Gdk.RGBA to html hex format"""
+		return "#%02X%02X%02X" % tuple([getattr(rgba, name) * 255 for name in ("red", "green", "blue")])
