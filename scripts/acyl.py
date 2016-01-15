@@ -8,10 +8,10 @@ if sys.version_info < (3, 0):
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 import shelve
-import tempfile
 import configparser
-from gi.repository import Gtk, Gdk
+from gi.repository import Gtk, Gdk, GObject, GLib
 from copy import deepcopy
+import threading
 
 import common
 
@@ -27,17 +27,44 @@ Gtk.StyleContext.add_provider_for_screen(
 DIRS = dict(data = {'current': "data/current", 'default': "data/default"})
 
 class ACYL:
+	lock = threading.Lock()
+
+	def spinner(handler):
+		"""Multithread decorator"""
+		def action(*args, **kwargs):
+			inst = args[0]
+			inst.gui['window'].get_window().set_cursor(Gdk.Cursor(Gdk.CursorType.WATCH))
+			with ACYL.lock:
+				try:
+					post_process_action = handler(*args, **kwargs)
+					GLib.idle_add(on_done, post_process_action)
+				except Exception as e:
+					print("Error in multithreading:\n%s" % str(e))
+				finally:
+					inst.gui['window'].get_window().set_cursor(None)
+
+		def on_done(post_process_action):
+			if callable(post_process_action): post_process_action()
+
+		def wrapper(*args, **kwargs):
+			thread = threading.Thread(target=action, args=args, kwargs=kwargs)
+			thread.daemon = True
+			thread.start()
+
+		return wrapper
+
 	def __init__(self):
 		# Set config files manager
 		self.keeper = common.FileKeeper(DIRS['data']['default'], DIRS['data']['current'])
+
+		# Helpers
+		self.pixcreator = common.PixbufCreator()
+		self.iconchanger = common.IconChanger()
 
 		# Config file setup
 		self.configfile = self.keeper.get("config")
 		self.config = configparser.ConfigParser()
 		self.config.read(self.configfile)
-
-		# Set temporary file for icon preview
-		self.preview_file = tempfile.NamedTemporaryFile(dir=self.config.get("Directories", "tmpfs"), prefix="acyl")
 
 		# Set data file for saving icon render settings
 		# Icon render setting will stored for every icon group separately
@@ -50,7 +77,7 @@ class ACYL:
 
 		# Load icon groups from config file
 		self.icongroups = common.IconGroupCollector(self.config)
-		self.icongroups.current.cache_preview(self.preview_file)
+		self.icongroups.current.cache()
 
 		# Create object for preview render control
 		self.render = common.ActionHandler(self.fullrefresh)
@@ -71,14 +98,16 @@ class ACYL:
 			'offset_scale', 'offset_switch', 'alt_group_combo', 'alt_theme_combo', 'gradient_combo',
 			'filters_combo', 'iconview_combo', 'icongroup_combo', 'alt_icon_store', 'iconview_store',
 			'custom_icon_tree_view', 'refresh_button', 'filter_settings_button', 'apply_button',
-			'custom_icons_store', 'color_selector', 'notebook', 'rtr_button'
+			'custom_icons_store', 'color_selector', 'notebook', 'rtr_button', 'filter_group_combo'
 		)
 
 		self.gui = {element: self.builder.get_object(element) for element in gui_elements}
 
 		# Other
 		self.color_selected = None
+		self.state_buffer = None
 		self.is_preview_locked = False
+		self.pageindex = 0
 
 		self.PREVIEW_ICON_SIZE = int(self.config.get("PreviewSize", "single"))
 		self.VIEW_ICON_SIZE = int(self.config.get("PreviewSize", "group"))
@@ -89,7 +118,7 @@ class ACYL:
 		self.OFFSET = 2
 		self.RGBCOLOR = 3
 
-		# Activate GUI
+		# ACTIVATE GUI
 		self.gui['window'].show_all()
 		self.fill_up_gui()
 
@@ -100,12 +129,25 @@ class ACYL:
 		self.config.set("Settings", "autorender", str(self.render.is_allowed))
 		self.render.run(forced=True)
 
-	def on_filter_combo_changed(self, combo):
-		self.filters.switch(combo.get_active_text())
-		self.gui['filter_settings_button'].set_sensitive(self.filters.current.is_custom)
-		self.database_write(['filter'])
+	def on_filter_group_combo_changed(self, combo):
+		group = combo.get_active_text()
+		self.filters.set_group(group)
 
-		self.fullrefresh(savedata=False)
+		self.gui['filters_combo'].remove_all()
+		for name in self.filters.names:
+			self.gui['filters_combo'].append_text(name)
+
+		if not self.is_preview_locked:
+			self.gui['filters_combo'].set_active(0)
+
+	def on_filter_combo_changed(self, combo):
+		name = combo.get_active_text()
+		if name is not None:
+			self.filters.switch(name)
+			self.gui['filter_settings_button'].set_sensitive(self.filters.current.is_custom)
+			self.database_write(['filter'])
+
+			self.fullrefresh(savedata=False)
 
 	def on_alt_group_combo_changed(self, combo):
 		DIG_LEVEL = 1
@@ -125,19 +167,27 @@ class ACYL:
 			self.gui['alt_icon_store'].clear()
 
 			for icon in self.alternatives.get_icons(DIG_LEVEL):
-				pixbuf = common.PixbufCreator.new_single_from_file_at_size(icon, self.VIEW_ICON_SIZE)
+				pixbuf = self.pixcreator.new_single_at_size(icon, self.VIEW_ICON_SIZE)
 				self.gui['alt_icon_store'].append([pixbuf])
 
+	@spinner
 	def on_iconview_combo_changed(self, combo):
 		DIG_LEVEL = 1
 		text = combo.get_active_text()
 		if text:
 			self.iconview.dig(text.lower(), DIG_LEVEL)
-			self.gui['iconview_store'].clear()
 
-			for icon in self.iconview.get_icons(DIG_LEVEL):
-				pixbuf = common.PixbufCreator.new_single_from_file_at_size(icon, self.VIEW_ICON_SIZE)
-				self.gui['iconview_store'].append([pixbuf])
+			icons = self.iconview.get_icons(DIG_LEVEL)
+			pixbufs = [self.pixcreator.new_single_at_size(icon, self.VIEW_ICON_SIZE) for icon in icons]
+
+			# Because of trouble with Gtk threading
+			# Heavy GUI action catched in seperate function and moved to main thread
+			# Should be fixed if possible
+			def update_gui_with_new_icons():
+				self.gui['iconview_store'].clear()
+				for pix in pixbufs: self.gui['iconview_store'].append([pix])
+
+			return update_gui_with_new_icons
 
 	def on_gradient_type_switched(self, combo):
 		self.gradient.set_tag(combo.get_active_text())
@@ -146,8 +196,7 @@ class ACYL:
 
 	def on_page_changed(self, nb, page, page_index):
 		COLORS, ALTERNATIVES, ICONVIEW = 0, 1, 2
-		apply_action = self.apply_colors if page_index == COLORS else self.apply_alternatives
-		self.gui['apply_button'].connect("clicked", apply_action)
+		self.pageindex = page_index
 		self.gui['refresh_button'].set_sensitive(page_index == COLORS and not self.render.is_allowed)
 		self.gui['apply_button'].set_sensitive(page_index in (COLORS, ALTERNATIVES))
 
@@ -157,8 +206,6 @@ class ACYL:
 			self.gui['iconview_combo'].emit("changed")
 
 	def on_close_window(self, *args):
-		self.preview_file.close()
-
 		for key in filter(lambda key: key != 'default' and key not in self.icongroups.names, self.db.keys()):
 			del self.db[key]
 			print("Key %s was removed from data store" % key)
@@ -178,10 +225,10 @@ class ACYL:
 	def on_icongroup_combo_changed(self, combo):
 		self.database_write()
 		files = self.icongroups.current.get_test()
-		self.change_icon(*files)
+		self.iconchanger.rebuild(*files, **self.current_state())
 
 		self.icongroups.switch(combo.get_active_text())
-		self.icongroups.current.cache_preview(self.preview_file)
+		self.icongroups.current.cache()
 
 		if self.icongroups.current.is_custom:
 			self.gui['custom_icons_store'].clear()
@@ -246,7 +293,7 @@ class ACYL:
 		self.gui['custom_icons_store'][path][1] = not self.gui['custom_icons_store'][path][1]
 		name = self.gui['custom_icons_store'][path][0].lower()
 		self.icongroups.current.switch_state(name)
-		self.icongroups.current.cache_preview(self.preview_file)
+		self.icongroups.current.cache()
 
 		self.render.run(forced=True)
 
@@ -258,6 +305,25 @@ class ACYL:
 	def on_remove_offset_button_click(self, *args):
 		if len(self.gui['color_list_store']) > 1:
 			self.gui['color_list_store'].remove(self.color_selected)
+
+	def on_copy_settings_button_click(self, *args):
+		self.state_buffer = deepcopy(self.db[self.icongroups.current.name])
+
+	def on_paste_settings_button_click(self, *args):
+		self.db[self.icongroups.current.name] = deepcopy(self.state_buffer)
+		self.database_read()
+
+	def on_reset_settings_button_click(self, *args):
+		self.db[self.icongroups.current.name] = deepcopy(self.db['default'])
+		self.database_read()
+
+	@spinner
+	def on_apply_click(self, *args):
+		if self.pageindex == 0:
+			files = self.icongroups.current.get_real()
+			self.iconchanger.rebuild(*files, **self.current_state())
+		else:
+			self.alternatives.send_icons(2, self.config.get("Directories", "real"))
 
 	# Support methods
 	def fill_up_gui(self):
@@ -272,11 +338,12 @@ class ACYL:
 					self.gui['custom_icons_store'].append([key.capitalize(), value])
 				break
 
-		# Filters list
-		for name in self.filters.names:
-			self.gui['filters_combo'].append_text(name)
+		# Filter groups
+		for group in self.filters.groupnames:
+			self.gui['filter_group_combo'].append_text(group)
+		# self.gui['filter_group_combo'].set_active(0)
 
-		# Gradient type list
+		# gradient type list
 		for tag in sorted(common.Gradient.profiles):
 			self.gui['gradient_combo'].append_text(tag)
 		self.gui['gradient_combo'].set_active(0)
@@ -309,29 +376,20 @@ class ACYL:
 		# Restore curtain GUI elements state from last session
 		self.gui['rtr_button'].set_active(self.config.getboolean("Settings", "autorender"))
 
-	def change_icon(self, *files):
-		"""Rebuild given icons according current GUI state"""
-		common.IconChanger.rebuild(
-			*files,
+	def current_state(self):
+		"""Get current icon settings"""
+		return dict(
 			gradient=self.gradient,
-			gfilter = self.filters.current,
-			data = self.db.get(self.icongroups.current.name, self.db['default'])
+			gfilter=self.filters.current,
+			data=self.db.get(self.icongroups.current.name, self.db['default'])
 		)
-
-	def apply_colors(self, *args):
-		"""Function for apply button on color GUI page"""
-		files = self.icongroups.current.get_real()
-		self.change_icon(*files)
-
-	def apply_alternatives(self, *args):
-		"""Function for apply button on alternatives GUI page"""
-		self.alternatives.send_icons(2, self.config.get("Directories", "real"))
 
 	def fullrefresh(self, savedata=True):
 		"""Refresh icon preview and update data if needed"""
 		if not self.is_preview_locked:
 			if savedata: self.database_write()
-			self.change_icon(self.preview_file.name)
+			state = self.current_state()
+			self.icongroups.current.preview = self.iconchanger.rebuild_text(self.icongroups.current.preview, **state)
 			self.preview_update()
 
 	def database_read(self, keys=['direction', 'colors', 'filter', 'autooffset', 'gradtype']):
@@ -354,12 +412,14 @@ class ACYL:
 			self.gui['offset_switch'].set_active(not self.db[section]['autooffset'])
 
 		if 'gradtype' in keys:
-			self.gui['gradient_combo'].set_active(self.gradient.profile['index'])
+			self.gui['gradient_combo'].set_active(common.Gradient.profiles[self.db[section]['gradtype']]['index'])
 
 		if 'filter' in keys:
 			filter_ = self.db[section]['filter']
-			self.gui['filters_combo'].set_active(
-				self.filters.names.index(filter_) if filter_ in self.filters.names else 0)
+			self.gui['filter_group_combo'].set_active(self.filters.get_group_index(filter_))
+
+			filter_index = self.filters.names.index(filter_) if filter_ in self.filters.names else 0
+			self.gui['filters_combo'].set_active(filter_index)
 
 		self.is_preview_locked = False
 		self.fullrefresh(savedata=False)
@@ -392,13 +452,13 @@ class ACYL:
 	def preview_update(self):
 		"""Update icon preview"""
 		if self.icongroups.current.is_double:
-			icon1, icon2 = self.preview_file.name, self.icongroups.current.pair
+			icon1, icon2 = self.icongroups.current.preview, self.icongroups.current.pair
 			if self.icongroups.current.pairsw:
 				icon1, icon2 = icon2, icon1
 
-			pixbuf = common.PixbufCreator.new_double_from_files_at_size(icon1, icon2, size=self.PREVIEW_ICON_SIZE)
+			pixbuf = self.pixcreator.new_double_at_size(icon1, icon2, size=self.PREVIEW_ICON_SIZE)
 		else:
-			pixbuf = common.PixbufCreator.new_single_from_file_at_size(self.preview_file.name, self.PREVIEW_ICON_SIZE)
+			pixbuf = self.pixcreator.new_single_at_size(self.icongroups.current.preview, self.PREVIEW_ICON_SIZE)
 
 		self.gui['preview_icon'].set_from_pixbuf(pixbuf)
 

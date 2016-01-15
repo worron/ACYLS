@@ -5,4 +5,4 @@ class Filter(SimpleFilterBase):
 
 	def __init__(self, *args):
 		SimpleFilterBase.__init__(self, os.path.dirname(__file__))
-		self.name = "Empty"
+		self.name = "Disabled"

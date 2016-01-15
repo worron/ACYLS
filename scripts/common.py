@@ -4,7 +4,7 @@ import os
 import sys
 import imp
 
-from gi.repository import Gtk, GdkPixbuf
+from gi.repository import Gtk, GdkPixbuf, Gio, GLib, Gdk
 from copy import deepcopy
 from lxml import etree
 from itertools import count
@@ -93,6 +93,7 @@ class FilterParameter:
 class SimpleFilterBase(Parser):
 	"""Base class for simple filter with fixes parameters."""
 	def __init__(self, sourse_path):
+		self.group = "General"
 		self.is_custom = False
 		self.path = sourse_path
 		self.fstore = os.path.join(sourse_path, "filter.xml")
@@ -126,7 +127,7 @@ class CustomFilterBase(SimpleFilterBase):
 		if CustomFilterBase.render is None:
 			raise NotImplementedError(
 				"Attribbute 'render' of 'CustomFilterBase' should be defined before subclass init")
-		return object.__new__(cls,*args,**kargs)
+		return object.__new__(cls, *args, **kargs)
 
 	def __init__(self, sourse_path):
 		SimpleFilterBase.__init__(self, sourse_path)
@@ -140,9 +141,13 @@ class CustomFilterBase(SimpleFilterBase):
 		self.builder.connect_signals(self)
 		self.gui = {name: self.builder.get_object(name) for name in gui_elements}
 
+		# May cause exeption but should be catched by FilterCollector
+		self.gui['window'].set_property("title", "ACYL Filter - %s" % self.name)
+
 	def gui_setup(self):
 		raise NotImplementedError("Method 'gui_setup' 'CustomFilterBase' should be defined in subclass")
 
+	# GUI handlers
 	def on_apply_click(self, *args):
 		CustomFilterBase.render.run(False, forced=True)
 
@@ -166,22 +171,84 @@ class CustomFilterBase(SimpleFilterBase):
 		if 'window' in self.gui: self.gui['window'].hide()
 		return True
 
+	# GUI setup helpers
+	def gui_settler_plain(self, *parameters, translate=float):
+		"""GUI setup helper - simple parameters"""
+		for parameter in parameters:
+			self.gui[parameter].set_value(translate(self.param[parameter].match()))
+
+	def gui_settler_color(self, button, color, alpha=None):
+		"""GUI setup helper - color"""
+		rgba = Gdk.RGBA()
+		rgba.parse(self.param[color].match())
+		if alpha is not None: rgba.alpha = float(self.param[alpha].match())
+		self.gui[button].set_rgba(rgba)
+
+	# Handler generators
+	def build_plain_handler(self, *parameters, translate=None):
+		"""Function factory.
+		New handler changing simple filter parameter according GUI scale widget.
+		"""
+		def change_handler(widget):
+			value = widget.get_value()
+			if translate is not None: value = translate(value)
+			for parameter in parameters:
+				self.param[parameter].set_value(value)
+			self.render.run(False)
+
+		return change_handler
+
+	def build_color_handler(self, color, alpha=None):
+		"""Function factory.
+		New handler changing color filter parameter according GUI colorbutton widget.
+		"""
+		def change_handler(widget):
+			rgba = widget.get_rgba()
+			if alpha is not None:
+				self.param[alpha].set_value(rgba.alpha)
+				rgba.alpha = 1 # dirty trick
+			self.param[color].set_value(rgba.to_string())
+			self.render.run(False, forced=True)
+
+		return change_handler
+
+
 class FilterCollector(ItemPack):
 	"""Object to load, store and switch between acyl-filters"""
-	def __init__(self, path, filename='filter.py', default='Empty'):
-		self.pack = dict()
+	def __init__(self, path, filename='filter.py', dfilter='Disabled', dgroup='General'):
+		self.default_filter = dfilter
+		self.default_group = dgroup
+		self.groups = dict()
 
 		for root, _, files in os.walk(path):
 			if filename in files:
 				try:
 					module=imp.load_source(filename.split('.')[0], os.path.join(root, filename))
 					filter_ = module.Filter()
-					self.pack[filter_.name] = filter_
+					self.add(filter_)
 				except Exception:
 					print("Fail to load filter from %s" % root)
 
-		self.build_names(sortkey=lambda key: 1 if key == default else 2)
+		self.groupnames = list(self.groups.keys())
+		self.groupnames.sort(key=lambda key: 1 if key == self.default_group else 2)
+		self.set_group(self.groupnames[0])
 
+	def add(self, filter_):
+		group = filter_.group
+		if group in self.groups:
+			self.groups[group].update({filter_.name: filter_})
+		else:
+			self.groups[group] = {filter_.name: filter_}
+
+	def set_group(self, group):
+		self.pack = self.groups[group]
+		self.build_names(sortkey=lambda key: 1 if key == self.default_filter else 2)
+
+	def get_group_index(self, name):
+		for group, names in self.groups.items():
+			if name in names: return self.groupnames.index(group)
+		else:
+			return 0
 
 class FileKeeper:
 	"""Helper to work with user files.
@@ -213,12 +280,9 @@ class BasicIconGroup(IconFinder):
 		if self.is_double:
 			self.pair = self.get_svg_first(pairdir)
 
-	def cache_preview(self, cachefile):
-		"""Save current preview icon to temporary file"""
-		with open(self.get_preview(), 'rb') as f:
-			cachefile.seek(0)
-			cachefile.write(f.read())
-			cachefile.truncate()
+	def cache(self):
+		"""Save current preview icon as text"""
+		with open(self.get_preview(), 'rb') as f: self.preview = f.read()
 
 	def get_preview(self):
 		"""Get active preview for icon group"""
@@ -369,33 +433,41 @@ class Gradient:
 
 class IconChanger(Parser):
 	"""SVG icon corrector"""
-	def rebuild(*files, gradient, gfilter, data):
-		"""Replace gradient and filter in svg icon file"""
-		new_gradient_tag = gradient.build(data)
-		new_filter_info = gfilter.get()
+	def rebuild(self, *files, gradient, gfilter, data):
+		"""Replace gradient and filter in svg icon files"""
 
 		for icon in files:
-			tree = etree.parse(icon, IconChanger.parser)
+			tree = etree.parse(icon, self.parser)
 			root = tree.getroot()
-
-			XHTML = "{%s}" % root.nsmap[None]
-			# XLINK = "{%s}" % root.nsmap['xlink']
-
-			old_filter_tag = root.find(".//%s*[@id='acyl-filter']" % XHTML)
-			old_visual_tag = root.find(".//%s*[@id='acyl-visual']" % XHTML)
-			old_filter_tag.getparent().replace(old_filter_tag, new_filter_info['filter'])
-			old_visual_tag.getparent().replace(old_visual_tag, new_filter_info['visual'])
-
-			old_gradient_tag = root.find(".//%s*[@id='acyl-gradient']" % XHTML)
-			old_gradient_tag.getparent().replace(old_gradient_tag, new_gradient_tag)
-
+			self.change_root(root, gradient, gfilter, data)
 			tree.write(icon, pretty_print=True)
 
-class PixbufCreator(GdkPixbuf.Pixbuf):
-	"""Advanced pixbuf"""
-	def new_double_from_files_at_size(*files, size):
+	def change_root(self, root, gradient, gfilter, data):
+		"""Replace gradient and filter in lxml element"""
+		new_gradient_tag = gradient.build(data)
+		new_filter_info = gfilter.get()
+		XHTML = "{%s}" % root.nsmap[None]
+
+		old_filter_tag = root.find(".//%s*[@id='acyl-filter']" % XHTML)
+		old_visual_tag = root.find(".//%s*[@id='acyl-visual']" % XHTML)
+		old_filter_tag.getparent().replace(old_filter_tag, new_filter_info['filter'])
+		old_visual_tag.getparent().replace(old_visual_tag, new_filter_info['visual'])
+
+		old_gradient_tag = root.find(".//%s*[@id='acyl-gradient']" % XHTML)
+		old_gradient_tag.getparent().replace(old_gradient_tag, new_gradient_tag)
+
+	def rebuild_text(self, text, gradient, gfilter, data):
+		"""Replace gradient and filter in given text"""
+		root = etree.fromstring(text, self.parser)
+		self.change_root(root, gradient, gfilter, data)
+		return etree.tostring(root)
+
+
+class PixbufCreator():
+	"""Advanced pixbuf creator"""
+	def new_double_at_size(self, *icons, size):
 		"""Merge two icon in one pixbuf"""
-		pixbuf = [GdkPixbuf.Pixbuf.new_from_file_at_size(f, size, size) for f in files]
+		pixbuf = [self.new_single_at_size(icon, size) for icon in icons]
 
 		GdkPixbuf.Pixbuf.composite(
 			pixbuf[1], pixbuf[0],
@@ -408,6 +480,11 @@ class PixbufCreator(GdkPixbuf.Pixbuf):
 
 		return pixbuf[0]
 
-	def new_single_from_file_at_size(file_, size):
-		"""Alias for creatinng pixbuf from file at size"""
-		return GdkPixbuf.Pixbuf.new_from_file_at_size(file_, size, size)
+	def new_single_at_size(self, icon, size):
+		"""Alias for creatinng pixbuf from file or string at size"""
+		if os.path.isfile(icon):
+			pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(icon, size, size)
+		else:
+			stream = Gio.MemoryInputStream.new_from_bytes(GLib.Bytes.new(icon))
+			pixbuf = GdkPixbuf.Pixbuf.new_from_stream_at_scale(stream, size, size, True)
+		return pixbuf

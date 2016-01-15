@@ -2,17 +2,30 @@
 <!-- Generated with glade 3.16.1 -->
 <interface>
   <requires lib="gtk+" version="3.10"/>
+  <object class="GtkAdjustment" id="radius_adjustment">
+    <property name="lower">1</property>
+    <property name="upper">24</property>
+    <property name="value">4</property>
+    <property name="step_increment">0.5</property>
+    <property name="page_increment">10</property>
+  </object>
   <object class="GtkAdjustment" id="scale_adjustment">
-    <property name="lower">0.10000000000000001</property>
+    <property name="lower">0.34999999999999998</property>
     <property name="upper">1</property>
     <property name="value">1</property>
     <property name="step_increment">0.050000000000000003</property>
   </object>
-  <object class="GtkAdjustment" id="width_adjustment">
+  <object class="GtkAdjustment" id="scale_icon_adjustment">
     <property name="lower">0.10000000000000001</property>
-    <property name="upper">4</property>
-    <property name="value">2</property>
+    <property name="upper">1.1000000000000001</property>
+    <property name="value">1</property>
+    <property name="step_increment">0.050000000000000003</property>
+  </object>
+  <object class="GtkAdjustment" id="stroke_width_adjustment">
+    <property name="upper">20</property>
+    <property name="value">1</property>
     <property name="step_increment">0.10000000000000001</property>
+    <property name="page_increment">10</property>
   </object>
   <object class="GtkWindow" id="window">
     <property name="width_request">400</property>
@@ -36,14 +49,28 @@
             <property name="row_spacing">8</property>
             <property name="column_spacing">8</property>
             <child>
-              <object class="GtkScale" id="width">
+              <object class="GtkColorButton" id="colorbutton">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
-                <property name="hexpand">True</property>
-                <property name="adjustment">width_adjustment</property>
+                <property name="receives_default">True</property>
+                <property name="use_alpha">True</property>
+                <signal name="color-set" handler="on_colorbutton_set" swapped="no"/>
+              </object>
+              <packing>
+                <property name="left_attach">2</property>
+                <property name="top_attach">0</property>
+                <property name="width">1</property>
+                <property name="height">4</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkScale" id="radius">
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="adjustment">radius_adjustment</property>
                 <property name="round_digits">1</property>
                 <property name="value_pos">left</property>
-                <signal name="value-changed" handler="on_width_changed" swapped="no"/>
+                <signal name="value-changed" handler="on_radius_changed" swapped="no"/>
               </object>
               <packing>
                 <property name="left_attach">1</property>
@@ -53,17 +80,31 @@
               </packing>
             </child>
             <child>
-              <object class="GtkLabel" id="width_label">
+              <object class="GtkLabel" id="radius_label">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="halign">start</property>
-                <property name="label" translatable="yes">Width:</property>
+                <property name="label" translatable="yes">Radius:</property>
               </object>
               <packing>
                 <property name="left_attach">0</property>
                 <property name="top_attach">0</property>
                 <property name="width">1</property>
                 <property name="height">1</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkColorButton" id="stroke_colorbutton">
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="use_alpha">True</property>
+                <signal name="color-set" handler="on_stroke_colorbutton_set" swapped="no"/>
+              </object>
+              <packing>
+                <property name="left_attach">3</property>
+                <property name="top_attach">0</property>
+                <property name="width">1</property>
+                <property name="height">4</property>
               </packing>
             </child>
             <child>
@@ -75,7 +116,7 @@
               </object>
               <packing>
                 <property name="left_attach">0</property>
-                <property name="top_attach">1</property>
+                <property name="top_attach">3</property>
                 <property name="width">1</property>
                 <property name="height">1</property>
               </packing>
@@ -92,24 +133,71 @@
               </object>
               <packing>
                 <property name="left_attach">1</property>
+                <property name="top_attach">3</property>
+                <property name="width">1</property>
+                <property name="height">1</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel" id="width_label">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="halign">start</property>
+                <property name="label" translatable="yes">Image:</property>
+              </object>
+              <packing>
+                <property name="left_attach">0</property>
+                <property name="top_attach">2</property>
+                <property name="width">1</property>
+                <property name="height">1</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkScale" id="scale_icon">
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="hexpand">True</property>
+                <property name="adjustment">scale_icon_adjustment</property>
+                <property name="round_digits">2</property>
+                <property name="digits">2</property>
+                <property name="value_pos">left</property>
+                <signal name="value-changed" handler="on_scale_icon_changed" swapped="no"/>
+              </object>
+              <packing>
+                <property name="left_attach">1</property>
+                <property name="top_attach">2</property>
+                <property name="width">1</property>
+                <property name="height">1</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkScale" id="stroke_width">
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="adjustment">stroke_width_adjustment</property>
+                <property name="round_digits">1</property>
+                <property name="value_pos">left</property>
+                <signal name="value-changed" handler="on_stroke_width_changed" swapped="no"/>
+              </object>
+              <packing>
+                <property name="left_attach">1</property>
                 <property name="top_attach">1</property>
                 <property name="width">1</property>
                 <property name="height">1</property>
               </packing>
             </child>
             <child>
-              <object class="GtkColorButton" id="colorbutton">
+              <object class="GtkLabel" id="stroke_width_label">
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <property name="use_alpha">True</property>
-                <signal name="color-set" handler="on_colorbutton_set" swapped="no"/>
+                <property name="can_focus">False</property>
+                <property name="halign">start</property>
+                <property name="label" translatable="yes">Width:</property>
               </object>
               <packing>
-                <property name="left_attach">2</property>
-                <property name="top_attach">0</property>
+                <property name="left_attach">0</property>
+                <property name="top_attach">1</property>
                 <property name="width">1</property>
-                <property name="height">2</property>
+                <property name="height">1</property>
               </packing>
             </child>
           </object>
