@@ -3,6 +3,7 @@ import re
 import os
 import sys
 import imp
+import shelve
 
 from gi.repository import Gtk, GdkPixbuf, Gio, GLib, Gdk
 from copy import deepcopy
@@ -60,6 +61,32 @@ class ActionHandler:
 		"""Try to action"""
 		if self.is_allowed or forced: self.action(*args)
 
+class DataStore:
+	"""Shelve database handler"""
+	def __init__(self, dbfile, dsection='default'):
+		self.db = shelve.open(dbfile, writeback=True)
+		self.dsection = dsection
+		self.setkeys = list(self.db[dsection].keys())
+
+	def get_dump(self, section):
+		if section not in self.db: self.db[section] = deepcopy(self.db[self.dsection])
+		return self.db[section]
+
+	def update(self, section, data):
+		self.db[section] = deepcopy(data)
+
+	def reset(self, section):
+		self.db[section] = deepcopy(self.db[self.dsection])
+
+	def get_key(self, section, key):
+		return self.db[section][key]
+
+	def clear(self, current_groups):
+		for section in filter(lambda key: key != self.dsection and key not in current_groups, self.db.keys()):
+			del self.db[secttion]
+
+	def close(self):
+		self.db.close()
 
 class FilterParameter:
 	"""Helper to find, change, save and restore certain value in xml tag attrubute.
