@@ -314,6 +314,31 @@ class ACYL:
 		self.database.reset(self.icongroups.current.name)
 		self.read_gui_setting_from_base()
 
+	def on_save_settings_button_click(self, *args):
+		filechooser = Gtk.FileChooserDialog(
+			"Save ACYL settings", self.gui['window'], Gtk.FileChooserAction.SAVE,
+			(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_SAVE, Gtk.ResponseType.OK)
+		)
+
+		response = filechooser.run()
+		if response == Gtk.ResponseType.OK:
+			self.database.save_to_file(filechooser.get_filename())
+
+		filechooser.destroy()
+
+	def on_open_settings_button_click(self, *args):
+		filechooser = Gtk.FileChooserDialog(
+			"Load ACYL settings from file", self.gui['window'], Gtk.FileChooserAction.OPEN,
+			(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_OPEN, Gtk.ResponseType.OK)
+		)
+
+		response = filechooser.run()
+		if response == Gtk.ResponseType.OK:
+			self.database.load_from_file(filechooser.get_filename())
+			self.read_gui_setting_from_base()
+
+		filechooser.destroy()
+
 	@spinner
 	def on_apply_click(self, *args):
 		if self.pageindex == 0:

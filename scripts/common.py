@@ -81,6 +81,20 @@ class DataStore:
 	def get_key(self, section, key):
 		return self.db[section][key]
 
+	def save_to_file(self, dbfile):
+		try:
+			with shelve.open(dbfile) as newdb:
+				for key in self.db: newdb[key] = self.db[key]
+		except Exception as e:
+			print("Fail to save settings to file:\n%s" % str(e))
+
+	def load_from_file(self, dbfile):
+		try:
+			with shelve.open(dbfile) as newdb:
+				for key in newdb: self.db[key] = newdb[key]
+		except Exception as e:
+			print("Fail to load settings from file:\n%s" % str(e))
+
 	def clear(self, current_groups):
 		for section in filter(lambda key: key != self.dsection and key not in current_groups, self.db.keys()):
 			del self.db[secttion]
