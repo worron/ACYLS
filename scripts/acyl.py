@@ -23,7 +23,7 @@ Gtk.StyleContext.add_provider_for_screen(
 	Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
 )
 
-DIRS = dict(data = {'current': "data/current", 'default': "data/default"})
+DIRS = dict(data = {'user': "data/user", 'default': "data/default"})
 
 class ACYL:
 	lock = threading.Lock()
@@ -54,7 +54,7 @@ class ACYL:
 
 	def __init__(self):
 		# Set config files manager
-		self.keeper = common.FileKeeper(DIRS['data']['default'], DIRS['data']['current'])
+		self.keeper = common.FileKeeper(DIRS['data']['default'], DIRS['data']['user'])
 
 		# Helpers
 		self.pixcreator = common.PixbufCreator()
@@ -67,8 +67,11 @@ class ACYL:
 
 		# Set data file for saving icon render settings
 		# Icon render setting will stored for every icon group separately
-		self.dbfile = self.keeper.get("store")
+		self.dbfile = self.keeper.get("store.acyl")
 		self.database = common.DataStore(self.dbfile)
+
+		# File dialog
+		self.filechooser = common.FileChooser(DIRS['data']['user'])
 
 		# Create objects for alternative and real icon full prewiew
 		self.iconview = common.Prospector(self.config.get("Directories", "real"))
@@ -315,29 +318,14 @@ class ACYL:
 		self.read_gui_setting_from_base()
 
 	def on_save_settings_button_click(self, *args):
-		filechooser = Gtk.FileChooserDialog(
-			"Save ACYL settings", self.gui['window'], Gtk.FileChooserAction.SAVE,
-			(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_SAVE, Gtk.ResponseType.OK)
-		)
-
-		response = filechooser.run()
-		if response == Gtk.ResponseType.OK:
-			self.database.save_to_file(filechooser.get_filename())
-
-		filechooser.destroy()
+		is_ok, file_ = self.filechooser.save()
+		if is_ok: self.database.save_to_file(file_)
 
 	def on_open_settings_button_click(self, *args):
-		filechooser = Gtk.FileChooserDialog(
-			"Load ACYL settings from file", self.gui['window'], Gtk.FileChooserAction.OPEN,
-			(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_OPEN, Gtk.ResponseType.OK)
-		)
-
-		response = filechooser.run()
-		if response == Gtk.ResponseType.OK:
-			self.database.load_from_file(filechooser.get_filename())
+		is_ok, file_ = self.filechooser.load()
+		if is_ok:
+			self.database.load_from_file(file_)
 			self.read_gui_setting_from_base()
-
-		filechooser.destroy()
 
 	@spinner
 	def on_apply_click(self, *args):
@@ -462,9 +450,6 @@ class ACYL:
 			dump['colors'] = [list(row) for row in self.gui['color_list_store']]
 		if 'direction' in keys:
 			dump['direction'][self.gradient.tag] = [list(row) for row in self.gui['direction_list_store']]
-
-		# if 'filtername' in dump: del dump['filtername']
-		# self.db['default'] = deepcopy(self.db['Custom'])
 
 	def preview_update(self):
 		"""Update icon preview"""
