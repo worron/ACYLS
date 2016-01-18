@@ -76,7 +76,7 @@
                 <property name="left_attach">3</property>
                 <property name="top_attach">0</property>
                 <property name="width">1</property>
-                <property name="height">3</property>
+                <property name="height">2</property>
               </packing>
             </child>
             <child>
@@ -127,6 +127,7 @@
               <object class="GtkSpinButton" id="stop_alpha">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
+                <property name="hexpand">True</property>
                 <property name="adjustment">stop_alpha_adjustment</property>
                 <property name="digits">2</property>
                 <signal name="value-changed" handler="on_stop_alpha_changed" swapped="no"/>
@@ -142,6 +143,7 @@
               <object class="GtkSpinButton" id="reflex_scale">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
+                <property name="hexpand">True</property>
                 <property name="adjustment">reflex_scale_adjustment</property>
                 <property name="digits">1</property>
                 <signal name="value-changed" handler="on_reflex_scale_changed" swapped="no"/>
@@ -242,7 +244,7 @@
               <packing>
                 <property name="left_attach">1</property>
                 <property name="top_attach">2</property>
-                <property name="width">2</property>
+                <property name="width">3</property>
                 <property name="height">1</property>
               </packing>
             </child>

@@ -64,7 +64,7 @@
               </object>
               <packing>
                 <property name="left_attach">0</property>
-                <property name="top_attach">2</property>
+                <property name="top_attach">3</property>
                 <property name="width">1</property>
                 <property name="height">1</property>
               </packing>
@@ -81,8 +81,8 @@
               </object>
               <packing>
                 <property name="left_attach">1</property>
-                <property name="top_attach">2</property>
-                <property name="width">1</property>
+                <property name="top_attach">3</property>
+                <property name="width">3</property>
                 <property name="height">1</property>
               </packing>
             </child>
@@ -90,7 +90,6 @@
               <object class="GtkScale" id="alpha">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
-                <property name="hexpand">True</property>
                 <property name="adjustment">alpha_adjustment</property>
                 <property name="round_digits">2</property>
                 <property name="digits">2</property>
@@ -99,8 +98,8 @@
               </object>
               <packing>
                 <property name="left_attach">1</property>
-                <property name="top_attach">1</property>
-                <property name="width">1</property>
+                <property name="top_attach">2</property>
+                <property name="width">3</property>
                 <property name="height">1</property>
               </packing>
             </child>
@@ -113,7 +112,7 @@
               </object>
               <packing>
                 <property name="left_attach">0</property>
-                <property name="top_attach">1</property>
+                <property name="top_attach">2</property>
                 <property name="width">1</property>
                 <property name="height">1</property>
               </packing>
@@ -126,7 +125,7 @@
               </object>
               <packing>
                 <property name="left_attach">0</property>
-                <property name="top_attach">0</property>
+                <property name="top_attach">1</property>
                 <property name="width">1</property>
                 <property name="height">1</property>
               </packing>
@@ -135,6 +134,7 @@
               <object class="GtkScale" id="blur">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
+                <property name="hexpand">True</property>
                 <property name="adjustment">blur_adjustment</property>
                 <property name="round_digits">1</property>
                 <property name="value_pos">left</property>
@@ -142,6 +142,20 @@
               </object>
               <packing>
                 <property name="left_attach">1</property>
+                <property name="top_attach">1</property>
+                <property name="width">2</property>
+                <property name="height">1</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel" id="offset_label">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="halign">start</property>
+                <property name="label" translatable="yes">Offset:</property>
+              </object>
+              <packing>
+                <property name="left_attach">0</property>
                 <property name="top_attach">0</property>
                 <property name="width">1</property>
                 <property name="height">1</property>
@@ -156,66 +170,40 @@
                 <signal name="color-set" handler="on_colorbutton_set" swapped="no"/>
               </object>
               <packing>
-                <property name="left_attach">2</property>
+                <property name="left_attach">3</property>
                 <property name="top_attach">0</property>
                 <property name="width">1</property>
-                <property name="height">4</property>
+                <property name="height">2</property>
               </packing>
             </child>
             <child>
-              <object class="GtkLabel" id="offset_label">
+              <object class="GtkSpinButton" id="dx">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="halign">start</property>
-                <property name="label" translatable="yes">Offset:</property>
+                <property name="can_focus">True</property>
+                <property name="adjustment">dx_adjustment</property>
+                <property name="digits">1</property>
+                <property name="value">2</property>
+                <signal name="value-changed" handler="on_dx_changed" swapped="no"/>
               </object>
               <packing>
-                <property name="left_attach">0</property>
-                <property name="top_attach">3</property>
+                <property name="left_attach">1</property>
+                <property name="top_attach">0</property>
                 <property name="width">1</property>
                 <property name="height">1</property>
               </packing>
             </child>
             <child>
-              <object class="GtkBox" id="d_box">
+              <object class="GtkSpinButton" id="dy">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="spacing">8</property>
-                <child>
-                  <object class="GtkSpinButton" id="dy">
-                    <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="adjustment">dy_adjustment</property>
-                    <property name="digits">1</property>
-                    <property name="value">2</property>
-                    <signal name="value-changed" handler="on_dy_changed" swapped="no"/>
-                  </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">True</property>
-                    <property name="pack_type">end</property>
-                    <property name="position">0</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkSpinButton" id="dx">
-                    <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="adjustment">dx_adjustment</property>
-                    <property name="digits">1</property>
-                    <property name="value">2</property>
-                    <signal name="value-changed" handler="on_dx_changed" swapped="no"/>
-                  </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">True</property>
-                    <property name="position">1</property>
-                  </packing>
-                </child>
+                <property name="can_focus">True</property>
+                <property name="adjustment">dy_adjustment</property>
+                <property name="digits">1</property>
+                <property name="value">2</property>
+                <signal name="value-changed" handler="on_dy_changed" swapped="no"/>
               </object>
               <packing>
-                <property name="left_attach">1</property>
-                <property name="top_attach">3</property>
+                <property name="left_attach">2</property>
+                <property name="top_attach">0</property>
                 <property name="width">1</property>
                 <property name="height">1</property>
               </packing>

@@ -3,6 +3,7 @@ import re
 import os
 import sys
 import imp
+import shelve
 
 from gi.repository import Gtk, GdkPixbuf, Gio, GLib, Gdk
 from copy import deepcopy
@@ -11,7 +12,8 @@ from itertools import count
 
 class IconFinder:
 	"""SVG icon seach"""
-	def get_svg_all(self, *dirlist):
+	@staticmethod
+	def get_svg_all(*dirlist):
 		"""Find all SVG icon in directories"""
 		filelist = []
 		for path in dirlist:
@@ -19,7 +21,8 @@ class IconFinder:
 				filelist.extend([os.path.join(root, name) for name in files if name.endswith('.svg')])
 		return filelist
 
-	def get_svg_first(self, *dirlist):
+	@staticmethod
+	def get_svg_first(*dirlist):
 		"""Find first SVG icon in directories"""
 		for path in dirlist:
 			for root, _, files in os.walk(path):
@@ -58,6 +61,82 @@ class ActionHandler:
 		"""Try to action"""
 		if self.is_allowed or forced: self.action(*args)
 
+class DataStore:
+	"""Shelve database handler"""
+	def __init__(self, dbfile, dsection='default'):
+		self.db = shelve.open(dbfile, writeback=True)
+		self.dsection = dsection
+		self.setkeys = list(self.db[dsection].keys())
+
+	def get_dump(self, section):
+		if section not in self.db: self.db[section] = deepcopy(self.db[self.dsection])
+		return self.db[section]
+
+	def update(self, section, data):
+		self.db[section] = deepcopy(data)
+
+	def reset(self, section):
+		self.db[section] = deepcopy(self.db[self.dsection])
+
+	def get_key(self, section, key):
+		return self.db[section][key]
+
+	def save_to_file(self, dbfile):
+		try:
+			with shelve.open(dbfile) as newdb:
+				for key in self.db: newdb[key] = self.db[key]
+		except Exception as e:
+			print("Fail to save settings to file:\n%s" % str(e))
+
+	def load_from_file(self, dbfile):
+		try:
+			with shelve.open(dbfile) as newdb:
+				for key in newdb: self.db[key] = newdb[key]
+		except Exception as e:
+			print("Fail to load settings from file:\n%s" % str(e))
+
+	def clear(self, current_groups):
+		for section in filter(lambda key: key != self.dsection and key not in current_groups, self.db.keys()):
+			del self.db[secttion]
+
+	def close(self):
+		self.db.close()
+
+
+class FileChooser:
+	"""File selection helper based on Gtk file dialog"""
+	DIALOGS_PROFILE = dict(
+		save = (
+			"Save ACYL settings", None, Gtk.FileChooserAction.SAVE,
+			(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_SAVE, Gtk.ResponseType.OK)
+		),
+		load = (
+			"Load ACYL settings from file", None, Gtk.FileChooserAction.OPEN,
+			(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_OPEN, Gtk.ResponseType.OK)
+		)
+	)
+
+	def build_dialog_action(name):
+		def action(self):
+			response = self.dialogs[name].run()
+			file_ = self.dialogs[name].get_filename()
+
+			self.dialogs[name].hide()
+			self.dialogs[name].set_current_folder(self.dialogs[name].get_current_folder())
+
+			return response == Gtk.ResponseType.OK, file_
+		return action
+
+	def __init__(self, start_folder):
+		self.dialogs = dict()
+		for name, args in self.DIALOGS_PROFILE.items():
+			self.dialogs[name] = Gtk.FileChooserDialog(*args)
+			self.dialogs[name].set_current_folder(start_folder)
+
+		self.dialogs['save'].set_current_name("custom.acyl")
+
+	load = build_dialog_action('load')
+	save = build_dialog_action('save')
 
 class FilterParameter:
 	"""Helper to find, change, save and restore certain value in xml tag attrubute.
@@ -268,9 +347,10 @@ class FileKeeper:
 
 class BasicIconGroup(IconFinder):
 	"""Object with fixed list of real and preview pathes for icon group"""
-	def __init__(self, name, testdirs, realdirs, pairdir=None, pairsw=False, index=0):
+	def __init__(self, name, emptydir, testdirs, realdirs, pairdir=None, pairsw=False, index=0):
 		self.name = name
 		self.index = index
+		self.emptydir = emptydir
 		self.testdirs = testdirs
 		self.realdirs = realdirs
 		self.is_custom = False
@@ -286,7 +366,8 @@ class BasicIconGroup(IconFinder):
 
 	def get_preview(self):
 		"""Get active preview for icon group"""
-		return self.get_svg_first(*self.testdirs)
+		preview_icon = self.get_svg_first(*self.testdirs)
+		return preview_icon if preview_icon else self.get_svg_first(self.emptydir)
 
 	def get_real(self):
 		"""Get list of all real icons for group"""
@@ -300,11 +381,10 @@ class BasicIconGroup(IconFinder):
 class CustomIconGroup(BasicIconGroup):
 	"""Object with customizible list of real and preview pathes for icon group"""
 	def __init__(self, name, emptydir, testbase, realbase, pairdir=None, pairsw=False, index=0):
-		BasicIconGroup.__init__(self, name, [], [], pairdir, pairsw, index)
+		BasicIconGroup.__init__(self, name, emptydir, [], [], pairdir, pairsw, index)
 		self.is_custom = True
 		self.testbase = testbase
 		self.realbase = realbase
-		self.emptydir = emptydir
 		self.state = dict.fromkeys(next(os.walk(testbase))[1], False)
 
 	def switch_state(self, name):
@@ -313,10 +393,6 @@ class CustomIconGroup(BasicIconGroup):
 
 		self.testdirs = [os.path.join(self.testbase, name) for name in self.state if self.state[name]]
 		self.realdirs = [os.path.join(self.realbase, name) for name in self.state if self.state[name]]
-
-	def get_preview(self):
-		"""Get active preview for icon group"""
-		return self.get_svg_first(*self.testdirs if self.testdirs else [self.emptydir])
 
 
 class IconGroupCollector(ItemPack):
@@ -480,7 +556,8 @@ class PixbufCreator():
 
 		return pixbuf[0]
 
-	def new_single_at_size(self, icon, size):
+	@staticmethod
+	def new_single_at_size(icon, size):
 		"""Alias for creatinng pixbuf from file or string at size"""
 		if os.path.isfile(icon):
 			pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(icon, size, size)
@@ -488,3 +565,8 @@ class PixbufCreator():
 			stream = Gio.MemoryInputStream.new_from_bytes(GLib.Bytes.new(icon))
 			pixbuf = GdkPixbuf.Pixbuf.new_from_stream_at_scale(stream, size, size, True)
 		return pixbuf
+
+	@staticmethod
+	def hex_from_rgba(rgba):
+		"""Translate color from Gdk.RGBA to html hex format"""
+		return "#%02X%02X%02X" % tuple([getattr(rgba, name) * 255 for name in ("red", "green", "blue")])

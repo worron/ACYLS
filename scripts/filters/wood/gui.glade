@@ -116,7 +116,7 @@
                 <property name="left_attach">3</property>
                 <property name="top_attach">0</property>
                 <property name="width">1</property>
-                <property name="height">4</property>
+                <property name="height">2</property>
               </packing>
             </child>
             <child>
@@ -161,7 +161,7 @@
               <packing>
                 <property name="left_attach">1</property>
                 <property name="top_attach">3</property>
-                <property name="width">2</property>
+                <property name="width">3</property>
                 <property name="height">1</property>
               </packing>
             </child>
@@ -191,7 +191,7 @@
               <packing>
                 <property name="left_attach">1</property>
                 <property name="top_attach">2</property>
-                <property name="width">2</property>
+                <property name="width">3</property>
                 <property name="height">1</property>
               </packing>
             </child>
@@ -199,6 +199,7 @@
               <object class="GtkSpinButton" id="composite_k1">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
+                <property name="hexpand">True</property>
                 <property name="adjustment">composite_l1_adjustment</property>
                 <property name="digits">1</property>
                 <signal name="value-changed" handler="on_composite_k1_changed" swapped="no"/>
@@ -214,6 +215,7 @@
               <object class="GtkSpinButton" id="composite_k2">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
+                <property name="hexpand">True</property>
                 <property name="adjustment">composite_k2_adjustment</property>
                 <property name="digits">1</property>
                 <signal name="value-changed" handler="on_composite_k2_changed" swapped="no"/>

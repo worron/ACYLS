@@ -1,11 +1,11 @@
 # Any Color You Like Simple
-This is simplified fork of [ACYL by pobtott](http://gnome-look.org/content/show.php/?content=102435) icon pack.
+This is simplified fork of [ACYL by pobtott](http://gnome-look.org/content/show.php/?content=102435) highly customizable vector icon pack.
 
 ####Main goals
 * Rewrite code base with GTK3 and python3.
 * Rid of bash scripts and move all logic to python scripts.
 * Make scripts easy extensible. User should have easy way to add new filters, icon alternatives and other.
-* New icons of course.
+* New icons and filters.
 
 ####Screenshots
 [//]: # (TODO:relative link to image)
@@ -22,13 +22,15 @@ Done:
 * Advanced icon preview
 * Icon alternatives switch
 * Quick view current state for all icon pack
-
-In progress:
-* Filters support
+* Customizable filters
 
 Dropped:
 * Code view
 * Specific application icons
+
+Future plans:
+* Quick filter edit
+* Specific application icons turn back (questionable)
 
 ####Installation
 ```
