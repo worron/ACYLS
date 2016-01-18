@@ -102,6 +102,7 @@
   <object class="GtkImage" id="settings_image">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
+    <property name="tooltip_text" translatable="yes">Filter settings.</property>
     <property name="stock">gtk-preferences</property>
   </object>
   <object class="GtkImage" id="stock_image_add">
@@ -171,6 +172,7 @@
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">True</property>
+                            <property name="tooltip_text" translatable="yes">Add color to gradient.</property>
                             <property name="image">stock_image_add</property>
                             <property name="always_show_image">True</property>
                             <signal name="clicked" handler="on_add_offset_button_click" swapped="no"/>
@@ -186,6 +188,7 @@
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">True</property>
+                            <property name="tooltip_text" translatable="yes">Remove current gradient color.</property>
                             <property name="image">stock_image_remove</property>
                             <property name="image_position">right</property>
                             <signal name="clicked" handler="on_remove_offset_button_click" swapped="no"/>
@@ -201,6 +204,7 @@
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">True</property>
+                            <property name="tooltip_text" translatable="yes">Copy current color settings to program (not system) buffer. Use this option to transfer settings between icon groups.</property>
                             <property name="image">copy_image</property>
                             <signal name="clicked" handler="on_copy_settings_button_click" swapped="no"/>
                           </object>
@@ -215,6 +219,7 @@
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">True</property>
+                            <property name="tooltip_text" translatable="yes">Paste setting from program buffer.</property>
                             <property name="image">paste_image</property>
                             <signal name="clicked" handler="on_paste_settings_button_click" swapped="no"/>
                           </object>
@@ -229,6 +234,7 @@
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">True</property>
+                            <property name="tooltip_text" translatable="yes">Save current color settings to file.</property>
                             <property name="image">save_image</property>
                             <signal name="clicked" handler="on_save_settings_button_click" swapped="no"/>
                           </object>
@@ -243,6 +249,7 @@
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">True</property>
+                            <property name="tooltip_text" translatable="yes">Load settings from file.</property>
                             <property name="image">open_image</property>
                             <signal name="clicked" handler="on_open_settings_button_click" swapped="no"/>
                           </object>
@@ -257,6 +264,7 @@
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">True</property>
+                            <property name="tooltip_text" translatable="yes">Reset color setting to default.</property>
                             <property name="image">reset_image</property>
                             <signal name="clicked" handler="on_reset_settings_button_click" swapped="no"/>
                           </object>
@@ -278,6 +286,7 @@
                         <property name="visible">True</property>
                         <property name="sensitive">False</property>
                         <property name="can_focus">True</property>
+                        <property name="tooltip_text" translatable="yes">Manual offset settings for gradient.</property>
                         <property name="hexpand">True</property>
                         <property name="adjustment">offset_adjustment</property>
                         <property name="round_digits">1</property>
@@ -294,6 +303,7 @@
                       <object class="GtkSwitch" id="offset_switch">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
+                        <property name="tooltip_text" translatable="yes">Enable/disable manual offset settings for gradient.</property>
                         <property name="valign">center</property>
                         <signal name="notify::active" handler="on_autooffset_toggled" swapped="no"/>
                       </object>
@@ -338,6 +348,7 @@
                         <property name="visible">True</property>
                         <property name="sensitive">False</property>
                         <property name="can_focus">True</property>
+                        <property name="tooltip_text" translatable="yes">Custom icon group settings.</property>
                         <property name="vexpand">True</property>
                         <property name="model">custom_icons_store</property>
                         <property name="headers_visible">False</property>
@@ -389,6 +400,7 @@
                       <object class="GtkTreeView" id="color_tree_view">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
+                        <property name="tooltip_text" translatable="yes">Graient colors list.</property>
                         <property name="hexpand">True</property>
                         <property name="model">color_list_store</property>
                         <property name="headers_visible">False</property>
@@ -447,6 +459,7 @@
                     <property name="height_request">130</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
+                    <property name="tooltip_text" translatable="yes">Gradient direction settings (editable).</property>
                     <property name="halign">end</property>
                     <property name="model">direction_list_store</property>
                     <property name="headers_visible">False</property>
@@ -500,6 +513,7 @@
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
+                        <property name="tooltip_text" translatable="yes">Real time preview render. May cause high cpu load. Be careful using heavy filters with this mode.</property>
                         <property name="xalign">0.47999998927116394</property>
                         <signal name="toggled" handler="on_rtr_toggled" swapped="no"/>
                       </object>
@@ -535,6 +549,7 @@
                             <property name="width_request">160</property>
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
+                            <property name="tooltip_text" translatable="yes">Current filter.</property>
                             <signal name="changed" handler="on_filter_combo_changed" swapped="no"/>
                           </object>
                           <packing>
@@ -556,6 +571,7 @@
                       <object class="GtkComboBoxText" id="filter_group_combo">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
+                        <property name="tooltip_text" translatable="yes">Filter group.</property>
                         <signal name="changed" handler="on_filter_group_combo_changed" swapped="no"/>
                       </object>
                       <packing>
@@ -569,6 +585,7 @@
                       <object class="GtkComboBoxText" id="gradient_combo">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
+                        <property name="tooltip_text" translatable="yes">Gradient type.</property>
                         <signal name="changed" handler="on_gradient_type_switched" swapped="no"/>
                       </object>
                       <packing>
@@ -590,6 +607,7 @@
                   <object class="GtkComboBoxText" id="icongroup_combo">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
+                    <property name="tooltip_text" translatable="yes">Icons group. Select  which icons will be redrawn with current settings.</property>
                     <signal name="changed" handler="on_icongroup_combo_changed" swapped="no"/>
                   </object>
                   <packing>
@@ -626,6 +644,7 @@
                   <object class="GtkComboBoxText" id="alt_group_combo">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
+                    <property name="tooltip_text" translatable="yes">Alternative icons group.</property>
                     <signal name="changed" handler="on_alt_group_combo_changed" swapped="no"/>
                   </object>
                   <packing>
@@ -639,6 +658,7 @@
                   <object class="GtkComboBoxText" id="alt_theme_combo">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
+                    <property name="tooltip_text" translatable="yes">Alternative icons  theme.</property>
                     <signal name="changed" handler="on_alt_theme_combo_changed" swapped="no"/>
                   </object>
                   <packing>
@@ -748,6 +768,7 @@
               <object class="GtkLabel" id="tab_iconview">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
+                <property name="tooltip_text" translatable="yes">Select icon group for full preview.</property>
                 <property name="margin_left">4</property>
                 <property name="margin_right">4</property>
                 <property name="label" translatable="yes">Icon view</property>
