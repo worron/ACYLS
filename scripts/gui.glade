@@ -79,6 +79,11 @@
     <property name="upper">100</property>
     <property name="step_increment">1</property>
   </object>
+  <object class="GtkImage" id="open_image">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="stock">gtk-open</property>
+  </object>
   <object class="GtkImage" id="paste_image">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
@@ -88,6 +93,11 @@
     <property name="visible">True</property>
     <property name="can_focus">False</property>
     <property name="stock">gtk-cancel</property>
+  </object>
+  <object class="GtkImage" id="save_image">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="stock">gtk-save</property>
   </object>
   <object class="GtkImage" id="settings_image">
     <property name="visible">True</property>
@@ -215,6 +225,34 @@
                           </packing>
                         </child>
                         <child>
+                          <object class="GtkButton" id="save_state_button">
+                            <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                            <property name="receives_default">True</property>
+                            <property name="image">save_image</property>
+                            <signal name="clicked" handler="on_save_settings_button_click" swapped="no"/>
+                          </object>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">True</property>
+                            <property name="position">4</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkButton" id="load_state_button">
+                            <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                            <property name="receives_default">True</property>
+                            <property name="image">open_image</property>
+                            <signal name="clicked" handler="on_open_settings_button_click" swapped="no"/>
+                          </object>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">True</property>
+                            <property name="position">5</property>
+                          </packing>
+                        </child>
+                        <child>
                           <object class="GtkButton" id="reset_state_button">
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
@@ -225,7 +263,7 @@
                           <packing>
                             <property name="expand">False</property>
                             <property name="fill">True</property>
-                            <property name="position">4</property>
+                            <property name="position">6</property>
                           </packing>
                         </child>
                       </object>

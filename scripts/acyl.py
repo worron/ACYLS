@@ -7,7 +7,6 @@ if sys.version_info < (3, 0):
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
-import shelve
 import configparser
 from gi.repository import Gtk, Gdk, GObject, GLib
 from copy import deepcopy
@@ -24,7 +23,7 @@ Gtk.StyleContext.add_provider_for_screen(
 	Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
 )
 
-DIRS = dict(data = {'current': "data/current", 'default': "data/default"})
+DIRS = dict(data = {'user': "data/user", 'default': "data/default"})
 
 class ACYL:
 	lock = threading.Lock()
@@ -55,7 +54,7 @@ class ACYL:
 
 	def __init__(self):
 		# Set config files manager
-		self.keeper = common.FileKeeper(DIRS['data']['default'], DIRS['data']['current'])
+		self.keeper = common.FileKeeper(DIRS['data']['default'], DIRS['data']['user'])
 
 		# Helpers
 		self.pixcreator = common.PixbufCreator()
@@ -68,8 +67,11 @@ class ACYL:
 
 		# Set data file for saving icon render settings
 		# Icon render setting will stored for every icon group separately
-		self.dbfile = self.keeper.get("store")
-		self.db = shelve.open(self.dbfile)
+		self.dbfile = self.keeper.get("store.acyl")
+		self.database = common.DataStore(self.dbfile)
+
+		# File dialog
+		self.filechooser = common.FileChooser(DIRS['data']['user'])
 
 		# Create objects for alternative and real icon full prewiew
 		self.iconview = common.Prospector(self.config.get("Directories", "real"))
@@ -145,7 +147,7 @@ class ACYL:
 		if name is not None:
 			self.filters.switch(name)
 			self.gui['filter_settings_button'].set_sensitive(self.filters.current.is_custom)
-			self.database_write(['filter'])
+			self.write_gui_settings_to_base(['filter'])
 
 			self.fullrefresh(savedata=False)
 
@@ -191,8 +193,8 @@ class ACYL:
 
 	def on_gradient_type_switched(self, combo):
 		self.gradient.set_tag(combo.get_active_text())
-		self.database_write(['gradtype'])
-		self.database_read(['gradtype', 'direction'])
+		self.write_gui_settings_to_base(['gradtype'])
+		self.read_gui_setting_from_base(['gradtype', 'direction'])
 
 	def on_page_changed(self, nb, page, page_index):
 		COLORS, ALTERNATIVES, ICONVIEW = 0, 1, 2
@@ -206,10 +208,8 @@ class ACYL:
 			self.gui['iconview_combo'].emit("changed")
 
 	def on_close_window(self, *args):
-		for key in filter(lambda key: key != 'default' and key not in self.icongroups.names, self.db.keys()):
-			del self.db[key]
-			print("Key %s was removed from data store" % key)
-		self.db.close()
+		self.database.clear(self.icongroups.names)
+		self.database.close()
 
 		with open(self.configfile, 'w') as configfile:
 			self.config.write(configfile)
@@ -223,7 +223,7 @@ class ACYL:
 		self.filters.current.gui['window'].show_all()
 
 	def on_icongroup_combo_changed(self, combo):
-		self.database_write()
+		self.write_gui_settings_to_base()
 		files = self.icongroups.current.get_test()
 		self.iconchanger.rebuild(*files, **self.current_state())
 
@@ -237,11 +237,11 @@ class ACYL:
 
 		self.gui['custom_icon_tree_view'].set_sensitive(self.icongroups.current.is_custom)
 
-		self.database_read()
+		self.read_gui_setting_from_base()
 		self.preview_update()
 
 	def on_offset_structure_changed(self, model, *args):
-		if self.db[self.icongroups.current.name]['autooffset']:
+		if self.database.get_key(self.icongroups.current.name, 'autooffset'):
 			self.set_offset_auto()
 
 		if len(model) > 0:
@@ -265,9 +265,9 @@ class ACYL:
 	def on_autooffset_toggled(self, switch, *args):
 		is_active = switch.get_active()
 		self.gui['offset_scale'].set_sensitive(is_active)
-		self.database_write(['autooffset'])
+		self.write_gui_settings_to_base(['autooffset'])
 
-		if self.db[self.icongroups.current.name]['autooffset']:
+		if self.database.get_key(self.icongroups.current.name, 'autooffset'):
 			self.set_offset_auto()
 
 		self.gui['offset_scale'].set_value(self.gui['color_list_store'][self.color_selected][self.OFFSET])
@@ -307,15 +307,25 @@ class ACYL:
 			self.gui['color_list_store'].remove(self.color_selected)
 
 	def on_copy_settings_button_click(self, *args):
-		self.state_buffer = deepcopy(self.db[self.icongroups.current.name])
+		self.state_buffer = deepcopy(self.database.get_dump(self.icongroups.current.name))
 
 	def on_paste_settings_button_click(self, *args):
-		self.db[self.icongroups.current.name] = deepcopy(self.state_buffer)
-		self.database_read()
+		self.database.update(self.icongroups.current.name, self.state_buffer)
+		self.read_gui_setting_from_base()
 
 	def on_reset_settings_button_click(self, *args):
-		self.db[self.icongroups.current.name] = deepcopy(self.db['default'])
-		self.database_read()
+		self.database.reset(self.icongroups.current.name)
+		self.read_gui_setting_from_base()
+
+	def on_save_settings_button_click(self, *args):
+		is_ok, file_ = self.filechooser.save()
+		if is_ok: self.database.save_to_file(file_)
+
+	def on_open_settings_button_click(self, *args):
+		is_ok, file_ = self.filechooser.load()
+		if is_ok:
+			self.database.load_from_file(file_)
+			self.read_gui_setting_from_base()
 
 	@spinner
 	def on_apply_click(self, *args):
@@ -370,7 +380,7 @@ class ACYL:
 		self.gui['iconview_combo'].set_active(0)
 
 		# GUI setup finished, now update autogenerated elements which depended on current GUI state
-		self.database_read()
+		self.read_gui_setting_from_base()
 		self.fullrefresh(savedata=False)
 
 		# Restore curtain GUI elements state from last session
@@ -381,41 +391,42 @@ class ACYL:
 		return dict(
 			gradient=self.gradient,
 			gfilter=self.filters.current,
-			data=self.db.get(self.icongroups.current.name, self.db['default'])
+			data=self.database.get_dump(self.icongroups.current.name)
 		)
 
 	def fullrefresh(self, savedata=True):
-		"""Refresh icon preview and update data if needed"""
+		"""Refresh icon preview and update database if needed"""
 		if not self.is_preview_locked:
-			if savedata: self.database_write()
+			if savedata: self.write_gui_settings_to_base()
 			state = self.current_state()
 			self.icongroups.current.preview = self.iconchanger.rebuild_text(self.icongroups.current.preview, **state)
 			self.preview_update()
 
-	def database_read(self, keys=['direction', 'colors', 'filter', 'autooffset', 'gradtype']):
-		"""Read data from file and set GUI according it"""
+	def read_gui_setting_from_base(self, keys=None):
+		"""Read settings from file and set GUI according it"""
 		self.is_preview_locked = True
 
-		section = self.icongroups.current.name if self.icongroups.current.name in self.db else 'default'
+		keys = keys if keys is not None else self.database.setkeys
+		dump = self.database.get_dump(self.icongroups.current.name)
 
 		if 'colors' in keys:
 			self.gui['color_list_store'].clear()
-			for color in self.db[section]['colors']:
+			for color in dump['colors']:
 				self.gui['color_list_store'].append(color)
 
 		if 'direction' in keys:
 			self.gui['direction_list_store'].clear()
-			for coord in self.db[section]['direction'][self.gradient.tag]:
+			for coord in dump['direction'][self.gradient.tag]:
 				self.gui['direction_list_store'].append(coord)
 
 		if 'autooffset' in keys:
-			self.gui['offset_switch'].set_active(not self.db[section]['autooffset'])
+			self.gui['offset_switch'].set_active(not dump['autooffset'])
 
 		if 'gradtype' in keys:
-			self.gui['gradient_combo'].set_active(common.Gradient.profiles[self.db[section]['gradtype']]['index'])
+			self.gui['gradient_combo'].set_active(common.Gradient.profiles[dump['gradtype']]['index'])
 
 		if 'filter' in keys:
-			filter_ = self.db[section]['filter']
+			filter_ = dump['filter']
 			self.gui['filter_group_combo'].set_active(self.filters.get_group_index(filter_))
 
 			filter_index = self.filters.names.index(filter_) if filter_ in self.filters.names else 0
@@ -424,14 +435,10 @@ class ACYL:
 		self.is_preview_locked = False
 		self.fullrefresh(savedata=False)
 
-	def database_write(self, keys=['direction', 'colors', 'filter', 'autooffset', 'gradtype']):
-		"""Write data to file"""
-		section = self.icongroups.current.name
-
-		if section not in self.db:
-			self.db[section] = deepcopy(self.db['default'])
-
-		dump = self.db[section]
+	def write_gui_settings_to_base(self, keys=None):
+		"""Write settings to file"""
+		keys = keys if keys is not None else self.database.setkeys
+		dump = self.database.get_dump(self.icongroups.current.name)
 
 		if 'gradtype' in keys:
 			dump['gradtype'] = self.gradient.tag
@@ -443,11 +450,6 @@ class ACYL:
 			dump['colors'] = [list(row) for row in self.gui['color_list_store']]
 		if 'direction' in keys:
 			dump['direction'][self.gradient.tag] = [list(row) for row in self.gui['direction_list_store']]
-
-		# if 'filtername' in dump: del dump['filtername']
-		# self.db['default'] = deepcopy(self.db['Custom'])
-
-		self.db[section] = dump
 
 	def preview_update(self):
 		"""Update icon preview"""
