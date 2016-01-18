@@ -347,9 +347,10 @@ class FileKeeper:
 
 class BasicIconGroup(IconFinder):
 	"""Object with fixed list of real and preview pathes for icon group"""
-	def __init__(self, name, testdirs, realdirs, pairdir=None, pairsw=False, index=0):
+	def __init__(self, name, emptydir, testdirs, realdirs, pairdir=None, pairsw=False, index=0):
 		self.name = name
 		self.index = index
+		self.emptydir = emptydir
 		self.testdirs = testdirs
 		self.realdirs = realdirs
 		self.is_custom = False
@@ -365,7 +366,8 @@ class BasicIconGroup(IconFinder):
 
 	def get_preview(self):
 		"""Get active preview for icon group"""
-		return self.get_svg_first(*self.testdirs)
+		preview_icon = self.get_svg_first(*self.testdirs)
+		return preview_icon if preview_icon else self.get_svg_first(self.emptydir)
 
 	def get_real(self):
 		"""Get list of all real icons for group"""
@@ -379,11 +381,10 @@ class BasicIconGroup(IconFinder):
 class CustomIconGroup(BasicIconGroup):
 	"""Object with customizible list of real and preview pathes for icon group"""
 	def __init__(self, name, emptydir, testbase, realbase, pairdir=None, pairsw=False, index=0):
-		BasicIconGroup.__init__(self, name, [], [], pairdir, pairsw, index)
+		BasicIconGroup.__init__(self, name, emptydir, [], [], pairdir, pairsw, index)
 		self.is_custom = True
 		self.testbase = testbase
 		self.realbase = realbase
-		self.emptydir = emptydir
 		self.state = dict.fromkeys(next(os.walk(testbase))[1], False)
 
 	def switch_state(self, name):
@@ -392,10 +393,6 @@ class CustomIconGroup(BasicIconGroup):
 
 		self.testdirs = [os.path.join(self.testbase, name) for name in self.state if self.state[name]]
 		self.realdirs = [os.path.join(self.realbase, name) for name in self.state if self.state[name]]
-
-	def get_preview(self):
-		"""Get active preview for icon group"""
-		return self.get_svg_first(*self.testdirs if self.testdirs else [self.emptydir])
 
 
 class IconGroupCollector(ItemPack):
