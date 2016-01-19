@@ -1,10 +1,10 @@
-# Any Color You Like Simple
+# AnyColorYouLike Simple
 This is simplified fork of [ACYL by pobtott](http://gnome-look.org/content/show.php/?content=102435) highly customizable vector icon pack.
 
 ####Main goals
-* Rewrite code base with GTK3 and python3.
-* Rid of bash scripts and move all logic to python scripts.
-* Make scripts easy extensible. User should have easy way to add new filters, icon alternatives and other.
+* Rewrite code base with GTK3 and python3;
+* Get rid of bash scripts and move all logic to python scripts;
+* Make scripts easy extensible. User should have easy way to add new filters, icon alternatives and other;
 * New icons and filters.
 
 ####Screenshots
@@ -17,28 +17,28 @@ This is simplified fork of [ACYL by pobtott](http://gnome-look.org/content/show.
 * GTK+ 3.10
 
 ####Current state
-Done:
-* Linear and radial gradient
-* Advanced icon preview
-* Icon alternatives switch
-* Quick view current state for all icon pack
-* Customizable filters
+Already done:
+* Linear and radial gradient;
+* Advanced icon preview;
+* Icon alternatives switch;
+* Quick view of current state for all icon pack;
+* Customizable filters.
 
 Dropped:
-* Code view
-* Specific application icons
+* Code view;
+* Specific application icons.
 
 Future plans:
-* Quick filter edit
-* Specific application icons turn back (questionable)
+* Quick filter edit;
+* Specific application icons turn back (questionable).
 
 ####Installation
 ```
-git clone https://github.com/worron/ACYLS.git ~/.icons/ACYLS
+% git clone https://github.com/worron/ACYLS.git ~/.icons/ACYLS
 ```
 
 ####Usage
-Use python 3 interpreter (command depending on your enviroment) to run configurator
+Use Python 3 interpreter (the real command depends on your environment) to run the configuration program
 ```
-python3 ~/.icons/ACYLS/scripts/acyl.py
+% python3 ~/.icons/ACYLS/scripts/acyl.py
 ```
