@@ -34,11 +34,11 @@ Future plans:
 
 ####Installation
 ```
-% git clone https://github.com/worron/ACYLS.git ~/.icons/ACYLS
+$ git clone https://github.com/worron/ACYLS.git ~/.icons/ACYLS
 ```
 
 ####Usage
 Use Python 3 interpreter (the real command depends on your environment) to run the configuration program
 ```
-% python3 ~/.icons/ACYLS/scripts/acyl.py
+$ python3 ~/.icons/ACYLS/scripts/acyl.py
 ```
