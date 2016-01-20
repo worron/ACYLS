@@ -1,6 +1,7 @@
 import os
 from common import FilterParameter, CustomFilterBase
 
+
 class Filter(CustomFilterBase):
 
 	def __init__(self):

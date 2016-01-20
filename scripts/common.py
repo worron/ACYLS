@@ -10,6 +10,7 @@ from copy import deepcopy
 from lxml import etree
 from itertools import count
 
+
 class IconFinder:
 	"""SVG icon seach"""
 	@staticmethod
@@ -29,9 +30,11 @@ class IconFinder:
 				for filename in files:
 					if filename.endswith('.svg'): return os.path.join(root, filename)
 
+
 class Parser:
 	"""Define lxml parser here"""
 	parser = etree.XMLParser(remove_blank_text=True)
+
 
 class ItemPack:
 	"""Base for work with groups of items"""
@@ -60,6 +63,7 @@ class ActionHandler:
 	def run(self, *args, forced=False):
 		"""Try to action"""
 		if self.is_allowed or forced: self.action(*args)
+
 
 class DataStore:
 	"""Shelve database handler"""
@@ -137,6 +141,7 @@ class FileChooser:
 
 	load = build_dialog_action('load')
 	save = build_dialog_action('save')
+
 
 class FilterParameter:
 	"""Helper to find, change, save and restore certain value in xml tag attrubute.
@@ -285,7 +290,7 @@ class CustomFilterBase(SimpleFilterBase):
 			rgba = widget.get_rgba()
 			if alpha is not None:
 				self.param[alpha].set_value(rgba.alpha)
-				rgba.alpha = 1 # dirty trick
+				rgba.alpha = 1  # dirty trick
 			self.param[color].set_value(rgba.to_string())
 			self.render.run(False, forced=True)
 
@@ -302,7 +307,7 @@ class FilterCollector(ItemPack):
 		for root, _, files in os.walk(path):
 			if filename in files:
 				try:
-					module=imp.load_source(filename.split('.')[0], os.path.join(root, filename))
+					module = imp.load_source(filename.split('.')[0], os.path.join(root, filename))
 					filter_ = module.Filter()
 					self.add(filter_)
 				except Exception:
@@ -328,6 +333,7 @@ class FilterCollector(ItemPack):
 			if name in names: return self.groupnames.index(group)
 		else:
 			return 0
+
 
 class FileKeeper:
 	"""Helper to work with user files.
@@ -417,7 +423,7 @@ class IconGroupCollector(ItemPack):
 				args_l = ("testdirs", "realdirs")
 				kargs_l = {k: config.get(section, k).split(";") for k in args_l if config.has_option(section, k)}
 
-				# boolean type  arguments
+				# boolean type arguments
 				args_b = ("pairsw",)
 				kargs_b = {k: config.getboolean(section, k) for k in args_b if config.has_option(section, k)}
 
@@ -439,8 +445,8 @@ class Prospector(IconFinder):
 
 	def dig(self, name, level):
 		"""Choose active directory on given level"""
-		if level-1 in self.structure and name in self.structure[level-1]['directories']:
-			dest = os.path.join(self.structure[level-1]['root'], name)
+		if level - 1 in self.structure and name in self.structure[level - 1]['directories']:
+			dest = os.path.join(self.structure[level - 1]['root'], name)
 			self.structure[level] = dict(zip(('root', 'directories'), next(os.walk(dest))))
 			self.structure[level]['directories'].sort()
 			self.structure = {key: self.structure[key] for key in self.structure if key <= level}

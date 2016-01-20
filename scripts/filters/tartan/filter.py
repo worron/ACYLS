@@ -1,6 +1,7 @@
 import os
 from common import FilterParameter, CustomFilterBase
 
+
 class Filter(CustomFilterBase):
 
 	def __init__(self):
@@ -11,7 +12,6 @@ class Filter(CustomFilterBase):
 		visible_tag = self.dull['visual'].find(".//*[@id='visible1']")
 		turbulence1_tag = self.dull['filter'].find(".//*[@id='feTurbulence1']")
 		turbulence2_tag = self.dull['filter'].find(".//*[@id='feTurbulence2']")
-		matrix_tag = self.dull['filter'].find(".//*[@id='feColorMatrix2']")
 
 		self.param['scale'] = FilterParameter(visible_tag, 'transform', 'scale\((.+?)\) ', 'scale(%.2f) ')
 		self.param['octaves_x'] = FilterParameter(turbulence2_tag, 'numOctaves', '(.+)', '%d')
