@@ -64,7 +64,7 @@ class ACYL:
 		self.iconchanger = common.IconChanger()
 
 		# Config file setup
-		self.configfile = self.keeper.get("config")
+		self.configfile = self.keeper.get("config.ini")
 		self.config = configparser.ConfigParser()
 		self.config.read(self.configfile)
 
