@@ -1,6 +1,7 @@
 import os
 from common import SimpleFilterBase
 
+
 class Filter(SimpleFilterBase):
 
 	def __init__(self, *args):

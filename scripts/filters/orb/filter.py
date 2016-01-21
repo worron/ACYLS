@@ -1,6 +1,7 @@
 import os
 from common import FilterParameter, CustomFilterBase
 
+
 class Filter(CustomFilterBase):
 
 	def __init__(self):
@@ -16,14 +17,18 @@ class Filter(CustomFilterBase):
 		grad_tag = self.dull['filter'].find(".//*[@id='linearGradient1']")
 
 		self.param['scale'] = FilterParameter(visible2_tag, 'transform', 'scale\((.+?)\) ', 'scale(%.2f) ')
-		self.param['reflex_scale'] = FilterParameter(grad_tag, 'gradientTransform', 'scale\((.+),1\) ', 'scale(%.1f,1) ')
+		self.param['reflex_scale'] = FilterParameter(
+			grad_tag, 'gradientTransform', 'scale\((.+),1\) ', 'scale(%.1f,1) '
+		)
 		self.param['orb'] = FilterParameter(visible1_tag, 'transform', 'scale\((.+?)\) ', 'scale(%.2f) ')
 		self.param['color'] = FilterParameter(mainorb_tag, 'style', 'fill:(rgb\(.+?\));', 'fill:%s;')
 		self.param['stroke_color'] = FilterParameter(mainorb_tag, 'style', 'stroke:(rgb\(.+?\));', 'stroke:%s;')
 		self.param['stop1_color'] = FilterParameter(stop1_tag, 'style', 'stop-color:(rgb\(.+?\));', 'stop-color:%s;')
 		self.param['stop2_color'] = FilterParameter(stop2_tag, 'style', 'stop-color:(rgb\(.+?\));', 'stop-color:%s;')
 		self.param['alpha'] = FilterParameter(mainorb_tag, 'style', 'fill-opacity:(.+?);', 'fill-opacity:%.2f;')
-		self.param['stroke_alpha'] = FilterParameter(mainorb_tag, 'style', 'stroke-opacity:(.+?);', 'stroke-opacity:%.2f;')
+		self.param['stroke_alpha'] = FilterParameter(
+			mainorb_tag, 'style', 'stroke-opacity:(.+?);', 'stroke-opacity:%.2f;'
+		)
 		self.param['stop_alpha'] = FilterParameter(stop1_tag, 'style', 'stop-opacity:(.+)', 'stop-opacity:%.2f')
 		self.param['stroke_width'] = FilterParameter(mainorb_tag, 'style', 'stroke-width:(.+)', 'stroke-width:%.1f')
 

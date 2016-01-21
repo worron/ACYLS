@@ -1,18 +1,20 @@
 #!/usr/bin/env python3
 
-import sys, os
+import os
+import sys
+
 if sys.version_info < (3, 0):
 	sys.stdout.write("Requires Python 3.x\n")
 	sys.exit(1)
 
-os.chdir(os.path.dirname(os.path.abspath(__file__)))
-
 import configparser
-from gi.repository import Gtk, Gdk, GObject, GLib
+from gi.repository import Gtk, Gdk, GLib
 from copy import deepcopy
 import threading
 
 import common
+
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 style_provider = Gtk.CssProvider()
 style_provider.load_from_path('themefix.css')
@@ -24,6 +26,7 @@ Gtk.StyleContext.add_provider_for_screen(
 )
 
 DIRS = dict(data = {'user': "data/user", 'default': "data/default"})
+
 
 class ACYL:
 	lock = threading.Lock()
@@ -61,7 +64,7 @@ class ACYL:
 		self.iconchanger = common.IconChanger()
 
 		# Config file setup
-		self.configfile = self.keeper.get("config")
+		self.configfile = self.keeper.get("config.ini")
 		self.config = configparser.ConfigParser()
 		self.config.read(self.configfile)
 
@@ -85,7 +88,7 @@ class ACYL:
 		self.render = common.ActionHandler(self.fullrefresh)
 		# Connect preview render controller to filters class
 		common.CustomFilterBase.render = self.render
-		# Load filters from certain  directory
+		# Load filters from certain directory
 		self.filters = common.FilterCollector(self.config.get("Directories", "filters"))
 
 		# Build griadient object

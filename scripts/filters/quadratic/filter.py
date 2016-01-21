@@ -1,6 +1,7 @@
 import os
 from common import FilterParameter, CustomFilterBase
 
+
 class Filter(CustomFilterBase):
 
 	def __init__(self):
@@ -19,8 +20,10 @@ class Filter(CustomFilterBase):
 		self.param['color'] = FilterParameter(support2_tag, 'style', '(rgb\(.+?\));', '%s;')
 		self.param['alpha'] = FilterParameter(support2_tag, 'style', 'fill-opacity:(.+)', 'fill-opacity:%.2f')
 		self.param['stroke_color'] = FilterParameter(visible2_tag, 'style', '(rgb\(.+?\));', '%s;')
-		self.param['stroke_alpha'] = FilterParameter(visible2_tag, 'style', 'stroke-opacity:(.+?);', 'stroke-opacity:%.2f;')
 		self.param['stroke_width'] = FilterParameter(visible2_tag, 'style', 'stroke-width:(.+)', 'stroke-width:%.1f')
+		self.param['stroke_alpha'] = FilterParameter(
+			visible2_tag, 'style', 'stroke-opacity:(.+?);', 'stroke-opacity:%.2f;'
+		)
 
 		gui_elements = ("window", "scale", "scale_icon", "radius", "colorbutton", "stroke_colorbutton", "stroke_width")
 
