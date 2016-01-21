@@ -101,7 +101,7 @@ class DataStore:
 
 	def clear(self, current_groups):
 		for section in filter(lambda key: key != self.dsection and key not in current_groups, self.db.keys()):
-			del self.db[secttion]
+			del self.db[section]
 
 	def close(self):
 		self.db.close()
