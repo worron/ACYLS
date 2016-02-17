@@ -14,18 +14,20 @@ import threading
 
 import common
 
-os.chdir(os.path.dirname(os.path.abspath(__file__)))
-
-style_provider = Gtk.CssProvider()
-style_provider.load_from_path('themefix.css')
-
-Gtk.StyleContext.add_provider_for_screen(
-	Gdk.Screen.get_default(),
-	style_provider,
-	Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
+DIRS = dict(
+	user = "data/user",
+	default = "data/default"
 )
 
-DIRS = dict(data = {'user': "data/user", 'default': "data/default"})
+def load_gtk_css(file_):
+	style_provider = Gtk.CssProvider()
+	style_provider.load_from_path(file_)
+
+	Gtk.StyleContext.add_provider_for_screen(
+		Gdk.Screen.get_default(),
+		style_provider,
+		Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
+	)
 
 
 class ACYL:
@@ -57,7 +59,7 @@ class ACYL:
 
 	def __init__(self):
 		# Set config files manager
-		self.keeper = common.FileKeeper(DIRS['data']['default'], DIRS['data']['user'])
+		self.keeper = common.FileKeeper(DIRS['default'], DIRS['user'])
 
 		# Helpers
 		self.pixcreator = common.PixbufCreator()
@@ -74,7 +76,7 @@ class ACYL:
 		self.database = common.DataStore(self.dbfile)
 
 		# File dialog
-		self.filechooser = common.FileChooser(DIRS['data']['user'])
+		self.filechooser = common.FileChooser(DIRS['user'])
 
 		# Create objects for alternative and real icon full prewiew
 		self.iconview = common.Prospector(self.config.get("Directories", "real"))
@@ -478,5 +480,7 @@ class ACYL:
 			self.gui['color_list_store'][0][self.OFFSET] = 100
 
 if __name__ == "__main__":
+	os.chdir(os.path.dirname(os.path.abspath(__file__)))
+	load_gtk_css('themefix.css')
 	main = ACYL()
 	Gtk.main()
