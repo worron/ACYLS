@@ -1,3 +1,5 @@
+# -*- Mode: Python; indent-tabs-mode: t; python-indent: 4; tab-width: 4 -*-
+
 import shutil
 import re
 import os

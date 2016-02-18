@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# -*- Mode: Python; indent-tabs-mode: t; python-indent: 4; tab-width: 4 -*-
 
 import os
 import sys
@@ -18,6 +19,7 @@ DIRS = dict(
 	user = "data/user",
 	default = "data/default"
 )
+
 
 def load_gtk_css(file_):
 	style_provider = Gtk.CssProvider()
