@@ -109,42 +109,6 @@ class DataStore:
 		self.db.close()
 
 
-class FileChooser:
-	"""File selection helper based on Gtk file dialog"""
-	DIALOGS_PROFILE = dict(
-		save = (
-			"Save ACYL settings", None, Gtk.FileChooserAction.SAVE,
-			(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_SAVE, Gtk.ResponseType.OK)
-		),
-		load = (
-			"Load ACYL settings from file", None, Gtk.FileChooserAction.OPEN,
-			(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_OPEN, Gtk.ResponseType.OK)
-		)
-	)
-
-	def build_dialog_action(name):
-		def action(self):
-			response = self.dialogs[name].run()
-			file_ = self.dialogs[name].get_filename()
-
-			self.dialogs[name].hide()
-			self.dialogs[name].set_current_folder(self.dialogs[name].get_current_folder())
-
-			return response == Gtk.ResponseType.OK, file_
-		return action
-
-	def __init__(self, start_folder):
-		self.dialogs = dict()
-		for name, args in self.DIALOGS_PROFILE.items():
-			self.dialogs[name] = Gtk.FileChooserDialog(*args)
-			self.dialogs[name].set_current_folder(start_folder)
-
-		self.dialogs['save'].set_current_name("custom.acyl")
-
-	load = build_dialog_action('load')
-	save = build_dialog_action('save')
-
-
 class FilterParameter:
 	"""Helper to find, change, save and restore certain value in xml tag attrubute.
 	Used to work with svg filter parameters.

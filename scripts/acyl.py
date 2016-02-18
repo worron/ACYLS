@@ -8,15 +8,17 @@ if sys.version_info < (3, 0):
 	sys.stdout.write("Requires Python 3.x\n")
 	sys.exit(1)
 
+# System modules
 import configparser
 from gi.repository import Gtk, Gdk, GLib
 from copy import deepcopy
 import threading
 
+# User modules
 import common
-# import lib
-from lib.pixbuf import PixbufCreator
+from lib.gtkhelpers import PixbufCreator, FileChooser
 
+# Data directories
 DIRS = dict(
 	user = "data/user",
 	default = "data/default"
@@ -79,7 +81,7 @@ class ACYL:
 		self.database = common.DataStore(self.dbfile)
 
 		# File dialog
-		self.filechooser = common.FileChooser(DIRS['user'])
+		self.filechooser = FileChooser(DIRS['user'])
 
 		# Create objects for alternative and real icon full prewiew
 		self.iconview = common.Prospector(self.config.get("Directories", "real"))
