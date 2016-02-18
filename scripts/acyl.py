@@ -15,8 +15,11 @@ from copy import deepcopy
 import threading
 
 # User modules
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib"))
+
 import common
-from lib.gtkhelpers import PixbufCreator, FileChooser
+import iconchanger
+from gtkhelpers import PixbufCreator, FileChooser
 
 # Data directories
 DIRS = dict(
@@ -66,9 +69,6 @@ class ACYL:
 	def __init__(self):
 		# Set config files manager
 		self.keeper = common.FileKeeper(DIRS['default'], DIRS['user'])
-
-		# Helpers
-		self.iconchanger = common.IconChanger()
 
 		# Config file setup
 		self.configfile = self.keeper.get("config.ini")
@@ -235,7 +235,7 @@ class ACYL:
 	def on_icongroup_combo_changed(self, combo):
 		self.write_gui_settings_to_base()
 		files = self.icongroups.current.get_test()
-		self.iconchanger.rebuild(*files, **self.current_state())
+		iconchanger.rebuild(*files, **self.current_state())
 
 		self.icongroups.switch(combo.get_active_text())
 		self.icongroups.current.cache()
@@ -341,7 +341,7 @@ class ACYL:
 	def on_apply_click(self, *args):
 		if self.pageindex == 0:
 			files = self.icongroups.current.get_real()
-			self.iconchanger.rebuild(*files, **self.current_state())
+			iconchanger.rebuild(*files, **self.current_state())
 		else:
 			self.alternatives.send_icons(2, self.config.get("Directories", "real"))
 
@@ -409,7 +409,7 @@ class ACYL:
 		if not self.is_preview_locked:
 			if savedata: self.write_gui_settings_to_base()
 			state = self.current_state()
-			self.icongroups.current.preview = self.iconchanger.rebuild_text(self.icongroups.current.preview, **state)
+			self.icongroups.current.preview = iconchanger.rebuild_text(self.icongroups.current.preview, **state)
 			self.preview_update()
 
 	def read_gui_setting_from_base(self, keys=None):
