@@ -14,6 +14,8 @@ from copy import deepcopy
 import threading
 
 import common
+# import lib
+from lib.pixbuf import PixbufCreator
 
 DIRS = dict(
 	user = "data/user",
@@ -64,7 +66,6 @@ class ACYL:
 		self.keeper = common.FileKeeper(DIRS['default'], DIRS['user'])
 
 		# Helpers
-		self.pixcreator = common.PixbufCreator()
 		self.iconchanger = common.IconChanger()
 
 		# Config file setup
@@ -176,7 +177,7 @@ class ACYL:
 			self.gui['alt_icon_store'].clear()
 
 			for icon in self.alternatives.get_icons(DIG_LEVEL):
-				pixbuf = self.pixcreator.new_single_at_size(icon, self.VIEW_ICON_SIZE)
+				pixbuf = PixbufCreator.new_single_at_size(icon, self.VIEW_ICON_SIZE)
 				self.gui['alt_icon_store'].append([pixbuf])
 
 	@spinner
@@ -187,7 +188,7 @@ class ACYL:
 			self.iconview.dig(text.lower(), DIG_LEVEL)
 
 			icons = self.iconview.get_icons(DIG_LEVEL)
-			pixbufs = [self.pixcreator.new_single_at_size(icon, self.VIEW_ICON_SIZE) for icon in icons]
+			pixbufs = [PixbufCreator.new_single_at_size(icon, self.VIEW_ICON_SIZE) for icon in icons]
 
 			# Because of trouble with Gtk threading
 			# Heavy GUI action catched in seperate function and moved to main thread
@@ -287,7 +288,7 @@ class ACYL:
 
 	def on_color_change(self, *args):
 		rgba = self.gui['color_selector'].get_current_rgba()
-		self.gui['color_list_store'].set_value(self.color_selected, self.HEXCOLOR, self.pixcreator.hex_from_rgba(rgba))
+		self.gui['color_list_store'].set_value(self.color_selected, self.HEXCOLOR, PixbufCreator.hex_from_rgba(rgba))
 		self.gui['color_list_store'].set_value(self.color_selected, self.ALPHA, rgba.alpha)
 		self.gui['color_list_store'].set_value(self.color_selected, self.RGBCOLOR, rgba.to_string())
 		self.render.run()
@@ -306,7 +307,7 @@ class ACYL:
 
 	def on_add_offset_button_click(self, *args):
 		rgba = self.gui['color_selector'].get_current_rgba()
-		hexcolor = self.pixcreator.hex_from_rgba(rgba)
+		hexcolor = PixbufCreator.hex_from_rgba(rgba)
 		self.gui['color_list_store'].append([hexcolor, rgba.alpha, 100, rgba.to_string()])
 
 	def on_remove_offset_button_click(self, *args):
@@ -465,9 +466,9 @@ class ACYL:
 			if self.icongroups.current.pairsw:
 				icon1, icon2 = icon2, icon1
 
-			pixbuf = self.pixcreator.new_double_at_size(icon1, icon2, size=self.PREVIEW_ICON_SIZE)
+			pixbuf = PixbufCreator.new_double_at_size(icon1, icon2, size=self.PREVIEW_ICON_SIZE)
 		else:
-			pixbuf = self.pixcreator.new_single_at_size(self.icongroups.current.preview, self.PREVIEW_ICON_SIZE)
+			pixbuf = PixbufCreator.new_single_at_size(self.icongroups.current.preview, self.PREVIEW_ICON_SIZE)
 
 		self.gui['preview_icon'].set_from_pixbuf(pixbuf)
 
