@@ -21,6 +21,7 @@ import common
 import iconchanger
 import gradient
 from icongroup import IconGroupCollector
+from filters import FilterCollector, CustomFilterBase
 from guihelpers import PixbufCreator, FileChooser
 from fshelpers import Prospector, FileKeeper
 
@@ -97,9 +98,9 @@ class ACYL:
 		# Create object for preview render control
 		self.render = common.ActionHandler(self.fullrefresh)
 		# Connect preview render controller to filters class
-		common.CustomFilterBase.render = self.render
+		CustomFilterBase.render = self.render
 		# Load filters from certain directory
-		self.filters = common.FilterCollector(self.config.get("Directories", "filters"))
+		self.filters = FilterCollector(self.config.get("Directories", "filters"))
 
 		# Build griadient object
 		self.gradient = gradient.Gradient()
