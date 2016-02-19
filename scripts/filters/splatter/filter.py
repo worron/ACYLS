@@ -1,5 +1,7 @@
+# -*- Mode: Python; indent-tabs-mode: t; python-indent: 4; tab-width: 4 -*-
+
 import os
-from common import FilterParameter, CustomFilterBase
+from filters import FilterParameter, CustomFilterBase
 
 
 class Filter(CustomFilterBase):

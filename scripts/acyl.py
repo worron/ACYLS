@@ -8,13 +8,24 @@ if sys.version_info < (3, 0):
 	sys.stdout.write("Requires Python 3.x\n")
 	sys.exit(1)
 
+# System modules
 import configparser
+import threading
 from gi.repository import Gtk, Gdk, GLib
 from copy import deepcopy
-import threading
 
-import common
+# User modules
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib"))
 
+import iconchanger
+import gradient
+from data import DataStore
+from icongroup import IconGroupCollector
+from filters import FilterCollector, CustomFilterBase
+from guihelpers import PixbufCreator, FileChooser, ActionHandler
+from fshelpers import Prospector, FileKeeper
+
+# Data directories
 DIRS = dict(
 	user = "data/user",
 	default = "data/default"
@@ -61,11 +72,7 @@ class ACYL:
 
 	def __init__(self):
 		# Set config files manager
-		self.keeper = common.FileKeeper(DIRS['default'], DIRS['user'])
-
-		# Helpers
-		self.pixcreator = common.PixbufCreator()
-		self.iconchanger = common.IconChanger()
+		self.keeper = FileKeeper(DIRS['default'], DIRS['user'])
 
 		# Config file setup
 		self.configfile = self.keeper.get("config.ini")
@@ -75,28 +82,28 @@ class ACYL:
 		# Set data file for saving icon render settings
 		# Icon render setting will stored for every icon group separately
 		self.dbfile = self.keeper.get("store.acyl")
-		self.database = common.DataStore(self.dbfile)
+		self.database = DataStore(self.dbfile)
 
 		# File dialog
-		self.filechooser = common.FileChooser(DIRS['user'])
+		self.filechooser = FileChooser(DIRS['user'])
 
 		# Create objects for alternative and real icon full prewiew
-		self.iconview = common.Prospector(self.config.get("Directories", "real"))
-		self.alternatives = common.Prospector(self.config.get("Directories", "alternatives"))
+		self.iconview = Prospector(self.config.get("Directories", "real"))
+		self.alternatives = Prospector(self.config.get("Directories", "alternatives"))
 
 		# Load icon groups from config file
-		self.icongroups = common.IconGroupCollector(self.config)
+		self.icongroups = IconGroupCollector(self.config)
 		self.icongroups.current.cache()
 
 		# Create object for preview render control
-		self.render = common.ActionHandler(self.fullrefresh)
+		self.render = ActionHandler(self.fullrefresh)
 		# Connect preview render controller to filters class
-		common.CustomFilterBase.render = self.render
+		CustomFilterBase.render = self.render
 		# Load filters from certain directory
-		self.filters = common.FilterCollector(self.config.get("Directories", "filters"))
+		self.filters = FilterCollector(self.config.get("Directories", "filters"))
 
 		# Build griadient object
-		self.gradient = common.Gradient()
+		self.gradient = gradient.Gradient()
 
 		# Load GUI
 		self.builder = Gtk.Builder()
@@ -176,7 +183,7 @@ class ACYL:
 			self.gui['alt_icon_store'].clear()
 
 			for icon in self.alternatives.get_icons(DIG_LEVEL):
-				pixbuf = self.pixcreator.new_single_at_size(icon, self.VIEW_ICON_SIZE)
+				pixbuf = PixbufCreator.new_single_at_size(icon, self.VIEW_ICON_SIZE)
 				self.gui['alt_icon_store'].append([pixbuf])
 
 	@spinner
@@ -187,7 +194,7 @@ class ACYL:
 			self.iconview.dig(text.lower(), DIG_LEVEL)
 
 			icons = self.iconview.get_icons(DIG_LEVEL)
-			pixbufs = [self.pixcreator.new_single_at_size(icon, self.VIEW_ICON_SIZE) for icon in icons]
+			pixbufs = [PixbufCreator.new_single_at_size(icon, self.VIEW_ICON_SIZE) for icon in icons]
 
 			# Because of trouble with Gtk threading
 			# Heavy GUI action catched in seperate function and moved to main thread
@@ -232,7 +239,7 @@ class ACYL:
 	def on_icongroup_combo_changed(self, combo):
 		self.write_gui_settings_to_base()
 		files = self.icongroups.current.get_test()
-		self.iconchanger.rebuild(*files, **self.current_state())
+		iconchanger.rebuild(*files, **self.current_state())
 
 		self.icongroups.switch(combo.get_active_text())
 		self.icongroups.current.cache()
@@ -287,7 +294,7 @@ class ACYL:
 
 	def on_color_change(self, *args):
 		rgba = self.gui['color_selector'].get_current_rgba()
-		self.gui['color_list_store'].set_value(self.color_selected, self.HEXCOLOR, self.pixcreator.hex_from_rgba(rgba))
+		self.gui['color_list_store'].set_value(self.color_selected, self.HEXCOLOR, PixbufCreator.hex_from_rgba(rgba))
 		self.gui['color_list_store'].set_value(self.color_selected, self.ALPHA, rgba.alpha)
 		self.gui['color_list_store'].set_value(self.color_selected, self.RGBCOLOR, rgba.to_string())
 		self.render.run()
@@ -306,7 +313,7 @@ class ACYL:
 
 	def on_add_offset_button_click(self, *args):
 		rgba = self.gui['color_selector'].get_current_rgba()
-		hexcolor = self.pixcreator.hex_from_rgba(rgba)
+		hexcolor = PixbufCreator.hex_from_rgba(rgba)
 		self.gui['color_list_store'].append([hexcolor, rgba.alpha, 100, rgba.to_string()])
 
 	def on_remove_offset_button_click(self, *args):
@@ -338,7 +345,7 @@ class ACYL:
 	def on_apply_click(self, *args):
 		if self.pageindex == 0:
 			files = self.icongroups.current.get_real()
-			self.iconchanger.rebuild(*files, **self.current_state())
+			iconchanger.rebuild(*files, **self.current_state())
 		else:
 			self.alternatives.send_icons(2, self.config.get("Directories", "real"))
 
@@ -361,7 +368,7 @@ class ACYL:
 		# self.gui['filter_group_combo'].set_active(0)
 
 		# gradient type list
-		for tag in sorted(common.Gradient.profiles):
+		for tag in sorted(gradient.GRADIENT_PROFILES):
 			self.gui['gradient_combo'].append_text(tag)
 		self.gui['gradient_combo'].set_active(0)
 
@@ -406,7 +413,7 @@ class ACYL:
 		if not self.is_preview_locked:
 			if savedata: self.write_gui_settings_to_base()
 			state = self.current_state()
-			self.icongroups.current.preview = self.iconchanger.rebuild_text(self.icongroups.current.preview, **state)
+			self.icongroups.current.preview = iconchanger.rebuild_text(self.icongroups.current.preview, **state)
 			self.preview_update()
 
 	def read_gui_setting_from_base(self, keys=None):
@@ -430,7 +437,7 @@ class ACYL:
 			self.gui['offset_switch'].set_active(not dump['autooffset'])
 
 		if 'gradtype' in keys:
-			self.gui['gradient_combo'].set_active(common.Gradient.profiles[dump['gradtype']]['index'])
+			self.gui['gradient_combo'].set_active(gradient.GRADIENT_PROFILES[dump['gradtype']]['index'])
 
 		if 'filter' in keys:
 			filter_ = dump['filter']
@@ -465,9 +472,9 @@ class ACYL:
 			if self.icongroups.current.pairsw:
 				icon1, icon2 = icon2, icon1
 
-			pixbuf = self.pixcreator.new_double_at_size(icon1, icon2, size=self.PREVIEW_ICON_SIZE)
+			pixbuf = PixbufCreator.new_double_at_size(icon1, icon2, size=self.PREVIEW_ICON_SIZE)
 		else:
-			pixbuf = self.pixcreator.new_single_at_size(self.icongroups.current.preview, self.PREVIEW_ICON_SIZE)
+			pixbuf = PixbufCreator.new_single_at_size(self.icongroups.current.preview, self.PREVIEW_ICON_SIZE)
 
 		self.gui['preview_icon'].set_from_pixbuf(pixbuf)
 
