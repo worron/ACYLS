@@ -73,3 +73,18 @@ class PixbufCreator():
 	def hex_from_rgba(rgba):
 		"""Translate color from Gdk.RGBA to html hex format"""
 		return "#%02X%02X%02X" % tuple([getattr(rgba, name) * 255 for name in ("red", "green", "blue")])
+
+
+class ActionHandler:
+	"""Small helper to control an action"""
+	def __init__(self, action, is_allowed=False):
+		self.action = action
+		self.is_allowed = is_allowed
+
+	def set_state(self, state):
+		"""Allow/block action"""
+		self.is_allowed = state
+
+	def run(self, *args, forced=False):
+		"""Try to action"""
+		if self.is_allowed or forced: self.action(*args)

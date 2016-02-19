@@ -10,19 +10,19 @@ if sys.version_info < (3, 0):
 
 # System modules
 import configparser
+import threading
 from gi.repository import Gtk, Gdk, GLib
 from copy import deepcopy
-import threading
 
 # User modules
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib"))
 
-import common
 import iconchanger
 import gradient
+from data import DataStore
 from icongroup import IconGroupCollector
 from filters import FilterCollector, CustomFilterBase
-from guihelpers import PixbufCreator, FileChooser
+from guihelpers import PixbufCreator, FileChooser, ActionHandler
 from fshelpers import Prospector, FileKeeper
 
 # Data directories
@@ -82,7 +82,7 @@ class ACYL:
 		# Set data file for saving icon render settings
 		# Icon render setting will stored for every icon group separately
 		self.dbfile = self.keeper.get("store.acyl")
-		self.database = common.DataStore(self.dbfile)
+		self.database = DataStore(self.dbfile)
 
 		# File dialog
 		self.filechooser = FileChooser(DIRS['user'])
@@ -96,7 +96,7 @@ class ACYL:
 		self.icongroups.current.cache()
 
 		# Create object for preview render control
-		self.render = common.ActionHandler(self.fullrefresh)
+		self.render = ActionHandler(self.fullrefresh)
 		# Connect preview render controller to filters class
 		CustomFilterBase.render = self.render
 		# Load filters from certain directory
