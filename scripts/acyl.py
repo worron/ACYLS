@@ -19,8 +19,8 @@ sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib"))
 
 import common
 import iconchanger
-import svggradient
-from gtkhelpers import PixbufCreator, FileChooser
+import gradient
+from guihelpers import PixbufCreator, FileChooser
 
 # Data directories
 DIRS = dict(
@@ -100,7 +100,7 @@ class ACYL:
 		self.filters = common.FilterCollector(self.config.get("Directories", "filters"))
 
 		# Build griadient object
-		self.gradient = svggradient.Gradient()
+		self.gradient = gradient.Gradient()
 
 		# Load GUI
 		self.builder = Gtk.Builder()
@@ -365,7 +365,7 @@ class ACYL:
 		# self.gui['filter_group_combo'].set_active(0)
 
 		# gradient type list
-		for tag in sorted(svggradient.GRADIENT_PROFILES):
+		for tag in sorted(gradient.GRADIENT_PROFILES):
 			self.gui['gradient_combo'].append_text(tag)
 		self.gui['gradient_combo'].set_active(0)
 
@@ -434,7 +434,7 @@ class ACYL:
 			self.gui['offset_switch'].set_active(not dump['autooffset'])
 
 		if 'gradtype' in keys:
-			self.gui['gradient_combo'].set_active(svggradient.GRADIENT_PROFILES[dump['gradtype']]['index'])
+			self.gui['gradient_combo'].set_active(gradient.GRADIENT_PROFILES[dump['gradtype']]['index'])
 
 		if 'filter' in keys:
 			filter_ = dump['filter']
