@@ -21,6 +21,7 @@ import common
 import iconchanger
 import gradient
 from guihelpers import PixbufCreator, FileChooser
+from fshelpers import Prospector, FileKeeper
 
 # Data directories
 DIRS = dict(
@@ -69,7 +70,7 @@ class ACYL:
 
 	def __init__(self):
 		# Set config files manager
-		self.keeper = common.FileKeeper(DIRS['default'], DIRS['user'])
+		self.keeper = FileKeeper(DIRS['default'], DIRS['user'])
 
 		# Config file setup
 		self.configfile = self.keeper.get("config.ini")
@@ -85,8 +86,8 @@ class ACYL:
 		self.filechooser = FileChooser(DIRS['user'])
 
 		# Create objects for alternative and real icon full prewiew
-		self.iconview = common.Prospector(self.config.get("Directories", "real"))
-		self.alternatives = common.Prospector(self.config.get("Directories", "alternatives"))
+		self.iconview = Prospector(self.config.get("Directories", "real"))
+		self.alternatives = Prospector(self.config.get("Directories", "alternatives"))
 
 		# Load icon groups from config file
 		self.icongroups = common.IconGroupCollector(self.config)
