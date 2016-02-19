@@ -20,6 +20,7 @@ sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib"))
 import common
 import iconchanger
 import gradient
+from icongroup import IconGroupCollector
 from guihelpers import PixbufCreator, FileChooser
 from fshelpers import Prospector, FileKeeper
 
@@ -90,7 +91,7 @@ class ACYL:
 		self.alternatives = Prospector(self.config.get("Directories", "alternatives"))
 
 		# Load icon groups from config file
-		self.icongroups = common.IconGroupCollector(self.config)
+		self.icongroups = IconGroupCollector(self.config)
 		self.icongroups.current.cache()
 
 		# Create object for preview render control

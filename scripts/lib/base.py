@@ -26,3 +26,17 @@ class IconFinder:
 			for root, _, files in os.walk(path):
 				for filename in files:
 					if filename.endswith('.svg'): return os.path.join(root, filename)
+
+
+class ItemPack:
+	"""Base for work with groups of items"""
+	def switch(self, name):
+		"""Set current item by name"""
+		if name in self.pack:
+			self.current = self.pack[name]
+
+	def build_names(self, sortkey):
+		"""Build sorted list of item names and set active first"""
+		self.names = [key for key in self.pack]
+		self.names.sort(key=sortkey)
+		self.current = self.pack[self.names[0]]
