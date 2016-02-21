@@ -29,13 +29,13 @@ class FileChooser:
 			return response == Gtk.ResponseType.OK, file_
 		return action
 
-	def __init__(self, start_folder):
+	def __init__(self, start_folder, default_name):
 		self.dialogs = dict()
 		for name, args in DIALOGS_PROFILE.items():
 			self.dialogs[name] = Gtk.FileChooserDialog(*args)
 			self.dialogs[name].set_current_folder(start_folder)
 
-		self.dialogs['save'].set_current_name("custom.acyl")
+		self.dialogs['save'].set_current_name(default_name)
 
 	load = build_dialog_action('load')
 	save = build_dialog_action('save')

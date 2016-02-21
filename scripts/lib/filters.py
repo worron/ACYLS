@@ -205,3 +205,35 @@ class FilterCollector(base.ItemPack):
 			if name in names: return self.groupnames.index(group)
 		else:
 			return 0
+
+
+class RawFilterEditor:
+	def load_xml(self, file_):
+		self.xmlfile = file_
+		self.tree = etree.parse(self.xmlfile, base.parser)
+		self.root = self.tree.getroot()
+		self.source = etree.tostring(self.root, pretty_print=True).decode("utf-8")
+
+	def get_updated_preview(self):
+		svgroot = etree.fromstring(self.preview, base.parser)
+		XHTML = "{%s}" % svgroot.nsmap[None]
+		old_filter_tag = svgroot.find(".//%s*[@id='acyl-filter']" % XHTML)
+		old_visual_tag = svgroot.find(".//%s*[@id='acyl-visual']" % XHTML)
+		old_filter_tag.getparent().replace(old_filter_tag, deepcopy(self.filter_tag))
+		old_visual_tag.getparent().replace(old_visual_tag, deepcopy(self.visual_tag))
+		new_prewiew = etree.tostring(svgroot, pretty_print=True)
+		return new_prewiew
+
+	def get_source(self):
+		return self.source
+
+	def load_source(self, text):
+		root = etree.fromstring(text, base.parser)
+		self.source = etree.tostring(root, pretty_print=True).decode("utf-8")
+
+		self.filter_tag = root.find(".//*[@id='acyl-filter']")
+		self.visual_tag = root.find(".//*[@id='acyl-visual']")
+
+	def load_preview(self, file_):
+		with open(file_, 'rb') as f: self.preview = f.read()
+		self.load_source(self.preview)

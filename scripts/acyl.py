@@ -21,7 +21,7 @@ import iconchanger
 import gradient
 from data import DataStore
 from icongroup import IconGroupCollector
-from filters import FilterCollector, CustomFilterBase
+from filters import FilterCollector, CustomFilterBase, RawFilterEditor
 from guihelpers import PixbufCreator, FileChooser, ActionHandler
 from fshelpers import Prospector, FileKeeper
 
@@ -85,7 +85,8 @@ class ACYL:
 		self.database = DataStore(self.dbfile)
 
 		# File dialog
-		self.filechooser = FileChooser(DIRS['user'])
+		self.filechooser = FileChooser(DIRS['user'], "custom.acyl")
+		self.filterchooser = FileChooser(self.config.get("Directories", "filters"), "filter.xml")
 
 		# Create objects for alternative and real icon full prewiew
 		self.iconview = Prospector(self.config.get("Directories", "real"))
@@ -94,6 +95,10 @@ class ACYL:
 		# Load icon groups from config file
 		self.icongroups = IconGroupCollector(self.config)
 		self.icongroups.current.cache()
+
+		# Filter edit helper
+		self.filtereditor = RawFilterEditor()
+		self.filtereditor.load_preview("preview/main/folder.svg")
 
 		# Create object for preview render control
 		self.render = ActionHandler(self.fullrefresh)
@@ -114,7 +119,8 @@ class ACYL:
 			'offset_scale', 'offset_switch', 'alt_group_combo', 'alt_theme_combo', 'gradient_combo',
 			'filters_combo', 'iconview_combo', 'icongroup_combo', 'alt_icon_store', 'iconview_store',
 			'custom_icon_tree_view', 'refresh_button', 'filter_settings_button', 'apply_button',
-			'custom_icons_store', 'color_selector', 'notebook', 'rtr_button', 'filter_group_combo'
+			'custom_icons_store', 'color_selector', 'notebook', 'rtr_button', 'filter_group_combo',
+			'filter_edit_textbuffer', 'filter_preview_icon'
 		)
 
 		self.gui = {element: self.builder.get_object(element) for element in gui_elements}
@@ -211,9 +217,11 @@ class ACYL:
 		self.read_gui_setting_from_base(['gradtype', 'direction'])
 
 	def on_page_changed(self, nb, page, page_index):
-		COLORS, ALTERNATIVES, ICONVIEW = 0, 1, 2
+		COLORS, ALTERNATIVES, ICONVIEW, FILTEREDIT = 0, 1, 2, 3
 		self.pageindex = page_index
-		self.gui['refresh_button'].set_sensitive(page_index == COLORS and not self.render.is_allowed)
+		self.gui['refresh_button'].set_sensitive(
+			page_index == COLORS and not self.render.is_allowed or page_index == FILTEREDIT
+		)
 		self.gui['apply_button'].set_sensitive(page_index in (COLORS, ALTERNATIVES))
 
 		if page_index == ALTERNATIVES:
@@ -231,7 +239,17 @@ class ACYL:
 		Gtk.main_quit(*args)
 
 	def on_refresh_click(self, *args):
-		self.render.run(forced=True)
+		FILTEREDIT = 3
+		if self.pageindex == FILTEREDIT:
+			start = self.gui["filter_edit_textbuffer"].get_start_iter()
+			end = self.gui["filter_edit_textbuffer"].get_end_iter()
+			buffer_text = self.gui["filter_edit_textbuffer"].get_text(start, end, False)
+
+			self.filtereditor.load_source(buffer_text)
+			pixbuf = PixbufCreator.new_single_at_size(self.filtereditor.get_updated_preview(), self.PREVIEW_ICON_SIZE)
+			self.gui['filter_preview_icon'].set_from_pixbuf(pixbuf)
+		else:
+			self.render.run(forced=True)
 
 	def on_filter_settings_click(self, widget, data=None):
 		self.filters.current.gui['window'].show_all()
@@ -340,6 +358,17 @@ class ACYL:
 		if is_ok:
 			self.database.load_from_file(file_)
 			self.read_gui_setting_from_base()
+
+	def on_load_filter_button_click(self, *args):
+		is_ok, file_ = self.filterchooser.load()
+		if is_ok:
+			self.filtereditor.load_xml(file_)
+			self.gui["filter_edit_textbuffer"].set_text(self.filtereditor.get_source())
+
+			pixbuf = PixbufCreator.new_single_at_size(self.filtereditor.get_updated_preview(), self.PREVIEW_ICON_SIZE)
+			# print(self.filtereditor.get_updated_preview())
+			# pixbuf = PixbufCreator.new_single_at_size(self.filtereditor.preview, self.PREVIEW_ICON_SIZE)
+			self.gui['filter_preview_icon'].set_from_pixbuf(pixbuf)
 
 	@spinner
 	def on_apply_click(self, *args):
