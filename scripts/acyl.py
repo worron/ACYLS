@@ -97,7 +97,7 @@ class ACYL:
 		self.icongroups.current.cache()
 
 		# Filter edit helper
-		self.filter_editor = RawFilterEditor("preview/main/folder.svg")
+		self.filter_editor = RawFilterEditor(self.config.get("Directories", "editor"))
 
 		# Create object for preview render control
 		self.render = ActionHandler(self.fullrefresh)
@@ -139,7 +139,7 @@ class ACYL:
 		self.OFFSET = 2
 		self.RGBCOLOR = 3
 
-		# ACTIVATE GUI
+		# Activate GUI
 		self.gui['window'].show_all()
 		self.fill_up_gui()
 

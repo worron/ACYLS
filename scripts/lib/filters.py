@@ -209,9 +209,12 @@ class FilterCollector(base.ItemPack):
 
 class RawFilterEditor:
 	"""Filter editor"""
-	def __init__(self, preview_icon):
+	def __init__(self, preview_dir):
 		self.xmlfile = None
-		with open(preview_icon, 'rb') as f: self.preview = f.read()
+
+		preview_icon = base.get_svg_first(preview_dir)
+		with open(preview_icon, 'rb') as f:
+			self.preview = f.read()
 
 	def load_xml(self, file_):
 		"""Load filter source from xml file"""

@@ -1,11 +1,11 @@
 # -*- Mode: Python; indent-tabs-mode: t; python-indent: 4; tab-width: 4 -*-
 
 import os
-from base import IconFinder, ItemPack
+import base
 from itertools import count
 
 
-class BasicIconGroup(IconFinder):
+class BasicIconGroup:
 	"""Object with fixed list of real and preview pathes for icon group"""
 	def __init__(self, name, emptydir, testdirs, realdirs, pairdir=None, pairsw=False, index=0):
 		self.name = name
@@ -18,7 +18,7 @@ class BasicIconGroup(IconFinder):
 		self.pairsw = pairsw
 
 		if self.is_double:
-			self.pair = self.get_svg_first(pairdir)
+			self.pair = base.get_svg_first(pairdir)
 
 	def cache(self):
 		"""Save current preview icon as text"""
@@ -26,16 +26,16 @@ class BasicIconGroup(IconFinder):
 
 	def get_preview(self):
 		"""Get active preview for icon group"""
-		preview_icon = self.get_svg_first(*self.testdirs)
-		return preview_icon if preview_icon else self.get_svg_first(self.emptydir)
+		preview_icon = base.get_svg_first(*self.testdirs)
+		return preview_icon if preview_icon else base.get_svg_first(self.emptydir)
 
 	def get_real(self):
 		"""Get list of all real icons for group"""
-		return self.get_svg_all(*self.realdirs)
+		return base.get_svg_all(*self.realdirs)
 
 	def get_test(self):
 		"""Get list of all testing icons for group"""
-		return self.get_svg_all(*self.testdirs)
+		return base.get_svg_all(*self.testdirs)
 
 
 class CustomIconGroup(BasicIconGroup):
@@ -54,7 +54,7 @@ class CustomIconGroup(BasicIconGroup):
 		self.realdirs = [os.path.join(self.realbase, name) for name in self.state if self.state[name]]
 
 
-class IconGroupCollector(ItemPack):
+class IconGroupCollector(base.ItemPack):
 	"""Object to load, store and switch between icon groups"""
 	def __init__(self, config):
 		self.pack = dict()

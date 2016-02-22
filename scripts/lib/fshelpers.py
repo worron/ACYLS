@@ -3,10 +3,10 @@
 
 import os
 import shutil
-from base import IconFinder
+import base
 
 
-class Prospector(IconFinder):
+class Prospector:
 	""""Find icons on diffrent deep level in directory tree"""
 	def __init__(self, root):
 		self.root = root
@@ -23,7 +23,7 @@ class Prospector(IconFinder):
 	def get_icons(self, level):
 		"""Get icon list from given level"""
 		if level in self.structure:
-			return self.get_svg_all(self.structure[level]['root'])
+			return base.get_svg_all(self.structure[level]['root'])
 
 	def send_icons(self, level, dest):
 		"""Merge files form given level to destination place"""
