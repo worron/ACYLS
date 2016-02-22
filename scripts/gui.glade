@@ -70,7 +70,7 @@
     <property name="step_increment">5</property>
   </object>
   <object class="GtkTextBuffer" id="filter_edit_textbuffer">
-    <property name="text" translatable="yes">Filter source here</property>
+    <property name="text" translatable="yes">Enter filter source here</property>
   </object>
   <object class="GtkListStore" id="iconview_store">
     <columns>
@@ -798,6 +798,8 @@
                         <property name="can_focus">True</property>
                         <property name="hexpand">True</property>
                         <property name="vexpand">True</property>
+                        <property name="wrap_mode">char</property>
+                        <property name="left_margin">1</property>
                         <property name="buffer">filter_edit_textbuffer</property>
                       </object>
                     </child>
@@ -835,6 +837,7 @@
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
+                        <signal name="clicked" handler="on_save_filter_button_click" swapped="no"/>
                       </object>
                       <packing>
                         <property name="expand">False</property>

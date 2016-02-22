@@ -208,32 +208,43 @@ class FilterCollector(base.ItemPack):
 
 
 class RawFilterEditor:
-	def load_xml(self, file_):
-		self.xmlfile = file_
-		self.tree = etree.parse(self.xmlfile, base.parser)
-		self.root = self.tree.getroot()
-		self.source = etree.tostring(self.root, pretty_print=True).decode("utf-8")
+	"""Filter editor"""
+	def __init__(self, preview_icon):
+		with open(preview_icon, 'rb') as f: self.preview = f.read()
 
-	def get_updated_preview(self):
-		svgroot = etree.fromstring(self.preview, base.parser)
-		XHTML = "{%s}" % svgroot.nsmap[None]
-		old_filter_tag = svgroot.find(".//%s*[@id='acyl-filter']" % XHTML)
-		old_visual_tag = svgroot.find(".//%s*[@id='acyl-visual']" % XHTML)
+	def load_xml(self, file_):
+		"""Load filter source from xml file"""
+		self.xmlfile = file_
+		self.load_source(file_)
+
+	def update_preview(self):
+		"""Update preview according current filter sourse"""
+		iconroot = etree.fromstring(self.preview, base.parser)
+		XHTML = "{%s}" % iconroot.nsmap[None]
+		old_filter_tag = iconroot.find(".//%s*[@id='acyl-filter']" % XHTML)
+		old_visual_tag = iconroot.find(".//%s*[@id='acyl-visual']" % XHTML)
 		old_filter_tag.getparent().replace(old_filter_tag, deepcopy(self.filter_tag))
 		old_visual_tag.getparent().replace(old_visual_tag, deepcopy(self.visual_tag))
-		new_prewiew = etree.tostring(svgroot, pretty_print=True)
-		return new_prewiew
+		self.current_preview = etree.tostring(iconroot, pretty_print=True)
 
-	def get_source(self):
-		return self.source
+	def load_source(self, data):
+		"""Update filter source"""
+		try:
+			if os.path.isfile(data):
+				tree = etree.parse(data, base.parser)
+				root = tree.getroot()
+			else:
+				root = etree.fromstring(data, base.parser)
 
-	def load_source(self, text):
-		root = etree.fromstring(text, base.parser)
-		self.source = etree.tostring(root, pretty_print=True).decode("utf-8")
+			self.source = etree.tostring(root, pretty_print=True).decode("utf-8")
+			self.filter_tag = root.find(".//*[@id='acyl-filter']")
+			self.visual_tag = root.find(".//*[@id='acyl-visual']")
 
-		self.filter_tag = root.find(".//*[@id='acyl-filter']")
-		self.visual_tag = root.find(".//*[@id='acyl-visual']")
+			self.update_preview()
+		except Exception as e:
+			print("Fail to load filter source, wrong file or filter syntax")
+			print(e)
 
-	def load_preview(self, file_):
-		with open(file_, 'rb') as f: self.preview = f.read()
-		self.load_source(self.preview)
+	def save_xml(self):
+		"""Save current filter state to file"""
+		with open(self.xmlfile, 'w') as f: f.write(self.source)

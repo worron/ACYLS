@@ -97,8 +97,7 @@ class ACYL:
 		self.icongroups.current.cache()
 
 		# Filter edit helper
-		self.filtereditor = RawFilterEditor()
-		self.filtereditor.load_preview("preview/main/folder.svg")
+		self.filter_editor = RawFilterEditor("preview/main/folder.svg")
 
 		# Create object for preview render control
 		self.render = ActionHandler(self.fullrefresh)
@@ -245,8 +244,9 @@ class ACYL:
 			end = self.gui["filter_edit_textbuffer"].get_end_iter()
 			buffer_text = self.gui["filter_edit_textbuffer"].get_text(start, end, False)
 
-			self.filtereditor.load_source(buffer_text)
-			pixbuf = PixbufCreator.new_single_at_size(self.filtereditor.get_updated_preview(), self.PREVIEW_ICON_SIZE)
+			self.filter_editor.load_source(buffer_text)
+			# pixbuf = PixbufCreator.new_single_at_size(self.filter_editor.get_updated_preview(), self.PREVIEW_ICON_SIZE)
+			pixbuf = PixbufCreator.new_single_at_size(self.filter_editor.current_preview, self.PREVIEW_ICON_SIZE)
 			self.gui['filter_preview_icon'].set_from_pixbuf(pixbuf)
 		else:
 			self.render.run(forced=True)
@@ -362,13 +362,14 @@ class ACYL:
 	def on_load_filter_button_click(self, *args):
 		is_ok, file_ = self.filterchooser.load()
 		if is_ok:
-			self.filtereditor.load_xml(file_)
-			self.gui["filter_edit_textbuffer"].set_text(self.filtereditor.get_source())
+			self.filter_editor.load_xml(file_)
+			self.gui["filter_edit_textbuffer"].set_text(self.filter_editor.source)
 
-			pixbuf = PixbufCreator.new_single_at_size(self.filtereditor.get_updated_preview(), self.PREVIEW_ICON_SIZE)
-			# print(self.filtereditor.get_updated_preview())
-			# pixbuf = PixbufCreator.new_single_at_size(self.filtereditor.preview, self.PREVIEW_ICON_SIZE)
+			pixbuf = PixbufCreator.new_single_at_size(self.filter_editor.current_preview, self.PREVIEW_ICON_SIZE)
 			self.gui['filter_preview_icon'].set_from_pixbuf(pixbuf)
+
+	def on_save_filter_button_click(self, *args):
+		self.filter_editor.save_xml()
 
 	@spinner
 	def on_apply_click(self, *args):
