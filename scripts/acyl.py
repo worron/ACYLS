@@ -119,7 +119,7 @@ class ACYL:
 			'filters_combo', 'iconview_combo', 'icongroup_combo', 'alt_icon_store', 'iconview_store',
 			'custom_icon_tree_view', 'refresh_button', 'filter_settings_button', 'apply_button',
 			'custom_icons_store', 'color_selector', 'notebook', 'rtr_button', 'filter_group_combo',
-			'filter_edit_textbuffer', 'filter_preview_icon'
+			'filter_edit_textbuffer', 'filter_preview_icon', 'filter_edit_info_label'
 		)
 
 		self.gui = {element: self.builder.get_object(element) for element in gui_elements}
@@ -367,13 +367,16 @@ class ACYL:
 
 			pixbuf = PixbufCreator.new_single_at_size(self.filter_editor.current_preview, self.PREVIEW_ICON_SIZE)
 			self.gui['filter_preview_icon'].set_from_pixbuf(pixbuf)
+			self.gui['filter_edit_info_label'].set_text(self.filter_editor.get_filter_info())
 
 	def on_save_filter_button_click(self, *args):
 		self.filter_editor.save_xml()
 
 	def on_save_as_filter_button_click(self, *args):
 		is_ok, file_ = self.filterchooser.save()
-		if is_ok: self.filter_editor.save_xml(file_)
+		if is_ok:
+			self.filter_editor.save_xml(file_)
+			self.gui['filter_edit_info_label'].set_text(self.filter_editor.get_filter_info())
 
 	def on_reset_filter_button_click(self, *args):
 		if self.filter_editor.xmlfile is not None:

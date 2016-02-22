@@ -221,12 +221,16 @@ class RawFilterEditor:
 	def update_preview(self):
 		"""Update preview according current filter sourse"""
 		iconroot = etree.fromstring(self.preview, base.parser)
-		XHTML = "{%s}" % iconroot.nsmap[None]
-		old_filter_tag = iconroot.find(".//%s*[@id='acyl-filter']" % XHTML)
-		old_visual_tag = iconroot.find(".//%s*[@id='acyl-visual']" % XHTML)
+		old_filter_tag, old_visual_tag = self.get_tags(iconroot)
+
 		old_filter_tag.getparent().replace(old_filter_tag, deepcopy(self.filter_tag))
 		old_visual_tag.getparent().replace(old_visual_tag, deepcopy(self.visual_tag))
 		self.current_preview = etree.tostring(iconroot, pretty_print=True)
+
+	def get_tags(self, root):
+		filter_tag = root.find(".//*[@id='acyl-filter']")
+		visual_tag = root.find(".//*[@id='acyl-visual']")
+		return filter_tag, visual_tag
 
 	def load_source(self, data):
 		"""Update filter source"""
@@ -238,13 +242,32 @@ class RawFilterEditor:
 				root = etree.fromstring(data, base.parser)
 
 			self.source = etree.tostring(root, pretty_print=True).decode("utf-8")
-			self.filter_tag = root.find(".//*[@id='acyl-filter']")
-			self.visual_tag = root.find(".//*[@id='acyl-visual']")
+			self.filter_tag, self.visual_tag = self.get_tags(root)
 
 			self.update_preview()
 		except Exception as e:
 			print("Fail to load filter source, wrong file or filter syntax")
 			print(e)
+
+	def get_filter_info(self, modname="filter.py"):
+		"""Try to get some information about filter by current xml file"""
+		info = {'folder': "Unknown", 'group': "Unknown", 'name': "Unknown"}
+		if self.xmlfile is not None:
+			# Directory name may be useful
+			dirname = os.path.dirname(self.xmlfile)
+			info['folder'] = os.path.basename(dirname)
+
+			# Check if filter module available in xml file directory
+			try:
+				module = imp.load_source(modname.split('.')[0], os.path.join(dirname, modname))
+				filter_ = module.Filter()
+				info['group'] = filter_.group
+				info['name'] = filter_.name
+			except Exception:
+				print("Filter module was not found, no filter description available")
+
+		info_str = "Folder: {folder}; Group: {group}; Name: {name}".format(**info)
+		return info_str
 
 	def reset(self):
 		"""Reset filter to last saved state"""
