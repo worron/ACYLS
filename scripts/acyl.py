@@ -371,6 +371,20 @@ class ACYL:
 	def on_save_filter_button_click(self, *args):
 		self.filter_editor.save_xml()
 
+	def on_save_as_filter_button_click(self, *args):
+		is_ok, file_ = self.filterchooser.save()
+		if is_ok: self.filter_editor.save_xml(file_)
+
+	def on_reset_filter_button_click(self, *args):
+		if self.filter_editor.xmlfile is not None:
+			self.filter_editor.reset()
+			self.gui["filter_edit_textbuffer"].set_text(self.filter_editor.source)
+
+			pixbuf = PixbufCreator.new_single_at_size(self.filter_editor.current_preview, self.PREVIEW_ICON_SIZE)
+			self.gui['filter_preview_icon'].set_from_pixbuf(pixbuf)
+		else:
+			print("Error: filter was not saved")
+
 	@spinner
 	def on_apply_click(self, *args):
 		if self.pageindex == 0:
@@ -406,6 +420,10 @@ class ACYL:
 		for name in self.icongroups.names:
 			self.gui['icongroup_combo'].append_text(name)
 		self.gui['icongroup_combo'].set_active(0)
+
+		# Filter editor preview icon
+		pixbuf = PixbufCreator.new_single_at_size(self.filter_editor.preview, self.PREVIEW_ICON_SIZE)
+		self.gui['filter_preview_icon'].set_from_pixbuf(pixbuf)
 
 		# Connect gui hanlers now
 		self.builder.connect_signals(self)

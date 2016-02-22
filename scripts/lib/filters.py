@@ -210,6 +210,7 @@ class FilterCollector(base.ItemPack):
 class RawFilterEditor:
 	"""Filter editor"""
 	def __init__(self, preview_icon):
+		self.xmlfile = None
 		with open(preview_icon, 'rb') as f: self.preview = f.read()
 
 	def load_xml(self, file_):
@@ -245,6 +246,12 @@ class RawFilterEditor:
 			print("Fail to load filter source, wrong file or filter syntax")
 			print(e)
 
-	def save_xml(self):
+	def reset(self):
+		"""Reset filter to last saved state"""
+		self.load_source(self.xmlfile)
+
+	def save_xml(self, newfile=None):
 		"""Save current filter state to file"""
-		with open(self.xmlfile, 'w') as f: f.write(self.source)
+		file_ = newfile if newfile is not None else self.xmlfile
+		with open(file_, 'w') as f: f.write(self.source)
+		self.xmlfile = file_
