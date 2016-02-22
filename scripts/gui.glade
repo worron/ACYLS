@@ -861,6 +861,7 @@
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">True</property>
+                            <property name="tooltip_text" translatable="yes">Load filter file.</property>
                             <property name="image">open_image1</property>
                             <signal name="clicked" handler="on_load_filter_button_click" swapped="no"/>
                           </object>
@@ -875,6 +876,7 @@
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">True</property>
+                            <property name="tooltip_text" translatable="yes">Save filter to the same file.</property>
                             <property name="image">save_image1</property>
                             <signal name="clicked" handler="on_save_filter_button_click" swapped="no"/>
                           </object>
@@ -889,6 +891,7 @@
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">True</property>
+                            <property name="tooltip_text" translatable="yes">Save filter to new file.</property>
                             <property name="image">save_as_image</property>
                             <signal name="clicked" handler="on_save_as_filter_button_click" swapped="no"/>
                           </object>
@@ -903,6 +906,7 @@
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">True</property>
+                            <property name="tooltip_text" translatable="yes">Revert filter to last saved version.</property>
                             <property name="image">revert_image</property>
                             <signal name="clicked" handler="on_reset_filter_button_click" swapped="no"/>
                           </object>
@@ -923,6 +927,7 @@
                       <object class="GtkLabel" id="filter_edit_info_label">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
+                        <property name="tooltip_text" translatable="yes">Filter description.</property>
                         <property name="label" translatable="yes">Folder: Unknown; Group: Unknown; Name: Unknown</property>
                       </object>
                       <packing>
