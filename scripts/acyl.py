@@ -11,7 +11,7 @@ if sys.version_info < (3, 0):
 # System modules
 import configparser
 import threading
-from gi.repository import Gtk, Gdk, GLib
+from gi.repository import Gtk, Gdk, GLib, Pango
 from copy import deepcopy
 
 # User modules
@@ -120,10 +120,11 @@ class ACYL:
 			'filters_combo', 'iconview_combo', 'icongroup_combo', 'alt_icon_store', 'iconview_store',
 			'custom_icon_tree_view', 'refresh_button', 'filter_settings_button', 'apply_button',
 			'custom_icons_store', 'color_selector', 'notebook', 'rtr_button', 'filter_group_combo',
-			'filter_edit_textbuffer', 'filter_preview_icon', 'filter_edit_info_label'
+			'filter_edit_textbuffer', 'filter_preview_icon', 'filter_edit_info_label', 'filter_edit_textview'
 		)
 
 		self.gui = {element: self.builder.get_object(element) for element in gui_elements}
+		self.gui['filter_edit_textview'].modify_font(Pango.FontDescription("Monospace"))
 
 		# Other
 		self.color_selected = None
