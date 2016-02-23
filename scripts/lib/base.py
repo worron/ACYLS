@@ -22,7 +22,8 @@ def get_svg_first(*dirlist):
 	for path in dirlist:
 		for root, _, files in os.walk(path):
 			for filename in files:
-				if filename.endswith('.svg'): return os.path.join(root, filename)
+				if filename.endswith('.svg'):
+					return os.path.join(root, filename)
 
 
 class ItemPack:

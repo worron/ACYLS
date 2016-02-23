@@ -13,7 +13,8 @@ class DataStore:
 
 	def get_dump(self, section):
 		"""Get data from given section of base"""
-		if section not in self.db: self.db[section] = deepcopy(self.db[self.dsection])
+		if section not in self.db:
+			self.db[section] = deepcopy(self.db[self.dsection])
 		return self.db[section]
 
 	def update(self, section, data):
@@ -32,7 +33,8 @@ class DataStore:
 		"""Save current database to file"""
 		try:
 			with shelve.open(dbfile) as newdb:
-				for key in self.db: newdb[key] = self.db[key]
+				for key in self.db:
+					newdb[key] = self.db[key]
 		except Exception as e:
 			print("Fail to save settings to file:\n%s" % str(e))
 
@@ -40,7 +42,8 @@ class DataStore:
 		"""Load database from file"""
 		try:
 			with shelve.open(dbfile) as newdb:
-				for key in newdb: self.db[key] = newdb[key]
+				for key in newdb:
+					self.db[key] = newdb[key]
 		except Exception as e:
 			print("Fail to load settings from file:\n%s" % str(e))
 

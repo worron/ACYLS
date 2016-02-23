@@ -61,7 +61,8 @@ class ACYL:
 					inst.gui['window'].get_window().set_cursor(None)
 
 		def on_done(post_process_action):
-			if callable(post_process_action): post_process_action()
+			if callable(post_process_action):
+				post_process_action()
 
 		def wrapper(*args, **kwargs):
 			thread = threading.Thread(target=action, args=args, kwargs=kwargs)
@@ -206,7 +207,8 @@ class ACYL:
 			# Should be fixed if possible
 			def update_gui_with_new_icons():
 				self.gui['iconview_store'].clear()
-				for pix in pixbufs: self.gui['iconview_store'].append([pix])
+				for pix in pixbufs:
+					self.gui['iconview_store'].append([pix])
 
 			return update_gui_with_new_icons
 
@@ -351,7 +353,8 @@ class ACYL:
 
 	def on_save_settings_button_click(self, *args):
 		is_ok, file_ = self.filechooser.save()
-		if is_ok: self.database.save_to_file(file_)
+		if is_ok:
+			self.database.save_to_file(file_)
 
 	def on_open_settings_button_click(self, *args):
 		is_ok, file_ = self.filechooser.load()
@@ -462,7 +465,8 @@ class ACYL:
 	def fullrefresh(self, savedata=True):
 		"""Refresh icon preview and update database if needed"""
 		if not self.is_preview_locked:
-			if savedata: self.write_gui_settings_to_base()
+			if savedata:
+				self.write_gui_settings_to_base()
 			state = self.current_state()
 			self.icongroups.current.preview = iconchanger.rebuild_text(self.icongroups.current.preview, **state)
 			self.preview_update()

@@ -108,7 +108,8 @@ class CustomFilterBase(SimpleFilterBase):
 			parameter.remember()
 
 		CustomFilterBase.render.run(False, forced=True)
-		if 'window' in self.gui: self.gui['window'].hide()
+		if 'window' in self.gui:
+			self.gui['window'].hide()
 
 		self.save()
 
@@ -120,7 +121,8 @@ class CustomFilterBase(SimpleFilterBase):
 		CustomFilterBase.render.run(False, forced=True)
 
 	def on_close_window(self, *args):
-		if 'window' in self.gui: self.gui['window'].hide()
+		if 'window' in self.gui:
+			self.gui['window'].hide()
 		return True
 
 	# GUI setup helpers
@@ -133,7 +135,8 @@ class CustomFilterBase(SimpleFilterBase):
 		"""GUI setup helper - color"""
 		rgba = Gdk.RGBA()
 		rgba.parse(self.param[color].match())
-		if alpha is not None: rgba.alpha = float(self.param[alpha].match())
+		if alpha is not None:
+			rgba.alpha = float(self.param[alpha].match())
 		self.gui[button].set_rgba(rgba)
 
 	# Handler generators
@@ -143,7 +146,8 @@ class CustomFilterBase(SimpleFilterBase):
 		"""
 		def change_handler(widget):
 			value = widget.get_value()
-			if translate is not None: value = translate(value)
+			if translate is not None:
+				value = translate(value)
 			for parameter in parameters:
 				self.param[parameter].set_value(value)
 			self.render.run(False)
@@ -202,7 +206,8 @@ class FilterCollector(base.ItemPack):
 	def get_group_index(self, name):
 		"""Get group index by filter name"""
 		for group, names in self.groups.items():
-			if name in names: return self.groupnames.index(group)
+			if name in names:
+				return self.groupnames.index(group)
 		else:
 			return 0
 
@@ -279,5 +284,6 @@ class RawFilterEditor:
 	def save_xml(self, newfile=None):
 		"""Save current filter state to file"""
 		file_ = newfile if newfile is not None else self.xmlfile
-		with open(file_, 'w') as f: f.write(self.source)
 		self.xmlfile = file_
+		with open(file_, 'w') as f:
+			f.write(self.source)

@@ -87,4 +87,5 @@ class ActionHandler:
 
 	def run(self, *args, forced=False):
 		"""Try to action"""
-		if self.is_allowed or forced: self.action(*args)
+		if self.is_allowed or forced:
+			self.action(*args)

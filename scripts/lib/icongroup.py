@@ -22,7 +22,8 @@ class BasicIconGroup:
 
 	def cache(self):
 		"""Save current preview icon as text"""
-		with open(self.get_preview(), 'rb') as f: self.preview = f.read()
+		with open(self.get_preview(), 'rb') as f:
+			self.preview = f.read()
 
 	def get_preview(self):
 		"""Get active preview for icon group"""
@@ -63,7 +64,8 @@ class IconGroupCollector(base.ItemPack):
 		while True:
 			index = next(counter)
 			section = "IconGroup" + str(index)
-			if not config.has_section(section): break
+			if not config.has_section(section):
+				break
 			try:
 				# group type
 				is_custom = config.getboolean(section, 'custom')
@@ -80,7 +82,8 @@ class IconGroupCollector(base.ItemPack):
 				args_b = ("pairsw",)
 				kargs_b = {k: config.getboolean(section, k) for k in args_b if config.has_option(section, k)}
 
-				for d in (kargs_l, kargs_b): kargs.update(d)
+				for d in (kargs_l, kargs_b):
+					kargs.update(d)
 				kargs['index'] = index
 
 				self.pack[kargs['name']] = CustomIconGroup(**kargs) if is_custom else BasicIconGroup(**kargs)
