@@ -956,7 +956,7 @@
                 <property name="can_focus">False</property>
                 <property name="margin_left">4</property>
                 <property name="margin_right">4</property>
-                <property name="label" translatable="yes">Edit Filter</property>
+                <property name="label" translatable="yes">Filter Edit</property>
               </object>
               <packing>
                 <property name="position">3</property>
