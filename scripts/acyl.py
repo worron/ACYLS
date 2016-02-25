@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# -*- Mode: Python; indent-tabs-mode: t; python-indent: 4; tab-width: 4 -*-
 
 import os
 import sys
@@ -7,25 +8,39 @@ if sys.version_info < (3, 0):
 	sys.stdout.write("Requires Python 3.x\n")
 	sys.exit(1)
 
+# System modules
 import configparser
-from gi.repository import Gtk, Gdk, GLib
-from copy import deepcopy
 import threading
+from gi.repository import Gtk, Gdk, GLib, Pango
+from copy import deepcopy
 
-import common
+# User modules
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib"))
 
-os.chdir(os.path.dirname(os.path.abspath(__file__)))
+import iconchanger
+import gradient
+from data import DataStore
+from icongroup import IconGroupCollector
+from filters import FilterCollector, CustomFilterBase, RawFilterEditor
+from guihelpers import PixbufCreator, FileChooser, ActionHandler
+from fshelpers import Prospector, FileKeeper
 
-style_provider = Gtk.CssProvider()
-style_provider.load_from_path('themefix.css')
-
-Gtk.StyleContext.add_provider_for_screen(
-	Gdk.Screen.get_default(),
-	style_provider,
-	Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
+# Data directories
+DIRS = dict(
+	user = "data/user",
+	default = "data/default"
 )
 
-DIRS = dict(data = {'user': "data/user", 'default': "data/default"})
+
+def load_gtk_css(file_):
+	style_provider = Gtk.CssProvider()
+	style_provider.load_from_path(file_)
+
+	Gtk.StyleContext.add_provider_for_screen(
+		Gdk.Screen.get_default(),
+		style_provider,
+		Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
+	)
 
 
 class ACYL:
@@ -46,7 +61,8 @@ class ACYL:
 					inst.gui['window'].get_window().set_cursor(None)
 
 		def on_done(post_process_action):
-			if callable(post_process_action): post_process_action()
+			if callable(post_process_action):
+				post_process_action()
 
 		def wrapper(*args, **kwargs):
 			thread = threading.Thread(target=action, args=args, kwargs=kwargs)
@@ -57,11 +73,7 @@ class ACYL:
 
 	def __init__(self):
 		# Set config files manager
-		self.keeper = common.FileKeeper(DIRS['data']['default'], DIRS['data']['user'])
-
-		# Helpers
-		self.pixcreator = common.PixbufCreator()
-		self.iconchanger = common.IconChanger()
+		self.keeper = FileKeeper(DIRS['default'], DIRS['user'])
 
 		# Config file setup
 		self.configfile = self.keeper.get("config.ini")
@@ -71,28 +83,32 @@ class ACYL:
 		# Set data file for saving icon render settings
 		# Icon render setting will stored for every icon group separately
 		self.dbfile = self.keeper.get("store.acyl")
-		self.database = common.DataStore(self.dbfile)
+		self.database = DataStore(self.dbfile)
 
 		# File dialog
-		self.filechooser = common.FileChooser(DIRS['data']['user'])
+		self.filechooser = FileChooser(DIRS['user'], "custom.acyl")
+		self.filterchooser = FileChooser(self.config.get("Directories", "filters"), "filter.xml")
 
 		# Create objects for alternative and real icon full prewiew
-		self.iconview = common.Prospector(self.config.get("Directories", "real"))
-		self.alternatives = common.Prospector(self.config.get("Directories", "alternatives"))
+		self.iconview = Prospector(self.config.get("Directories", "real"))
+		self.alternatives = Prospector(self.config.get("Directories", "alternatives"))
 
 		# Load icon groups from config file
-		self.icongroups = common.IconGroupCollector(self.config)
+		self.icongroups = IconGroupCollector(self.config)
 		self.icongroups.current.cache()
 
+		# Filter edit helper
+		self.filter_editor = RawFilterEditor(self.config.get("Directories", "editor"))
+
 		# Create object for preview render control
-		self.render = common.ActionHandler(self.fullrefresh)
+		self.render = ActionHandler(self.fullrefresh)
 		# Connect preview render controller to filters class
-		common.CustomFilterBase.render = self.render
+		CustomFilterBase.render = self.render
 		# Load filters from certain directory
-		self.filters = common.FilterCollector(self.config.get("Directories", "filters"))
+		self.filters = FilterCollector(self.config.get("Directories", "filters"))
 
 		# Build griadient object
-		self.gradient = common.Gradient()
+		self.gradient = gradient.Gradient()
 
 		# Load GUI
 		self.builder = Gtk.Builder()
@@ -103,10 +119,12 @@ class ACYL:
 			'offset_scale', 'offset_switch', 'alt_group_combo', 'alt_theme_combo', 'gradient_combo',
 			'filters_combo', 'iconview_combo', 'icongroup_combo', 'alt_icon_store', 'iconview_store',
 			'custom_icon_tree_view', 'refresh_button', 'filter_settings_button', 'apply_button',
-			'custom_icons_store', 'color_selector', 'notebook', 'rtr_button', 'filter_group_combo'
+			'custom_icons_store', 'color_selector', 'notebook', 'rtr_button', 'filter_group_combo',
+			'filter_edit_textbuffer', 'filter_preview_icon', 'filter_edit_info_label', 'filter_edit_textview'
 		)
 
 		self.gui = {element: self.builder.get_object(element) for element in gui_elements}
+		self.gui['filter_edit_textview'].modify_font(Pango.FontDescription("Monospace"))
 
 		# Other
 		self.color_selected = None
@@ -123,7 +141,7 @@ class ACYL:
 		self.OFFSET = 2
 		self.RGBCOLOR = 3
 
-		# ACTIVATE GUI
+		# Activate GUI
 		self.gui['window'].show_all()
 		self.fill_up_gui()
 
@@ -172,7 +190,7 @@ class ACYL:
 			self.gui['alt_icon_store'].clear()
 
 			for icon in self.alternatives.get_icons(DIG_LEVEL):
-				pixbuf = self.pixcreator.new_single_at_size(icon, self.VIEW_ICON_SIZE)
+				pixbuf = PixbufCreator.new_single_at_size(icon, self.VIEW_ICON_SIZE)
 				self.gui['alt_icon_store'].append([pixbuf])
 
 	@spinner
@@ -183,14 +201,15 @@ class ACYL:
 			self.iconview.dig(text.lower(), DIG_LEVEL)
 
 			icons = self.iconview.get_icons(DIG_LEVEL)
-			pixbufs = [self.pixcreator.new_single_at_size(icon, self.VIEW_ICON_SIZE) for icon in icons]
+			pixbufs = [PixbufCreator.new_single_at_size(icon, self.VIEW_ICON_SIZE) for icon in icons]
 
 			# Because of trouble with Gtk threading
 			# Heavy GUI action catched in seperate function and moved to main thread
 			# Should be fixed if possible
 			def update_gui_with_new_icons():
 				self.gui['iconview_store'].clear()
-				for pix in pixbufs: self.gui['iconview_store'].append([pix])
+				for pix in pixbufs:
+					self.gui['iconview_store'].append([pix])
 
 			return update_gui_with_new_icons
 
@@ -200,9 +219,11 @@ class ACYL:
 		self.read_gui_setting_from_base(['gradtype', 'direction'])
 
 	def on_page_changed(self, nb, page, page_index):
-		COLORS, ALTERNATIVES, ICONVIEW = 0, 1, 2
+		COLORS, ALTERNATIVES, ICONVIEW, FILTEREDIT = 0, 1, 2, 3
 		self.pageindex = page_index
-		self.gui['refresh_button'].set_sensitive(page_index == COLORS and not self.render.is_allowed)
+		self.gui['refresh_button'].set_sensitive(
+			page_index == COLORS and not self.render.is_allowed or page_index == FILTEREDIT
+		)
 		self.gui['apply_button'].set_sensitive(page_index in (COLORS, ALTERNATIVES))
 
 		if page_index == ALTERNATIVES:
@@ -220,7 +241,18 @@ class ACYL:
 		Gtk.main_quit(*args)
 
 	def on_refresh_click(self, *args):
-		self.render.run(forced=True)
+		FILTEREDIT = 3
+		if self.pageindex == FILTEREDIT:
+			start = self.gui["filter_edit_textbuffer"].get_start_iter()
+			end = self.gui["filter_edit_textbuffer"].get_end_iter()
+			buffer_text = self.gui["filter_edit_textbuffer"].get_text(start, end, False)
+
+			self.filter_editor.load_source(buffer_text)
+			# pixbuf = PixbufCreator.new_single_at_size(self.filter_editor.get_updated_preview(), self.PREVIEW_ICON_SIZE)
+			pixbuf = PixbufCreator.new_single_at_size(self.filter_editor.current_preview, self.PREVIEW_ICON_SIZE)
+			self.gui['filter_preview_icon'].set_from_pixbuf(pixbuf)
+		else:
+			self.render.run(forced=True)
 
 	def on_filter_settings_click(self, widget, data=None):
 		self.filters.current.gui['window'].show_all()
@@ -228,7 +260,7 @@ class ACYL:
 	def on_icongroup_combo_changed(self, combo):
 		self.write_gui_settings_to_base()
 		files = self.icongroups.current.get_test()
-		self.iconchanger.rebuild(*files, **self.current_state())
+		iconchanger.rebuild(*files, **self.current_state())
 
 		self.icongroups.switch(combo.get_active_text())
 		self.icongroups.current.cache()
@@ -283,7 +315,7 @@ class ACYL:
 
 	def on_color_change(self, *args):
 		rgba = self.gui['color_selector'].get_current_rgba()
-		self.gui['color_list_store'].set_value(self.color_selected, self.HEXCOLOR, self.pixcreator.hex_from_rgba(rgba))
+		self.gui['color_list_store'].set_value(self.color_selected, self.HEXCOLOR, PixbufCreator.hex_from_rgba(rgba))
 		self.gui['color_list_store'].set_value(self.color_selected, self.ALPHA, rgba.alpha)
 		self.gui['color_list_store'].set_value(self.color_selected, self.RGBCOLOR, rgba.to_string())
 		self.render.run()
@@ -302,7 +334,7 @@ class ACYL:
 
 	def on_add_offset_button_click(self, *args):
 		rgba = self.gui['color_selector'].get_current_rgba()
-		hexcolor = self.pixcreator.hex_from_rgba(rgba)
+		hexcolor = PixbufCreator.hex_from_rgba(rgba)
 		self.gui['color_list_store'].append([hexcolor, rgba.alpha, 100, rgba.to_string()])
 
 	def on_remove_offset_button_click(self, *args):
@@ -322,7 +354,8 @@ class ACYL:
 
 	def on_save_settings_button_click(self, *args):
 		is_ok, file_ = self.filechooser.save()
-		if is_ok: self.database.save_to_file(file_)
+		if is_ok:
+			self.database.save_to_file(file_)
 
 	def on_open_settings_button_click(self, *args):
 		is_ok, file_ = self.filechooser.load()
@@ -330,11 +363,40 @@ class ACYL:
 			self.database.load_from_file(file_)
 			self.read_gui_setting_from_base()
 
+	def on_load_filter_button_click(self, *args):
+		is_ok, file_ = self.filterchooser.load()
+		if is_ok:
+			self.filter_editor.load_xml(file_)
+			self.gui["filter_edit_textbuffer"].set_text(self.filter_editor.source)
+
+			pixbuf = PixbufCreator.new_single_at_size(self.filter_editor.current_preview, self.PREVIEW_ICON_SIZE)
+			self.gui['filter_preview_icon'].set_from_pixbuf(pixbuf)
+			self.gui['filter_edit_info_label'].set_text(self.filter_editor.get_filter_info())
+
+	def on_save_filter_button_click(self, *args):
+		self.filter_editor.save_xml()
+
+	def on_save_as_filter_button_click(self, *args):
+		is_ok, file_ = self.filterchooser.save()
+		if is_ok:
+			self.filter_editor.save_xml(file_)
+			self.gui['filter_edit_info_label'].set_text(self.filter_editor.get_filter_info())
+
+	def on_reset_filter_button_click(self, *args):
+		if self.filter_editor.xmlfile is not None:
+			self.filter_editor.reset()
+			self.gui["filter_edit_textbuffer"].set_text(self.filter_editor.source)
+
+			pixbuf = PixbufCreator.new_single_at_size(self.filter_editor.current_preview, self.PREVIEW_ICON_SIZE)
+			self.gui['filter_preview_icon'].set_from_pixbuf(pixbuf)
+		else:
+			print("Error: filter was not saved")
+
 	@spinner
 	def on_apply_click(self, *args):
 		if self.pageindex == 0:
 			files = self.icongroups.current.get_real()
-			self.iconchanger.rebuild(*files, **self.current_state())
+			iconchanger.rebuild(*files, **self.current_state())
 		else:
 			self.alternatives.send_icons(2, self.config.get("Directories", "real"))
 
@@ -357,7 +419,7 @@ class ACYL:
 		# self.gui['filter_group_combo'].set_active(0)
 
 		# gradient type list
-		for tag in sorted(common.Gradient.profiles):
+		for tag in sorted(gradient.GRADIENT_PROFILES):
 			self.gui['gradient_combo'].append_text(tag)
 		self.gui['gradient_combo'].set_active(0)
 
@@ -365,6 +427,10 @@ class ACYL:
 		for name in self.icongroups.names:
 			self.gui['icongroup_combo'].append_text(name)
 		self.gui['icongroup_combo'].set_active(0)
+
+		# Filter editor preview icon
+		pixbuf = PixbufCreator.new_single_at_size(self.filter_editor.preview, self.PREVIEW_ICON_SIZE)
+		self.gui['filter_preview_icon'].set_from_pixbuf(pixbuf)
 
 		# Connect gui hanlers now
 		self.builder.connect_signals(self)
@@ -400,9 +466,10 @@ class ACYL:
 	def fullrefresh(self, savedata=True):
 		"""Refresh icon preview and update database if needed"""
 		if not self.is_preview_locked:
-			if savedata: self.write_gui_settings_to_base()
+			if savedata:
+				self.write_gui_settings_to_base()
 			state = self.current_state()
-			self.icongroups.current.preview = self.iconchanger.rebuild_text(self.icongroups.current.preview, **state)
+			self.icongroups.current.preview = iconchanger.rebuild_text(self.icongroups.current.preview, **state)
 			self.preview_update()
 
 	def read_gui_setting_from_base(self, keys=None):
@@ -426,7 +493,7 @@ class ACYL:
 			self.gui['offset_switch'].set_active(not dump['autooffset'])
 
 		if 'gradtype' in keys:
-			self.gui['gradient_combo'].set_active(common.Gradient.profiles[dump['gradtype']]['index'])
+			self.gui['gradient_combo'].set_active(gradient.GRADIENT_PROFILES[dump['gradtype']]['index'])
 
 		if 'filter' in keys:
 			filter_ = dump['filter']
@@ -461,9 +528,9 @@ class ACYL:
 			if self.icongroups.current.pairsw:
 				icon1, icon2 = icon2, icon1
 
-			pixbuf = self.pixcreator.new_double_at_size(icon1, icon2, size=self.PREVIEW_ICON_SIZE)
+			pixbuf = PixbufCreator.new_double_at_size(icon1, icon2, size=self.PREVIEW_ICON_SIZE)
 		else:
-			pixbuf = self.pixcreator.new_single_at_size(self.icongroups.current.preview, self.PREVIEW_ICON_SIZE)
+			pixbuf = PixbufCreator.new_single_at_size(self.icongroups.current.preview, self.PREVIEW_ICON_SIZE)
 
 		self.gui['preview_icon'].set_from_pixbuf(pixbuf)
 
@@ -478,5 +545,7 @@ class ACYL:
 			self.gui['color_list_store'][0][self.OFFSET] = 100
 
 if __name__ == "__main__":
+	os.chdir(os.path.dirname(os.path.abspath(__file__)))
+	load_gtk_css('themefix.css')
 	main = ACYL()
 	Gtk.main()

@@ -22,14 +22,15 @@ Already done:
 * Advanced icon preview;
 * Icon alternatives switch;
 * Quick view of current state for all icon pack;
-* Customizable filters.
+* Customizable filters;
+* Quick filter edit.
 
 Dropped:
 * Code view;
 * Specific application icons.
 
 Future plans:
-* Quick filter edit;
+* Create test suite;
 * Specific application icons turn back (questionable).
 
 ####Installation
@@ -42,3 +43,5 @@ Use Python 3 interpreter (the real command depends on your environment) to run t
 ```
 $ python3 ~/.icons/ACYLS/scripts/acyl.py
 ```
+
+See the [documentation](https://github.com/worron/ACYLS/wiki) for deep customization instructions. Feel free create an issue if icon for one of your favorite program missed, perhaps we can help. On the other hand you can always try to [create an icon](https://github.com/worron/ACYLS/wiki/Create-new-icon) by yourself.
