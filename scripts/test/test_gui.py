@@ -3,9 +3,9 @@ import sys
 import pytest
 import tempfile
 
-sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../lib"))
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../libacyl"))
 from gi.repository import GdkPixbuf, Gdk
-import guihelpers
+import gui as acylgui
 
 
 test_svg = """
@@ -33,7 +33,7 @@ def handler():
 		action.runned = True
 
 	action.runned = False
-	return guihelpers.ActionHandler(action)
+	return acylgui.ActionHandler(action)
 
 
 class TestActionHandler:
@@ -83,22 +83,22 @@ def tmpsvg(request, svg_bytes):
 class TestPixbufCreator:
 
 	def test_hex_from_rgba(self, rgba):
-		hex = guihelpers.PixbufCreator.hex_from_rgba(rgba)
+		hex = acylgui.PixbufCreator.hex_from_rgba(rgba)
 		assert hex == rgba.test_hex_
 
 	def test_new_pixbuf_from_file(self, tmpsvg):
-		pixbuf = guihelpers.PixbufCreator.new_single_at_size(tmpsvg.name, size=120)
+		pixbuf = acylgui.PixbufCreator.new_single_at_size(tmpsvg.name, size=120)
 		assert isinstance(pixbuf, GdkPixbuf.Pixbuf)
 
 	def test_new_pixbuf_from_string(self, svg_bytes):
-		pixbuf = guihelpers.PixbufCreator.new_single_at_size(svg_bytes, size=120)
+		pixbuf = acylgui.PixbufCreator.new_single_at_size(svg_bytes, size=120)
 		assert isinstance(pixbuf, GdkPixbuf.Pixbuf)
 
 	def test_double_pixbuf_from_string(self, svg_bytes):
-		pixbuf = guihelpers.PixbufCreator.new_double_at_size(svg_bytes, svg_bytes, size=120)
+		pixbuf = acylgui.PixbufCreator.new_double_at_size(svg_bytes, svg_bytes, size=120)
 		assert isinstance(pixbuf, GdkPixbuf.Pixbuf)
 
 	@pytest.mark.parametrize("sz", [16, 48, 128])
 	def test_double_pixbuf_from_string_size(self, svg_bytes, sz):
-		pixbuf = guihelpers.PixbufCreator.new_double_at_size(svg_bytes, svg_bytes, size=sz)
+		pixbuf = acylgui.PixbufCreator.new_double_at_size(svg_bytes, svg_bytes, size=sz)
 		assert pixbuf.get_width() == sz and pixbuf.get_height() == sz

@@ -15,15 +15,15 @@ from gi.repository import Gtk, Gdk, GLib, Pango
 from copy import deepcopy
 
 # User modules
-sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib"))
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "libacyl"))
 
 import iconchanger
 import gradient
 from data import DataStore
 from icongroup import IconGroupCollector
 from filters import FilterCollector, CustomFilterBase, RawFilterEditor
-from guihelpers import PixbufCreator, FileChooser, ActionHandler
-from fshelpers import Prospector, FileKeeper
+from gui import PixbufCreator, FileChooser, ActionHandler
+from fs import Prospector, FileKeeper
 
 # Data directories
 DIRS = dict(
