@@ -22,7 +22,7 @@ import gradient
 from data import DataStore
 from icongroup import IconGroupCollector
 from filters import FilterCollector, CustomFilterBase, RawFilterEditor
-from gui import PixbufCreator, FileChooser, ActionHandler
+from gui import PixbufCreator, FileChooser, ActionHandler, hex_from_rgba
 from fs import Prospector, FileKeeper
 
 # Data directories
@@ -315,7 +315,7 @@ class ACYL:
 
 	def on_color_change(self, *args):
 		rgba = self.gui['color_selector'].get_current_rgba()
-		self.gui['color_list_store'].set_value(self.color_selected, self.HEXCOLOR, PixbufCreator.hex_from_rgba(rgba))
+		self.gui['color_list_store'].set_value(self.color_selected, self.HEXCOLOR, hex_from_rgba(rgba))
 		self.gui['color_list_store'].set_value(self.color_selected, self.ALPHA, rgba.alpha)
 		self.gui['color_list_store'].set_value(self.color_selected, self.RGBCOLOR, rgba.to_string())
 		self.render.run()
@@ -334,7 +334,7 @@ class ACYL:
 
 	def on_add_offset_button_click(self, *args):
 		rgba = self.gui['color_selector'].get_current_rgba()
-		hexcolor = PixbufCreator.hex_from_rgba(rgba)
+		hexcolor = hex_from_rgba(rgba)
 		self.gui['color_list_store'].append([hexcolor, rgba.alpha, 100, rgba.to_string()])
 
 	def on_remove_offset_button_click(self, *args):

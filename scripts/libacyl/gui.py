@@ -69,10 +69,10 @@ class PixbufCreator():
 			pixbuf = GdkPixbuf.Pixbuf.new_from_stream_at_scale(stream, size, size, True)
 		return pixbuf
 
-	@staticmethod
-	def hex_from_rgba(rgba):
-		"""Translate color from Gdk.RGBA to html hex format"""
-		return "#%02X%02X%02X" % tuple([int(getattr(rgba, name) * 255) for name in ("red", "green", "blue")])
+
+def hex_from_rgba(rgba):
+	"""Translate color from Gdk.RGBA to html hex format"""
+	return "#%02X%02X%02X" % tuple([int(getattr(rgba, name) * 255) for name in ("red", "green", "blue")])
 
 
 class ActionHandler:
