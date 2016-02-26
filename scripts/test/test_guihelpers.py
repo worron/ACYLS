@@ -1,6 +1,7 @@
 import os
 import sys
-import unittest
+import pytest
+import tempfile
 
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../lib"))
 from gi.repository import GdkPixbuf, Gdk
@@ -26,59 +27,78 @@ test_svg = """
 </svg>"""
 
 
-class ActionHandlerTest(unittest.TestCase):
+@pytest.fixture()
+def handler():
+	def action():
+		action.runned = True
 
-	@classmethod
-	def setUpClass(cls):
-		cls.runned = False
-
-		def action():
-			cls.runned = True
-
-		cls.handler = guihelpers.ActionHandler(action)
-
-	def setUp(self):
-		ActionHandlerTest.runned = False
-
-	def test_blocked_run(self):
-		self.handler.set_state(False)
-		self.handler.run()
-		self.assertFalse(self.runned)
-
-	def test_allowed_run(self):
-		self.handler.set_state(True)
-		self.handler.run()
-		self.assertTrue(self.runned)
-
-	def test_forced_run(self):
-		self.handler.set_state(False)
-		self.handler.run(forced=True)
-		self.assertTrue(self.runned)
+	action.runned = False
+	return guihelpers.ActionHandler(action)
 
 
-class PixbufCreatorTest(unittest.TestCase):
+class TestActionHandler:
 
-	@classmethod
-	def setUpClass(cls):
-		cls.rgba_color = Gdk.RGBA()
-		cls.rgba_color.parse('#007FFF')
-		cls.svg_bytes = test_svg.encode(encoding='UTF-8')
+	def test_blocked_run(self, handler):
+		handler.set_state(False)
+		handler.run()
+		assert not handler.action.runned
 
-	def test_hex_from_rgba(self):
-		hex = guihelpers.PixbufCreator.hex_from_rgba(self.rgba_color)
-		self.assertEqual(hex, '#007FFF')
+	def test_allowed_run(self, handler):
+		handler.set_state(True)
+		handler.run()
+		assert handler.action.runned
 
-	def test_new_pixbuf_from_string(self):
-		pixbuf = guihelpers.PixbufCreator.new_single_at_size(self.svg_bytes, size=120)
-		self.assertIsInstance(pixbuf, GdkPixbuf.Pixbuf)
+	def test_forced_run(self, handler):
+		handler.set_state(False)
+		handler.run(forced=True)
+		assert handler.action.runned
 
-	def test_double_pixbuf_from_string(self):
-		pixbuf = guihelpers.PixbufCreator.new_double_at_size(self.svg_bytes, self.svg_bytes, size=120)
-		self.assertIsInstance(pixbuf, GdkPixbuf.Pixbuf)
 
-	def test_double_pixbuf_from_string_size(self):
-		pixbuf = guihelpers.PixbufCreator.new_double_at_size(self.svg_bytes, self.svg_bytes, size=120)
-		self.assertTrue(pixbuf.get_width() == 120 and pixbuf.get_height() == 120)
+@pytest.fixture(params=['#000000', '#FFFFFF', '#7F7F7F', '#007FFF'])
+def rgba(request):
+	rgba_color = Gdk.RGBA()
+	rgba_color.parse(request.param)
+	rgba_color.test_hex_ = request.param
+	return rgba_color
 
-if __name__ == '__main__':
-	unittest.main()
+
+@pytest.fixture(scope="module")
+def svg_bytes():
+	return test_svg.encode(encoding='UTF-8')
+
+
+@pytest.fixture()
+def tmpsvg(request, svg_bytes):
+	f = tempfile.NamedTemporaryFile(suffix='.svg')
+	f.write(svg_bytes)
+	f.seek(0)
+
+	def tmpsvg_teardown():
+		f.close()
+
+	request.addfinalizer(tmpsvg_teardown)
+	return f
+
+
+class TestPixbufCreator:
+
+	def test_hex_from_rgba(self, rgba):
+		hex = guihelpers.PixbufCreator.hex_from_rgba(rgba)
+		assert hex == rgba.test_hex_
+
+	def test_new_pixbuf_from_file(self, tmpsvg):
+		pixbuf = guihelpers.PixbufCreator.new_single_at_size(tmpsvg.name, size=120)
+		assert isinstance(pixbuf, GdkPixbuf.Pixbuf)
+
+	def test_new_pixbuf_from_string(self, svg_bytes):
+		pixbuf = guihelpers.PixbufCreator.new_single_at_size(svg_bytes, size=120)
+		assert isinstance(pixbuf, GdkPixbuf.Pixbuf)
+
+	def test_double_pixbuf_from_string(self, svg_bytes):
+		pixbuf = guihelpers.PixbufCreator.new_double_at_size(svg_bytes, svg_bytes, size=120)
+		assert isinstance(pixbuf, GdkPixbuf.Pixbuf)
+
+	@pytest.mark.parametrize("sz", [16, 48, 128])
+	def test_double_pixbuf_from_string_size(self, svg_bytes, sz):
+		pixbuf = guihelpers.PixbufCreator.new_double_at_size(svg_bytes, svg_bytes, size=sz)
+		assert pixbuf.get_width() == sz and pixbuf.get_height() == sz
