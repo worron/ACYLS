@@ -4,9 +4,7 @@ import tempfile
 
 from gi.repository import GdkPixbuf
 import gui as acylgui
-
 import basetest
-svg_bytes = basetest.svg_bytes
 
 
 @pytest.fixture()
@@ -20,6 +18,11 @@ def tmpsvg(request, svg_bytes):
 
 	request.addfinalizer(tmpsvg_teardown)
 	return f
+
+
+@pytest.fixture(scope="module")
+def svg_bytes():
+	return basetest.acyl_svg_string.encode(encoding='UTF-8')
 
 
 def test_new_pixbuf_from_file(tmpsvg):

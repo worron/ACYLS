@@ -4,7 +4,7 @@ from gi.repository import Gdk
 import gui as acylgui
 
 
-@pytest.mark.parametrize("hex_,hex_exp", [
+@pytest.mark.parametrize("hex_, hex_exp", [
 	('#000000', '#000000'),
 	('#7F7F7F', '#7F7F7F'),
 	('#FFFFFF', '#FFFFFF'),
