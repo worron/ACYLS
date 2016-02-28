@@ -1,5 +1,12 @@
 # -*- Mode: Python; indent-tabs-mode: t; python-indent: 4; tab-width: 4 -*-
 # import pytest
+import types
+
+
+class Fake:
+	def __init__(self, *methods):
+		for name, method in methods:
+			self.__dict__[name] = types.MethodType(method, self)
 
 
 acyl_svg_string1_l = (
@@ -63,21 +70,5 @@ data = {
 
 linear_gradient1_string = ''.join(acyl_svg_string1_l.split('\n')[2:7])
 radial_gradient1_string = ''.join(acyl_svg_string1_r.split('\n')[2:7])
-
-
-# linear_gradient_string = (
-# 	'<linearGradient id="acyl-gradient" x1="0%" x2="0%" y1="0%" y2="100%">'
-# 	'<stop offset="0%" style="stop-color:#1AFF00;stop-opacity:1.000000"/>'
-# 	'<stop offset="50%" style="stop-color:#FFB300;stop-opacity:1.000000"/>'
-# 	'<stop offset="100%" style="stop-color:#FF4000;stop-opacity:1.000000"/>'
-# 	'</linearGradient>'
-# )
-
-
-# radial_gradient_string = (
-# 	'<radialGradient cx="50%" cy="50%" fx="50%" fy="50%" id="acyl-gradient" r="50%">'
-# 	'<stop offset="0%" style="stop-color:#1AFF00;stop-opacity:1.000000"/>'
-# 	'<stop offset="50%" style="stop-color:#FFB300;stop-opacity:1.000000"/>'
-# 	'<stop offset="100%" style="stop-color:#FF4000;stop-opacity:1.000000"/>'
-# 	'</radialGradient>'
-# )
+# filter1_string = ''.join(acyl_svg_string1_l.split('\n')[7:10])
+# visual1_string = ''.join(acyl_svg_string1_l.split('\n')[14:17])
