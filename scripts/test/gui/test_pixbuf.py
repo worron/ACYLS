@@ -20,7 +20,7 @@ def tmpsvg(request, svg_bytes):
 	return f
 
 
-@pytest.fixture(scope="module", params=[basetest.acyl_svg_string1_l, basetest.acyl_svg_string1_r])
+@pytest.fixture(scope="module", params=[basetest.acyl_svg_string1_l, basetest.acyl_svg_string2_l])
 def svg_bytes(request):
 	return request.param.encode(encoding='UTF-8')
 

@@ -7,9 +7,14 @@ from lxml import etree
 
 
 @pytest.mark.parametrize("input_svg, reference_svg", [
-	(basetest.acyl_svg_string1_l, basetest.acyl_svg_string1_l),
-	(basetest.acyl_svg_string1_r, basetest.acyl_svg_string1_l),
 	(basetest.acyl_svg_string1_l, basetest.acyl_svg_string1_r),
+	(basetest.acyl_svg_string1_l, basetest.acyl_svg_string2_l),
+	(basetest.acyl_svg_string1_l, basetest.acyl_svg_string2_r),
+	(basetest.acyl_svg_string1_r, basetest.acyl_svg_string1_l),
+	(basetest.acyl_svg_string1_r, basetest.acyl_svg_string2_l),
+	(basetest.acyl_svg_string1_r, basetest.acyl_svg_string2_r),
+	(basetest.acyl_svg_string2_l, basetest.acyl_svg_string1_r),
+	(basetest.acyl_svg_string2_r, basetest.acyl_svg_string1_l),
 ])
 def test_changer_text(input_svg, reference_svg):
 	reference_root = etree.fromstring(reference_svg, base.parser)
@@ -27,6 +32,6 @@ def test_changer_text(input_svg, reference_svg):
 	fake_gradient = basetest.Fake(('build', fake_gradient_build))
 	fake_filter = basetest.Fake(('get', fake_filter_get))
 
-	svg_changed_bytes = iconchanger.rebuild_text(input_svg, fake_gradient, fake_filter, None)
+	changed_svg_bytes = iconchanger.rebuild_text(input_svg, fake_gradient, fake_filter, None)
 	reference_svg_bytes = etree.tostring(etree.fromstring(reference_svg, base.parser))
-	assert svg_changed_bytes == reference_svg_bytes
+	assert changed_svg_bytes == reference_svg_bytes
