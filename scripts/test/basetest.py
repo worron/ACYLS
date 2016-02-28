@@ -2,24 +2,45 @@
 # import pytest
 
 
-acyl_svg_string = (
-	'<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="48" height="48">'
-	'  <defs id="acyl-settings">'
-	'    <linearGradient id="acyl-gradient" x1="0%" x2="0%" y1="0%" y2="100%">'
-	'      <stop offset="0%" style="stop-color:#1AFF00;stop-opacity:1.000000"/>'
-	'      <stop offset="50%" style="stop-color:#FFB300;stop-opacity:1.000000"/>'
-	'      <stop offset="100%" style="stop-color:#FF4000;stop-opacity:1.000000"/>'
-	'    </linearGradient>'
-	'    <g id="acyl-filter">'
-	'      <filter id="filter"/>'
-	'    </g>'
-	'    <g id="acyl-drawing">'
-	'      <path d="M 2,5 2,43 46,24 z " id="path-main"/>'
-	'    </g>'
-	'  </defs>'
-	'  <g id="acyl-visual">'
-	'    <use id="visible1" style="fill:url(#acyl-gradient);filter:url(#filter)" xlink:href="#acyl-drawing"/>'
-	'  </g>'
+acyl_svg_string1_l = (
+	'<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="48" height="48">\n'
+	'  <defs id="acyl-settings">\n'
+	'    <linearGradient id="acyl-gradient" x1="0%" x2="0%" y1="0%" y2="100%">\n'
+	'      <stop offset="0%" style="stop-color:#1AFF00;stop-opacity:1.000000"/>\n'
+	'      <stop offset="50%" style="stop-color:#FFB300;stop-opacity:1.000000"/>\n'
+	'      <stop offset="100%" style="stop-color:#FF4000;stop-opacity:1.000000"/>\n'
+	'    </linearGradient>\n'
+	'    <g id="acyl-filter">\n'
+	'      <filter id="filter"/>\n'
+	'    </g>\n'
+	'    <g id="acyl-drawing">\n'
+	'      <path d="M 2,5 2,43 46,24 z " id="path-main"/>\n'
+	'    </g>\n'
+	'  </defs>\n'
+	'  <g id="acyl-visual">\n'
+	'    <use id="visible1" style="fill:url(#acyl-gradient);filter:url(#filter)" xlink:href="#acyl-drawing"/>\n'
+	'  </g>\n'
+	'</svg>'
+)
+
+acyl_svg_string1_r = (
+	'<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="48" height="48">\n'
+	'  <defs id="acyl-settings">\n'
+	'    <radialGradient cx="50%" cy="50%" fx="50%" fy="50%" id="acyl-gradient" r="50%">\n'
+	'      <stop offset="0%" style="stop-color:#1AFF00;stop-opacity:1.000000"/>\n'
+	'      <stop offset="50%" style="stop-color:#FFB300;stop-opacity:1.000000"/>\n'
+	'      <stop offset="100%" style="stop-color:#FF4000;stop-opacity:1.000000"/>\n'
+	'    </radialGradient>\n'
+	'    <g id="acyl-filter">\n'
+	'      <filter id="filter"/>\n'
+	'    </g>\n'
+	'    <g id="acyl-drawing">\n'
+	'      <path d="M 2,5 2,43 46,24 z " id="path-main"/>\n'
+	'    </g>\n'
+	'  </defs>\n'
+	'  <g id="acyl-visual">\n'
+	'    <use id="visible1" style="fill:url(#acyl-gradient);filter:url(#filter)" xlink:href="#acyl-drawing"/>\n'
+	'  </g>\n'
 	'</svg>'
 )
 
@@ -40,19 +61,23 @@ data = {
 }
 
 
-linear_gradient_string = (
-	'<linearGradient id="acyl-gradient" x1="0%" x2="0%" y1="0%" y2="100%">'
-	'<stop offset="0%" style="stop-color:#1AFF00;stop-opacity:1.000000"/>'
-	'<stop offset="50%" style="stop-color:#FFB300;stop-opacity:1.000000"/>'
-	'<stop offset="100%" style="stop-color:#FF4000;stop-opacity:1.000000"/>'
-	'</linearGradient>'
-)
+linear_gradient1_string = ''.join(acyl_svg_string1_l.split('\n')[2:7])
+radial_gradient1_string = ''.join(acyl_svg_string1_r.split('\n')[2:7])
 
 
-radial_gradient_string = (
-	'<radialGradient cx="50%" cy="50%" fx="50%" fy="50%" id="acyl-gradient" r="50%">'
-	'<stop offset="0%" style="stop-color:#1AFF00;stop-opacity:1.000000"/>'
-	'<stop offset="50%" style="stop-color:#FFB300;stop-opacity:1.000000"/>'
-	'<stop offset="100%" style="stop-color:#FF4000;stop-opacity:1.000000"/>'
-	'</radialGradient>'
-)
+# linear_gradient_string = (
+# 	'<linearGradient id="acyl-gradient" x1="0%" x2="0%" y1="0%" y2="100%">'
+# 	'<stop offset="0%" style="stop-color:#1AFF00;stop-opacity:1.000000"/>'
+# 	'<stop offset="50%" style="stop-color:#FFB300;stop-opacity:1.000000"/>'
+# 	'<stop offset="100%" style="stop-color:#FF4000;stop-opacity:1.000000"/>'
+# 	'</linearGradient>'
+# )
+
+
+# radial_gradient_string = (
+# 	'<radialGradient cx="50%" cy="50%" fx="50%" fy="50%" id="acyl-gradient" r="50%">'
+# 	'<stop offset="0%" style="stop-color:#1AFF00;stop-opacity:1.000000"/>'
+# 	'<stop offset="50%" style="stop-color:#FFB300;stop-opacity:1.000000"/>'
+# 	'<stop offset="100%" style="stop-color:#FF4000;stop-opacity:1.000000"/>'
+# 	'</radialGradient>'
+# )

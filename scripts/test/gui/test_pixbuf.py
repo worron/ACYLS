@@ -20,9 +20,9 @@ def tmpsvg(request, svg_bytes):
 	return f
 
 
-@pytest.fixture(scope="module")
-def svg_bytes():
-	return basetest.acyl_svg_string.encode(encoding='UTF-8')
+@pytest.fixture(scope="module", params=[basetest.acyl_svg_string1_l, basetest.acyl_svg_string1_r])
+def svg_bytes(request):
+	return request.param.encode(encoding='UTF-8')
 
 
 def test_new_pixbuf_from_file(tmpsvg):
