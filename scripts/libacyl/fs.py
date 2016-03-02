@@ -3,7 +3,24 @@
 
 import os
 import shutil
-import base
+
+
+def get_svg_all(*dirlist):
+	"""Find all SVG icon in directories"""
+	filelist = []
+	for path in dirlist:
+		for root, _, files in os.walk(path):
+			filelist.extend([os.path.join(root, name) for name in files if name.endswith('.svg')])
+	return filelist
+
+
+def get_svg_first(*dirlist):
+	"""Find first SVG icon in directories"""
+	for path in dirlist:
+		for root, _, files in os.walk(path):
+			for filename in files:
+				if filename.endswith('.svg'):
+					return os.path.join(root, filename)
 
 
 class Prospector:
@@ -23,7 +40,7 @@ class Prospector:
 	def get_icons(self, level):
 		"""Get icon list from given level"""
 		if level in self.structure:
-			return base.get_svg_all(self.structure[level]['root'])
+			return get_svg_all(self.structure[level]['root'])
 
 	def send_icons(self, level, dest):
 		"""Merge files form given level to destination place"""

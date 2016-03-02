@@ -1,6 +1,7 @@
 # -*- Mode: Python; indent-tabs-mode: t; python-indent: 4; tab-width: 4 -*-
 
 import os
+import fs
 import base
 from itertools import count
 
@@ -18,7 +19,7 @@ class BasicIconGroup:
 		self.pairsw = pairsw
 
 		if self.is_double:
-			self.pair = base.get_svg_first(pairdir)
+			self.pair = fs.get_svg_first(pairdir)
 
 	def cache(self):
 		"""Save current preview icon as text"""
@@ -27,16 +28,16 @@ class BasicIconGroup:
 
 	def get_preview(self):
 		"""Get active preview for icon group"""
-		preview_icon = base.get_svg_first(*self.testdirs)
-		return preview_icon if preview_icon else base.get_svg_first(self.emptydir)
+		preview_icon = fs.get_svg_first(*self.testdirs)
+		return preview_icon if preview_icon else fs.get_svg_first(self.emptydir)
 
 	def get_real(self):
 		"""Get list of all real icons for group"""
-		return base.get_svg_all(*self.realdirs)
+		return fs.get_svg_all(*self.realdirs)
 
 	def get_test(self):
 		"""Get list of all testing icons for group"""
-		return base.get_svg_all(*self.testdirs)
+		return fs.get_svg_all(*self.testdirs)
 
 
 class CustomIconGroup(BasicIconGroup):
