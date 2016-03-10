@@ -454,9 +454,9 @@ class ACYL:
 	def current_state(self):
 		"""Get current icon settings"""
 		return dict(
-			gradient=self.gradient,
-			gfilter=self.filters.current,
-			data=self.database.get_dump(self.icongroups.current.name)
+			gradient = self.gradient,
+			gfilter = self.filters.current,
+			data = self.database.get_dump(self.icongroups.current.name)
 		)
 
 	def fullrefresh(self, savedata=True):
