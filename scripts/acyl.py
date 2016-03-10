@@ -95,7 +95,6 @@ class ACYL:
 
 		# Load icon groups from config file
 		self.icongroups = IconGroupCollector(self.config)
-		self.icongroups.current.cache()
 
 		# Filter edit helper
 		self.filter_editor = RawFilterEditor(self.config.get("Directories", "editor"))
@@ -248,7 +247,6 @@ class ACYL:
 			buffer_text = self.gui["filter_edit_textbuffer"].get_text(start, end, False)
 
 			self.filter_editor.load_source(buffer_text)
-			# pixbuf = PixbufCreator.new_single_at_size(self.filter_editor.get_updated_preview(), self.PREVIEW_ICON_SIZE)
 			pixbuf = PixbufCreator.new_single_at_size(self.filter_editor.current_preview, self.PREVIEW_ICON_SIZE)
 			self.gui['filter_preview_icon'].set_from_pixbuf(pixbuf)
 		else:
@@ -263,7 +261,6 @@ class ACYL:
 		iconchanger.rebuild(*files, **self.current_state())
 
 		self.icongroups.switch(combo.get_active_text())
-		self.icongroups.current.cache()
 
 		if self.icongroups.current.is_custom:
 			self.gui['custom_icons_store'].clear()
@@ -328,7 +325,6 @@ class ACYL:
 		self.gui['custom_icons_store'][path][1] = not self.gui['custom_icons_store'][path][1]
 		name = self.gui['custom_icons_store'][path][0].lower()
 		self.icongroups.current.switch_state(name)
-		self.icongroups.current.cache()
 
 		self.render.run(forced=True)
 
@@ -523,15 +519,7 @@ class ACYL:
 
 	def preview_update(self):
 		"""Update icon preview"""
-		if self.icongroups.current.is_double:
-			icon1, icon2 = self.icongroups.current.preview, self.icongroups.current.pair
-			if self.icongroups.current.pairsw:
-				icon1, icon2 = icon2, icon1
-
-			pixbuf = PixbufCreator.new_double_at_size(icon1, icon2, size=self.PREVIEW_ICON_SIZE)
-		else:
-			pixbuf = PixbufCreator.new_single_at_size(self.icongroups.current.preview, self.PREVIEW_ICON_SIZE)
-
+		pixbuf = self.icongroups.current.get_preview_pixbuf(self.PREVIEW_ICON_SIZE)
 		self.gui['preview_icon'].set_from_pixbuf(pixbuf)
 
 	def set_offset_auto(self):

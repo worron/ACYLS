@@ -63,7 +63,6 @@ def custom_dir(request):
 ])
 def test_simple_group_prev(simple_dir, prev_dir, preview_txt):
 	group = icongroup.BasicIconGroup("simple", simple_dir['prev_back'], [simple_dir[prev_dir]], [simple_dir['real']])
-	group.cache()
 	assert group.preview == preview_txt
 
 
@@ -88,6 +87,5 @@ def test_simple_group_get_test(simple_dir, icon):
 def test_custom_group_switch(custom_dir, subgroup, preview_txt):
 	group = icongroup.CustomIconGroup("simple", custom_dir['prev_back'], custom_dir['prev'], custom_dir['real'])
 	group.switch_state(subgroup)
-	group.cache()
 	real_icons = group.get_real()
 	assert group.preview == preview_txt and os.path.join(custom_dir['root'], "real", subgroup, "icon.svg") in real_icons
