@@ -4,8 +4,8 @@
 import os
 import sys
 
-if sys.version_info < (3, 0):
-	sys.stdout.write("Requires Python 3.x\n")
+if sys.version_info < (3, 4):
+	sys.stdout.write("Requires Python 3.4\n")
 	sys.exit(1)
 
 # System modules
@@ -31,8 +31,11 @@ DIRS = dict(
 	default = "data/default"
 )
 
+global_threading_lock = threading.Lock()
+
 
 def load_gtk_css(file_):
+	"""Set custom CSS for Gtk theme"""
 	style_provider = Gtk.CssProvider()
 	style_provider.load_from_path(file_)
 
@@ -43,34 +46,34 @@ def load_gtk_css(file_):
 	)
 
 
+def spinner(handler):
+	"""Multithread decorator"""
+	def action(*args, **kwargs):
+		with global_threading_lock:
+			inst = args[0]
+			inst.gui['window'].get_window().set_cursor(Gdk.Cursor(Gdk.CursorType.WATCH))
+			try:
+				post_process_action = handler(*args, **kwargs)
+				GLib.idle_add(on_done, post_process_action)
+			except Exception as e:
+				print("Error in multithreading:\n%s" % str(e))
+			finally:
+				inst.gui['window'].get_window().set_cursor(None)
+
+	def on_done(post_process_action):
+		if callable(post_process_action):
+			post_process_action()
+
+	def wrapper(*args, **kwargs):
+		thread = threading.Thread(target=action, args=args, kwargs=kwargs)
+		thread.daemon = True
+		thread.start()
+
+	return wrapper
+
+
 class ACYL:
-	lock = threading.Lock()
-
-	def spinner(handler):
-		"""Multithread decorator"""
-		def action(*args, **kwargs):
-			with ACYL.lock:
-				inst = args[0]
-				inst.gui['window'].get_window().set_cursor(Gdk.Cursor(Gdk.CursorType.WATCH))
-				try:
-					post_process_action = handler(*args, **kwargs)
-					GLib.idle_add(on_done, post_process_action)
-				except Exception as e:
-					print("Error in multithreading:\n%s" % str(e))
-				finally:
-					inst.gui['window'].get_window().set_cursor(None)
-
-		def on_done(post_process_action):
-			if callable(post_process_action):
-				post_process_action()
-
-		def wrapper(*args, **kwargs):
-			thread = threading.Thread(target=action, args=args, kwargs=kwargs)
-			thread.daemon = True
-			thread.start()
-
-		return wrapper
-
+	"""Main program"""
 	def __init__(self):
 		# Set config files manager
 		self.keeper = FileKeeper(DIRS['default'], DIRS['user'])
@@ -101,8 +104,10 @@ class ACYL:
 
 		# Create object for preview render control
 		self.render = ActionHandler(self.fullrefresh)
+
 		# Connect preview render controller to filters class
 		CustomFilterBase.render = self.render
+
 		# Load filters from certain directory
 		self.filters = FilterCollector(self.config.get("Directories", "filters"))
 
@@ -126,7 +131,7 @@ class ACYL:
 		self.gui['filter_edit_textview'].modify_font(Pango.FontDescription("Monospace"))
 
 		# Collection of function to set GUI according saved data
-		# or save current GUI element stato to database
+		# or save current GUI element state to database
 
 		# Database keywords
 		self.data_base_keys = ['filter', 'gradtype', 'autooffset', 'colors']
