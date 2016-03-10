@@ -125,20 +125,84 @@ class ACYL:
 		self.gui = {element: self.builder.get_object(element) for element in gui_elements}
 		self.gui['filter_edit_textview'].modify_font(Pango.FontDescription("Monospace"))
 
-		# Other
-		self.color_selected = None
-		self.state_buffer = None
-		self.is_preview_locked = False
-		self.pageindex = 0
+		# Collection of function to set GUI according saved data
+		# or save current GUI element stato to database
 
-		self.PREVIEW_ICON_SIZE = int(self.config.get("PreviewSize", "single"))
-		self.VIEW_ICON_SIZE = int(self.config.get("PreviewSize", "group"))
+		# Database keywords
+		self.data_base_keys = ['filter', 'gradtype', 'autooffset', 'colors']
+
+		# Read GUI setting from database
+		def read_colors(dump):
+			self.gui['color_list_store'].clear()
+			for color in dump['colors']:
+				self.gui['color_list_store'].append(color)
+
+		def read_gradient_settings(dump):
+			self.gui['direction_list_store'].clear()
+			for coord in dump[self.gradient.tag]:
+				self.gui['direction_list_store'].append(coord)
+
+		def read_filter_name(dump):
+			filter_ = dump['filter']
+			self.gui['filter_group_combo'].set_active(self.filters.get_group_index(filter_))
+			filter_index = self.filters.names.index(filter_) if filter_ in self.filters.names else 0
+			self.gui['filters_combo'].set_active(filter_index)
+
+		def read_gradient_type(dump):
+			self.gui['gradient_combo'].set_active(gradient.GRADIENT_PROFILES[dump['gradtype']]['index'])
+
+		def read_autoofset_settings(dump):
+			self.gui['offset_switch'].set_active(not dump['autooffset']),
+
+		self.data_read_handler = {
+			'colors': read_colors,
+			'linearGradient': read_gradient_settings,
+			'radialGradient': read_gradient_settings,
+			'autooffset': read_autoofset_settings,
+			'gradtype': read_gradient_type,
+			'filter': read_filter_name,
+		}
+
+		# Write GUI setting to database
+		def write_colors(dump):
+			dump['colors'] = [list(row) for row in self.gui['color_list_store']]
+
+		def write_gradient_type(dump):
+			dump['gradtype'] = self.gradient.tag
+
+		def write_autoofset_settings(dump):
+			dump['autooffset'] = not self.gui['offset_switch'].get_active()
+
+		def write_filter_name(dump):
+			dump['filter'] = self.gui['filters_combo'].get_active_text()
+
+		def write_gradient_settings(dump):
+			dump[self.gradient.tag] = [list(row) for row in self.gui['direction_list_store']]
+
+		self.data_write_handler = {
+			'gradtype': write_gradient_type,
+			'autooffset': write_autoofset_settings,
+			'filter': write_filter_name,
+			'colors': write_colors,
+			'linearGradient': write_gradient_settings,
+			'radialGradient': write_gradient_settings,
+		}
 
 		# Colors store index
 		self.HEXCOLOR = 0
 		self.ALPHA = 1
 		self.OFFSET = 2
 		self.RGBCOLOR = 3
+
+		# Other
+		self.color_selected = None
+		self.state_buffer = None
+		self.is_preview_locked = False
+		self.pageindex = 0
+
+		# Read icon size settins from config
+		self.PREVIEW_ICON_SIZE = int(self.config.get("PreviewSize", "single"))
+		self.VIEW_ICON_SIZE = int(self.config.get("PreviewSize", "group"))
 
 		# Activate GUI
 		self.gui['window'].show_all()
@@ -215,7 +279,7 @@ class ACYL:
 	def on_gradient_type_switched(self, combo):
 		self.gradient.set_tag(combo.get_active_text())
 		self.write_gui_settings_to_base(['gradtype'])
-		self.read_gui_setting_from_base(['gradtype', 'direction'])
+		self.read_gui_setting_from_base(['gradtype', self.gradient.tag])
 
 	def on_page_changed(self, nb, page, page_index):
 		COLORS, ALTERNATIVES, ICONVIEW, FILTEREDIT = 0, 1, 2, 3
@@ -468,54 +532,32 @@ class ACYL:
 			self.icongroups.current.preview = iconchanger.rebuild_text(self.icongroups.current.preview, **state)
 			self.preview_update()
 
+	def get_current_base_keys(self):
+		"""Get current keys for databse access"""
+		keys = self.data_base_keys[:]
+		keys.append(self.gradient.tag)
+		return keys
+
 	def read_gui_setting_from_base(self, keys=None):
 		"""Read settings from file and set GUI according it"""
 		self.is_preview_locked = True
 
-		keys = keys if keys is not None else self.database.setkeys
+		keys = keys if keys is not None else self.get_current_base_keys()
 		dump = self.database.get_dump(self.icongroups.current.name)
 
-		if 'colors' in keys:
-			self.gui['color_list_store'].clear()
-			for color in dump['colors']:
-				self.gui['color_list_store'].append(color)
-
-		if 'direction' in keys:
-			self.gui['direction_list_store'].clear()
-			for coord in dump['direction'][self.gradient.tag]:
-				self.gui['direction_list_store'].append(coord)
-
-		if 'autooffset' in keys:
-			self.gui['offset_switch'].set_active(not dump['autooffset'])
-
-		if 'gradtype' in keys:
-			self.gui['gradient_combo'].set_active(gradient.GRADIENT_PROFILES[dump['gradtype']]['index'])
-
-		if 'filter' in keys:
-			filter_ = dump['filter']
-			self.gui['filter_group_combo'].set_active(self.filters.get_group_index(filter_))
-
-			filter_index = self.filters.names.index(filter_) if filter_ in self.filters.names else 0
-			self.gui['filters_combo'].set_active(filter_index)
+		for key in keys:
+			self.data_read_handler[key](dump)
 
 		self.is_preview_locked = False
 		self.fullrefresh(savedata=False)
 
 	def write_gui_settings_to_base(self, keys=None):
 		"""Write settings to file"""
-		keys = keys if keys is not None else self.database.setkeys
+		keys = keys if keys is not None else self.get_current_base_keys()
 		dump = self.database.get_dump(self.icongroups.current.name)
 
-		if 'gradtype' in keys:
-			dump['gradtype'] = self.gradient.tag
-		if 'autooffset' in keys:
-			dump['autooffset'] = not self.gui['offset_switch'].get_active()
-		if 'filter' in keys:
-			dump['filter'] = self.gui['filters_combo'].get_active_text()
-		if 'colors' in keys:
-			dump['colors'] = [list(row) for row in self.gui['color_list_store']]
-		if 'direction' in keys:
-			dump['direction'][self.gradient.tag] = [list(row) for row in self.gui['direction_list_store']]
+		for key in keys:
+			self.data_write_handler[key](dump)
 
 	def preview_update(self):
 		"""Update icon preview"""

@@ -9,7 +9,6 @@ class DataStore:
 	def __init__(self, dbfile, dsection='default'):
 		self.db = shelve.open(dbfile, writeback=True)
 		self.dsection = dsection
-		self.setkeys = list(self.db[dsection].keys())
 
 	def get_dump(self, section):
 		"""Get data from given section of base"""
