@@ -112,10 +112,6 @@ data1 = {
 		['#FF4000', 1.0, 100, 'rgb(255,64,0)']
 	],
 	'autooffset': True,
-	# 'direction': {
-	# 	'radialGradient': [['CenterX', 50], ['CenterY', 50], ['FocusX', 50], ['FocusY', 50], ['Radius', 50]],
-	# 	'linearGradient': [['StartX', 0], ['StartY', 0], ['EndX', 0], ['EndY', 100]]
-	# }
 	'radialGradient': [['CenterX', 50], ['CenterY', 50], ['FocusX', 50], ['FocusY', 50], ['Radius', 50]],
 	'linearGradient': [['StartX', 0], ['StartY', 0], ['EndX', 0], ['EndY', 100]]
 }
@@ -127,10 +123,6 @@ data2 = {
 		['#0090FF', 1.0, 100, 'rgb(0,144,255)']
 	],
 	'filter': 'Flames',
-	# 'direction': {
-	# 	'radialGradient': [['CenterX', 50], ['CenterY', 50], ['FocusX', 50], ['FocusY', 50], ['Radius', 50]],
-	# 	'linearGradient': [['StartX', 0], ['StartY', 0], ['EndX', 0], ['EndY', 100]]
-	# },
 	'radialGradient': [['CenterX', 50], ['CenterY', 50], ['FocusX', 50], ['FocusY', 50], ['Radius', 50]],
 	'linearGradient': [['StartX', 0], ['StartY', 0], ['EndX', 0], ['EndY', 100]],
 	'autooffset': True,

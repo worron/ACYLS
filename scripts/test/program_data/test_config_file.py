@@ -1,10 +1,9 @@
 # -*- Mode: Python; indent-tabs-mode: t; python-indent: 4; tab-width: 4 -*-
 import pytest
 import configparser
-import os
 
-os.chdir(os.path.dirname(os.path.abspath(__file__)))
-configfile = "../../data/default/config.ini"
+
+configfile = "data/default/config.ini"
 options = {
 	'PreviewSize': ['single', 'group'],
 	'Settings': ['autorender'],
