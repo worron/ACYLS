@@ -6,11 +6,11 @@ from gi.repository import GdkPixbuf, Gio, GLib, Gtk
 
 DIALOGS_PROFILE = dict(
 	save = (
-		"Save ACYL settings", None, Gtk.FileChooserAction.SAVE,
+		"Save ACYL", None, Gtk.FileChooserAction.SAVE,
 		(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_SAVE, Gtk.ResponseType.OK)
 	),
 	load = (
-		"Load ACYL settings from file", None, Gtk.FileChooserAction.OPEN,
+		"Load ACYL", None, Gtk.FileChooserAction.OPEN,
 		(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_OPEN, Gtk.ResponseType.OK)
 	)
 )

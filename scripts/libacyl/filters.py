@@ -75,6 +75,10 @@ class CustomFilterBase(SimpleFilterBase):
 	"""Base class for advanced filter with custimizible parametrs"""
 	render = None
 
+	@classmethod
+	def connect_render(cls, render):
+		cls.render = render
+
 	def __new__(cls, *args, **kargs):
 		if CustomFilterBase.render is None:
 			raise NotImplementedError(

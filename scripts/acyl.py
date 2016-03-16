@@ -106,7 +106,7 @@ class ACYL:
 		self.render = ActionHandler(self.fullrefresh)
 
 		# Connect preview render controller to filters class
-		CustomFilterBase.render = self.render
+		CustomFilterBase.connect_render(self.render)
 
 		# Load filters from certain directory
 		self.filters = FilterCollector(self.config.get("Directories", "filters"))
@@ -311,8 +311,7 @@ class ACYL:
 	def on_refresh_click(self, *args):
 		FILTEREDIT = 3
 		if self.pageindex == FILTEREDIT:
-			start = self.gui["filter_edit_textbuffer"].get_start_iter()
-			end = self.gui["filter_edit_textbuffer"].get_end_iter()
+			start, end = self.gui["filter_edit_textbuffer"].get_bounds()
 			buffer_text = self.gui["filter_edit_textbuffer"].get_text(start, end, False)
 
 			self.filter_editor.load_source(buffer_text)

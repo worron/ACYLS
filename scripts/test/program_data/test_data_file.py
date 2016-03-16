@@ -1,10 +1,10 @@
 # -*- Mode: Python; indent-tabs-mode: t; python-indent: 4; tab-width: 4 -*-
 import pytest
 import shelve
-
+import basetest
 
 dbfile = "data/default/store.acyl"
-data_keywords = ['colors', 'autooffset', 'radialGradient', 'gradtype', 'filter', 'linearGradient']
+data_keywords = basetest.data1.keys()
 
 
 @pytest.fixture(scope="module")
