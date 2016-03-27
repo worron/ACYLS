@@ -34,7 +34,7 @@ Future plans:
 * Add back specific applications icons feature (unsure about this).
 
 ####Installation
-```
+```shell
 $ git clone https://github.com/worron/ACYLS.git ~/.icons/ACYLS
 # if you want to customize the iconpack after installation, start this script:
 $ python3 ~/.icons/ACYLS/scripts/acyls.py
