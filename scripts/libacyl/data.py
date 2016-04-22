@@ -12,6 +12,7 @@ _default_section = {
 	'linearGradient': [['StartX', 0], ['StartY', 0], ['EndX', 0], ['EndY', 100]]
 }
 
+
 class DataStore:
 	"""Shelve database handler"""
 	def __init__(self, dbfile, ddate=None, dsection='default'):

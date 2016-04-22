@@ -1,4 +1,5 @@
 # -*- Mode: Python; indent-tabs-mode: t; python-indent: 4; tab-width: 4 -*-
+import os
 import pytest
 import basetest
 import data
@@ -34,6 +35,27 @@ def tmpdb_reverse(request):
 
 	request.addfinalizer(tmpdb_teardown)
 	return f.name
+
+
+@pytest.fixture()
+def tmpfile(request):
+	tdir = tempfile.TemporaryDirectory()
+
+	def tmpdir_teardown():
+		tdir.cleanup()
+
+	request.addfinalizer(tmpdir_teardown)
+	return os.path.join(tdir.name, "data.db")
+
+
+@pytest.mark.parametrize("section, orig_data", [
+	('first', basetest.data1),
+	('second', basetest.data2),
+])
+def test_base_creation(tmpfile, section, orig_data):
+	db = data.DataStore(tmpfile, ddate={'first': basetest.data1, 'second': basetest.data2}, dsection='first')
+	d = db.db[section]
+	assert d == orig_data
 
 
 @pytest.mark.parametrize("section, orig_data", [
