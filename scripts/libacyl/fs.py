@@ -63,6 +63,10 @@ class FileKeeper:
 	def get(self, name):
 		"""Get file by name"""
 		fullname = os.path.join(self.curdir, name)
+		backup = os.path.join(self.bakdir, name)
+
 		if not os.path.isfile(fullname):
-			shutil.copy(os.path.join(self.bakdir, name), self.curdir)
+			if os.path.isfile(backup):
+				shutil.copy(backup, self.curdir)
+
 		return fullname

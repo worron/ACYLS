@@ -3,12 +3,29 @@
 import shelve
 from copy import deepcopy
 
+_default_section = {
+	'gradtype': 'linearGradient',
+	'filter': 'Disabled',
+	'colors': [['#A0A0A0', 1.0, 100, 'rgb(160,160,160)']],
+	'autooffset': True,
+	'radialGradient': [['CenterX', 50], ['CenterY', 50], ['FocusX', 50], ['FocusY', 50], ['Radius', 50]],
+	'linearGradient': [['StartX', 0], ['StartY', 0], ['EndX', 0], ['EndY', 100]]
+}
 
 class DataStore:
 	"""Shelve database handler"""
-	def __init__(self, dbfile, dsection='default'):
+	def __init__(self, dbfile, ddate=None, dsection='default'):
 		self.db = shelve.open(dbfile, writeback=True)
 		self.dsection = dsection
+		self.ddate = ddate
+
+		# Create base if not exist
+		if len(self.db) == 0 or dsection not in self.db:
+			if self.ddate is None:
+				# with special 'Emblems' section
+				self.ddate = {self.dsection: deepcopy(_default_section), 'Emblems': deepcopy(_default_section)}
+				self.ddate['Emblems'].update({'colors': [['#404040', 1.0, 100, 'rgb(64,64,64)']]})
+			self.db.update(self.ddate)
 
 	def get_dump(self, section):
 		"""Get data from given section of base"""
