@@ -1,10 +1,11 @@
 # -*- Mode: Python; indent-tabs-mode: t; python-indent: 4; tab-width: 4 -*-
 
 import os
+import sys
 import imp
 import re
-import fs
-import base
+import libacyl.fs as fs
+import libacyl.base as base
 
 from lxml import etree
 from copy import deepcopy
@@ -73,17 +74,20 @@ class SimpleFilterBase:
 
 class CustomFilterBase(SimpleFilterBase):
 	"""Base class for advanced filter with custimizible parametrs"""
-	render = None
+	# render = None
 
-	@classmethod
-	def connect_render(cls, render):
-		cls.render = render
+	# @classmethod
+	# def connect_render(cls, render):
+	# 	cls.render = render
 
-	def __new__(cls, *args, **kargs):
-		if CustomFilterBase.render is None:
-			raise NotImplementedError(
-				"Attribbute 'render' of 'CustomFilterBase' should be defined before subclass init")
-		return object.__new__(cls, *args, **kargs)
+	# def __new__(cls, *args, **kargs):
+	# 	if CustomFilterBase.render is None:
+	# 		raise NotImplementedError(
+	# 			"Attribbute 'render' of 'CustomFilterBase' should be defined before subclass init")
+	# 	return object.__new__(cls, *args, **kargs)
+
+	# def render():
+	# 	pass
 
 	def __init__(self, sourse_path):
 		SimpleFilterBase.__init__(self, sourse_path)
@@ -155,7 +159,7 @@ class CustomFilterBase(SimpleFilterBase):
 				value = translate(value)
 			for parameter in parameters:
 				self.param[parameter].set_value(value)
-			self.render.run(False)
+			# self.render.run(False)
 
 		return change_handler
 
@@ -169,7 +173,7 @@ class CustomFilterBase(SimpleFilterBase):
 				self.param[alpha].set_value(rgba.alpha)
 				rgba.alpha = 1  # dirty trick
 			self.param[color].set_value(rgba.to_string())
-			self.render.run(False, forced=True)
+			# self.render.run(False, forced=True)
 
 		return change_handler
 

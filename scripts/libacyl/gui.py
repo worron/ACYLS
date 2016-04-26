@@ -1,7 +1,7 @@
 # -*- Mode: Python; indent-tabs-mode: t; python-indent: 4; tab-width: 4 -*-
 
 import os
-from gi.repository import GdkPixbuf, Gio, GLib, Gtk
+from gi.repository import GdkPixbuf, Gio, GLib, Gtk, Gdk
 
 
 DIALOGS_PROFILE = dict(
@@ -14,6 +14,23 @@ DIALOGS_PROFILE = dict(
 		(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_OPEN, Gtk.ResponseType.OK)
 	)
 )
+
+
+def load_gtk_css(file_):
+	"""Set custom CSS for Gtk theme"""
+	style_provider = Gtk.CssProvider()
+	style_provider.load_from_path(file_)
+
+	Gtk.StyleContext.add_provider_for_screen(
+		Gdk.Screen.get_default(),
+		style_provider,
+		Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
+	)
+
+
+def hex_from_rgba(rgba):
+	"""Translate color from Gdk.RGBA to html hex format"""
+	return "#%02X%02X%02X" % tuple([int(getattr(rgba, name) * 255) for name in ("red", "green", "blue")])
 
 
 class FileChooser:
@@ -68,11 +85,6 @@ class PixbufCreator():
 			stream = Gio.MemoryInputStream.new_from_bytes(GLib.Bytes.new(icon))
 			pixbuf = GdkPixbuf.Pixbuf.new_from_stream_at_scale(stream, size, size, True)
 		return pixbuf
-
-
-def hex_from_rgba(rgba):
-	"""Translate color from Gdk.RGBA to html hex format"""
-	return "#%02X%02X%02X" % tuple([int(getattr(rgba, name) * 255) for name in ("red", "green", "blue")])
 
 
 class ActionHandler:
