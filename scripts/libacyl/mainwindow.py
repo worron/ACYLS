@@ -1,6 +1,6 @@
 # -*- Mode: Python; indent-tabs-mode: t; python-indent: 4; tab-width: 4 -*-
 import os
-from gi.repository import Gtk, Gdk
+from gi.repository import Gtk
 import configparser
 
 # User modules
@@ -15,6 +15,7 @@ DIRS = dict(
 	user = "data/user",
 	default = "data/default"
 )
+
 
 class MainWindow:
 	"""Main window constructor"""

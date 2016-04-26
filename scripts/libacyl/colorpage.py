@@ -5,8 +5,9 @@ from gi.repository import Gtk, Gdk
 import libacyl.iconchanger as iconchanger
 import libacyl.gradient as gradient
 from libacyl.icongroup import IconGroupCollector
-from libacyl.filters import FilterCollector, CustomFilterBase
-from libacyl.gui import PixbufCreator, FileChooser, ActionHandler, hex_from_rgba
+from libacyl.filters import FilterCollector
+from libacyl.gui import hex_from_rgba
+
 
 class ColorPage:
 	"""Colors tab"""
@@ -35,39 +36,8 @@ class ColorPage:
 		)
 		self.gui = {element: self.builder.get_object(element) for element in gui_elements}
 
-		# Build stores for GUI dataviews
-		self.store = dict()
-
-		# custom icons
-		self.store['custom_icons'] = Gtk.ListStore(str, bool)
-		self.store['custom_icons'].append(["Simple Icon Group", False])
-
-		renderer_toggle = Gtk.CellRendererToggle()
-		renderer_toggle.connect("toggled", self.on_custom_icon_toggled)
-
-		self.gui['custom_icons_treeview'].append_column(Gtk.TreeViewColumn("Name", Gtk.CellRendererText(), text=0))
-		self.gui['custom_icons_treeview'].append_column(Gtk.TreeViewColumn("State", renderer_toggle, active=1))
-		self.gui['custom_icons_treeview'].set_model(self.store['custom_icons'])
-
-		# color list
-		self.colorstore_elements = {'Color': 0, 'Alpha': 1, 'Offset': 2, 'RGBA': 3}
-		colorstore_visible_keys = [k for k in self.colorstore_elements.keys() if k != 'RGBA']
-
-		self.store['colorlist'] = Gtk.ListStore(str, float, int, str)
-		for key in sorted(colorstore_visible_keys, key=lambda k: self.colorstore_elements[k]):
-			self.gui['colorlist_treeview'].append_column(
-				Gtk.TreeViewColumn(key, Gtk.CellRendererText(), text=self.colorstore_elements[key])
-			)
-		self.gui['colorlist_treeview'].set_model(self.store['colorlist'])
-
-		# gradient direction
-		self.store['direction'] = Gtk.ListStore(str, int)
-		renderer_spin = Gtk.CellRendererSpin(editable=True, adjustment=Gtk.Adjustment(0, 0, 100, 5, 0, 0))
-		renderer_spin.connect("edited", self.on_direction_edited)
-
-		self.gui['direction_treeview'].append_column(Gtk.TreeViewColumn("Coord", Gtk.CellRendererText(), text=0))
-		self.gui['direction_treeview'].append_column(Gtk.TreeViewColumn("Value", renderer_spin, text=1))
-		self.gui['direction_treeview'].set_model(self.store['direction'])
+		# Build stores
+		self.build_data_stores()
 
 		# Database setup
 		self.build_data_hadlers()
@@ -97,36 +67,82 @@ class ColorPage:
 
 		# restore GUI elements state from last session
 		self.gui['rtr_button'].set_active(self.config.getboolean("Settings", "autorender"))
+
 		self.init_confirmed = True
 
-	# Support functions
+	# Init functions
 	def connect_signals(self):
+		"""Connect GUI handlers"""
 		self.signals = dict()
 		self.signals['colorlist'] = self.gui['colorlist_treeview_selection'].connect(
 			"changed", self.on_color_selection_changed
 		)
+		self.signals['handoffset_switch'] = self.gui['handoffset_switch'].connect(
+			"notify::active", self.on_handoffset_toggled
+		)
+		self.signals['colorlist_del'] = self.store['colorlist'].connect(
+			"row-deleted", self.on_colorlist_structure_changed
+		)
+		self.signals['colorlist_add'] = self.store['colorlist'].connect(
+			"row-inserted", self.on_colorlist_structure_changed
+		)
 
-		self.store['colorlist'].connect("row-deleted", self.on_offset_structure_changed)
-		self.store['colorlist'].connect("row-inserted", self.on_offset_structure_changed)
 		self.gui['icongroup_combo'].connect("changed", self.on_icongroup_combo_changed)
 		self.gui['filter_group_combo'].connect("changed", self.on_filter_group_combo_changed)
 		self.gui['filters_combo'].connect("changed", self.on_filter_combo_changed)
-		self.gui['handoffset_switch'].connect("notify::active", self.on_handoffset_toggled)
 		self.gui['color_selector'].connect("color_changed", self.on_color_change)
 		self.gui['offset_scale'].connect("value_changed", self.on_offset_value_changed)
 		self.gui['gradient_combo'].connect("changed", self.on_gradient_type_switched)
 		self.gui['rtr_button'].connect("toggled", self.on_rtr_toggled)
+
+	def build_data_stores(self):
+		"""Build stores for GUI dataviews"""
+		self.store = dict()
+
+		# custom icons
+		self.store['custom_icons'] = Gtk.ListStore(str, bool)
+		self.store['custom_icons'].append(["Simple Icon Group", False])
+
+		renderer_toggle = Gtk.CellRendererToggle()
+		renderer_toggle.connect("toggled", self.on_custom_icon_toggled)
+
+		self.gui['custom_icons_treeview'].append_column(Gtk.TreeViewColumn("Name", Gtk.CellRendererText(), text=0))
+		self.gui['custom_icons_treeview'].append_column(Gtk.TreeViewColumn("State", renderer_toggle, active=1))
+		self.gui['custom_icons_treeview'].set_model(self.store['custom_icons'])
+
+		# color list
+		self.ced = {'Color': 0, 'Alpha': 1, 'Offset': 2, 'RGBA': 3}
+		colorstore_visible_keys = [k for k in self.ced.keys() if k != 'RGBA']
+
+		self.store['colorlist'] = Gtk.ListStore(str, float, int, str)
+		for key in sorted(colorstore_visible_keys, key=lambda k: self.ced[k]):
+			self.gui['colorlist_treeview'].append_column(
+				Gtk.TreeViewColumn(key, Gtk.CellRendererText(), text=self.ced[key])
+			)
+		self.gui['colorlist_treeview'].set_model(self.store['colorlist'])
+
+		# gradient direction
+		self.store['direction'] = Gtk.ListStore(str, int)
+		renderer_spin = Gtk.CellRendererSpin(editable=True, adjustment=Gtk.Adjustment(0, 0, 100, 5, 0, 0))
+		renderer_spin.connect("edited", self.on_direction_edited)
+
+		self.gui['direction_treeview'].append_column(Gtk.TreeViewColumn("Coord", Gtk.CellRendererText(), text=0))
+		self.gui['direction_treeview'].append_column(Gtk.TreeViewColumn("Value", renderer_spin, text=1))
+		self.gui['direction_treeview'].set_model(self.store['direction'])
 
 	def build_data_hadlers(self):
 		"""GUI state from/to database"""
 
 		# Read GUI setting from database
 		def read_colors(dump):
+			# Fix this
 			with self.gui['colorlist_treeview_selection'].handler_block(self.signals['colorlist']):
-				self.store['colorlist'].clear()
-				for color in dump['colors']:
-					self.store['colorlist'].append(color)
-			self.gui['colorlist_treeview_selection'].emit("changed")
+				with self.store['colorlist'].handler_block(self.signals['colorlist_add']):
+					with self.store['colorlist'].handler_block(self.signals['colorlist_del']):
+						self.store['colorlist'].clear()
+						for color in dump['colors']:
+							self.store['colorlist'].append(color)
+			self.on_colorlist_structure_changed()
 
 		def read_gradient_type(dump):
 			self.gui['gradient_combo'].set_active(gradient.GRADIENT_PROFILES[dump['gradtype']]['index'])
@@ -143,7 +159,9 @@ class ColorPage:
 				self.store['direction'].append(coord)
 
 		def read_autoofset_settings(dump):
-			self.gui['handoffset_switch'].set_active(not dump['autooffset']),
+			with self.gui['handoffset_switch'].handler_block(self.signals['handoffset_switch']):
+				self.gui['handoffset_switch'].set_active(not dump['autooffset'])
+			self.gui['offset_scale'].set_sensitive(not dump['autooffset'])
 
 		self.data_read_handler = {
 			'colors': read_colors,
@@ -179,18 +197,15 @@ class ColorPage:
 			'radialGradient': write_gradient_settings,
 		}
 
+	# Support functions
 	def read_gui_setting_from_base(self, keys=None):
 		"""Read settings from file and set GUI according it"""
-		# self.is_preview_locked = True
-
 		keys = keys if keys is not None else self.get_current_base_keys()
 		dump = self.database.get_dump(self.icongroups.current.name)
 
 		for key in keys:
 			self.data_read_handler[key](dump)
 
-		# self.is_preview_locked = False
-		# self.update(savedata=False)
 		self.update()
 
 	def write_gui_settings_to_base(self, keys=None):
@@ -213,9 +228,9 @@ class ColorPage:
 		if rownum > 1:
 			step = 100 / (rownum - 1)
 			for i, row in enumerate(self.store['colorlist']):
-				row[self.colorstore_elements['Offset']] = i * step
+				row[self.ced['Offset']] = i * step
 		elif rownum == 1:
-			self.store['colorlist'][0][self.colorstore_elements['Offset']] = 100
+			self.store['colorlist'][0][self.ced['Offset']] = 100
 
 	def current_state(self):
 		"""Get current icon settings"""
@@ -259,18 +274,12 @@ class ColorPage:
 		self.store['custom_icons'][path][1] = not self.store['custom_icons'][path][1]
 		name = self.store['custom_icons'][path][0].lower()
 		self.icongroups.current.switch_state(name)
-
 		self.refresh(forced=True)
-		# self.on_refresh_click()
-		# self.render.run(forced=True)
 
 	def on_offset_value_changed(self, scale):
 		offset = scale.get_value()
 		if self.color_selected is not None:
-			self.store['colorlist'].set_value(self.color_selected, self.colorstore_elements['Offset'], int(offset))
-
-		# if self.rtr:
-		# 	self.on_refresh_click()
+			self.store['colorlist'].set_value(self.color_selected, self.ced['Offset'], int(offset))
 		self.refresh()
 
 	def on_filter_group_combo_changed(self, combo):
@@ -281,7 +290,6 @@ class ColorPage:
 		for name in self.filters.names:
 			self.gui['filters_combo'].append_text(name)
 
-		# if not self.is_preview_locked:
 		self.gui['filters_combo'].set_active(0)
 
 	def on_filter_combo_changed(self, combo):
@@ -290,17 +298,16 @@ class ColorPage:
 			self.filters.switch(name)
 			self.gui['filter_settings_button'].set_sensitive(self.filters.current.is_custom)
 			self.write_gui_settings_to_base(['filter'])
-
 			self.update()
 
-	def on_offset_structure_changed(self, model, *args):
+	def on_colorlist_structure_changed(self, *args):
 		if self.database.get_key(self.icongroups.current.name, 'autooffset'):
 			self.set_offset_auto()
 
-		if len(model) > 0:
-			last = len(model) - 1
+		if len(self.store['colorlist']) > 0:
+			last = len(self.store['colorlist']) - 1
 			self.gui['colorlist_treeview'].set_cursor(last)
-			self.gui['offset_scale'].set_value(model[last][self.colorstore_elements['Offset']])
+			self.gui['offset_scale'].set_value(self.store['colorlist'][last][self.ced['Offset']])
 
 	def on_color_selection_changed(self, selection):
 		model, sel = selection.get_selected()
@@ -308,11 +315,11 @@ class ColorPage:
 		if sel is not None:
 			self.color_selected = sel
 			rgba = Gdk.RGBA()
-			rgba.parse(model[sel][self.colorstore_elements['RGBA']])
-			rgba.alpha = model[sel][self.colorstore_elements['Alpha']]
+			rgba.parse(model[sel][self.ced['RGBA']])
+			rgba.alpha = model[sel][self.ced['Alpha']]
 			self.gui['color_selector'].set_current_rgba(rgba)
 
-			offset = model[sel][self.colorstore_elements['Offset']]
+			offset = model[sel][self.ced['Offset']]
 			self.gui['offset_scale'].set_value(offset)
 
 	def on_handoffset_toggled(self, switch, *args):
@@ -323,9 +330,7 @@ class ColorPage:
 		if self.database.get_key(self.icongroups.current.name, 'autooffset'):
 			self.set_offset_auto()
 
-		self.gui['offset_scale'].set_value(
-			self.store['colorlist'][self.color_selected][self.colorstore_elements['Offset']]
-		)
+		self.gui['offset_scale'].set_value(self.store['colorlist'][self.color_selected][self.ced['Offset']])
 
 		self.refresh()
 
@@ -348,17 +353,11 @@ class ColorPage:
 
 	def on_color_change(self, *args):
 		rgba = self.gui['color_selector'].get_current_rgba()
-		self.store['colorlist'].set_value(self.color_selected, self.colorstore_elements['Color'], hex_from_rgba(rgba))
-		self.store['colorlist'].set_value(self.color_selected, self.colorstore_elements['Alpha'], rgba.alpha)
-		self.store['colorlist'].set_value(self.color_selected, self.colorstore_elements['RGBA'], rgba.to_string())
-		# if self.rtr:
-		# 	self.on_refresh_click()
+		self.store['colorlist'].set_value(self.color_selected, self.ced['Color'], hex_from_rgba(rgba))
+		self.store['colorlist'].set_value(self.color_selected, self.ced['Alpha'], rgba.alpha)
+		self.store['colorlist'].set_value(self.color_selected, self.ced['RGBA'], rgba.to_string())
 		self.refresh()
 
 	def on_rtr_toggled(self, switch, *args):
 		self.rtr = switch.get_active()
 		self.config.set("Settings", "autorender", str(self.rtr))
-		# self.render.set_state(switch.get_active())
-		# self.gui['refresh_button'].set_sensitive(not self.render.is_allowed)
-		# self.config.set("Settings", "autorender", str(self.render.is_allowed))
-		# self.render.run(forced=True)

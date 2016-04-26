@@ -1,7 +1,6 @@
 # -*- Mode: Python; indent-tabs-mode: t; python-indent: 4; tab-width: 4 -*-
 
 import os
-import sys
 import imp
 import re
 import libacyl.fs as fs
