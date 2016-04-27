@@ -32,5 +32,70 @@
         <property name="homogeneous">True</property>
       </packing>
     </child>
+    <child>
+      <object class="GtkToolButton" id="copy_color_toolbutton">
+        <property name="visible">True</property>
+        <property name="can_focus">False</property>
+        <property name="label" translatable="yes">Copy Color</property>
+        <property name="use_underline">True</property>
+        <property name="stock_id">gtk-copy</property>
+      </object>
+      <packing>
+        <property name="expand">False</property>
+        <property name="homogeneous">True</property>
+      </packing>
+    </child>
+    <child>
+      <object class="GtkToolButton" id="paste_color_toolbutton">
+        <property name="visible">True</property>
+        <property name="can_focus">False</property>
+        <property name="label" translatable="yes">Paste Color</property>
+        <property name="use_underline">True</property>
+        <property name="stock_id">gtk-paste</property>
+      </object>
+      <packing>
+        <property name="expand">False</property>
+        <property name="homogeneous">True</property>
+      </packing>
+    </child>
+    <child>
+      <object class="GtkToolButton" id="save_settings_toolbutton">
+        <property name="visible">True</property>
+        <property name="can_focus">False</property>
+        <property name="label" translatable="yes">Save Settings</property>
+        <property name="use_underline">True</property>
+        <property name="stock_id">gtk-save</property>
+      </object>
+      <packing>
+        <property name="expand">False</property>
+        <property name="homogeneous">True</property>
+      </packing>
+    </child>
+    <child>
+      <object class="GtkToolButton" id="load_settings_toolbutton">
+        <property name="visible">True</property>
+        <property name="can_focus">False</property>
+        <property name="label" translatable="yes">Load Settings</property>
+        <property name="use_underline">True</property>
+        <property name="stock_id">gtk-open</property>
+      </object>
+      <packing>
+        <property name="expand">False</property>
+        <property name="homogeneous">True</property>
+      </packing>
+    </child>
+    <child>
+      <object class="GtkToolButton" id="reset_settings_toolbutton">
+        <property name="visible">True</property>
+        <property name="can_focus">False</property>
+        <property name="label" translatable="yes">Reset Settings</property>
+        <property name="use_underline">True</property>
+        <property name="stock_id">gtk-cancel</property>
+      </object>
+      <packing>
+        <property name="expand">False</property>
+        <property name="homogeneous">True</property>
+      </packing>
+    </child>
   </object>
 </interface>

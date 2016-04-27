@@ -36,7 +36,7 @@ class DataStore:
 
 	def update(self, section, data):
 		"""Update data in given section"""
-		self.db[section] = deepcopy(data)
+		self.db[section].update(deepcopy(data))
 
 	def reset(self, section):
 		"""Reset given section to default"""

@@ -52,11 +52,11 @@ class MainWindow:
 
 		# Connect signals
 		self.signals = dict()
-		# self.signals['select'] = self.gui['amv_treeview_selection'].connect("changed", self.on_amv_selection_changed)
-
 		self.gui['window'].connect("delete-event", self.on_close_window)
 		self.gui['exit_button'].connect("clicked", self.on_close_window)
 		self.gui['refresh_button'].connect("clicked", self.colorpage.on_refresh_click)
+
+		self.toolbar.connect_signals(self.colorpage.bhandlers)
 
 		# Fill up GUI
 		load_gtk_css('themefix.css')

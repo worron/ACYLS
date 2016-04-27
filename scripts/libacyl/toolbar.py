@@ -4,19 +4,21 @@ from gi.repository import Gtk
 
 
 class MainToolBar:
-	"""Main window constructor"""
+	"""Toolbar constructor"""
 	def __init__(self):
 		# Load GUI
 		self.builder = Gtk.Builder()
 		self.builder.add_from_file(os.path.join("gui", "toolbar.glade"))
 
 		gui_elements = (
-			'toolbar',
+			'toolbar', 'add_color_toolbutton', 'remove_color_toolbutton', 'copy_color_toolbutton',
+			'paste_color_toolbutton', 'save_settings_toolbutton', 'load_settings_toolbutton',
+			'reset_settings_toolbutton',
 		)
 		self.gui = {element: self.builder.get_object(element) for element in gui_elements}
 
-		# Connect signals
-
 	# Support functions
-
-	# GUI handlers
+	def connect_signals(self, pack):
+		"""Connect handlers to panel buttnons"""
+		for button, handler in pack.items():
+			self.gui[button].connect("clicked", handler)

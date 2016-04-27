@@ -1,12 +1,18 @@
 # -*- Mode: Python; indent-tabs-mode: t; python-indent: 4; tab-width: 4 -*-
 import os
 from gi.repository import Gtk, Gdk
+from copy import deepcopy
 
 import libacyl.iconchanger as iconchanger
 import libacyl.gradient as gradient
 from libacyl.icongroup import IconGroupCollector
 from libacyl.filters import FilterCollector
-from libacyl.gui import hex_from_rgba
+from libacyl.gui import hex_from_rgba, FileChooser
+
+DIRS = dict(
+	user = "data/user",
+	default = "data/default"
+)
 
 
 class ColorPage:
@@ -14,6 +20,10 @@ class ColorPage:
 	def __init__(self, database, config):
 		self.database = database
 		self.config = config
+
+		# Read icon size settins from config
+		self.PREVIEW_ICON_SIZE = int(self.config.get("PreviewSize", "single"))
+		self.VIEW_ICON_SIZE = int(self.config.get("PreviewSize", "group"))
 
 		# Load icon groups from config file
 		self.icongroups = IconGroupCollector(self.config)
@@ -23,6 +33,9 @@ class ColorPage:
 
 		# Load filters from certain directory
 		self.filters = FilterCollector(self.config.get("Directories", "filters"))
+
+		# File dialog
+		self.filechooser = FileChooser(DIRS['user'], "custom.acyl")
 
 		# Load GUI
 		self.builder = Gtk.Builder()
@@ -42,14 +55,21 @@ class ColorPage:
 		# Database setup
 		self.build_data_hadlers()
 
-		# Read icon size settins from config
-		self.PREVIEW_ICON_SIZE = int(self.config.get("PreviewSize", "single"))
-		self.VIEW_ICON_SIZE = int(self.config.get("PreviewSize", "group"))
+		# Toolbar buttnons hanlers
+		self.bhandlers = dict()
+		self.bhandlers['add_color_toolbutton'] = self.on_add_color_button_click
+		self.bhandlers['remove_color_toolbutton'] = self.on_remove_color_button_click
+		self.bhandlers['copy_color_toolbutton'] = self.on_copy_settings_button_click
+		self.bhandlers['paste_color_toolbutton'] = self.on_paste_settings_button_click
+		self.bhandlers['save_settings_toolbutton'] = self.on_save_settings_button_click
+		self.bhandlers['load_settings_toolbutton'] = self.on_load_settings_button_click
+		self.bhandlers['reset_settings_toolbutton'] = self.on_reset_settings_button_click
 
-		# Other
+		# Init vars
 		self.color_selected = None
 		self.rtr = False
 		self.init_confirmed = False
+		self.state_buffer = {}
 
 		# Fill up gui
 		for name in self.icongroups.names:
@@ -361,3 +381,35 @@ class ColorPage:
 	def on_rtr_toggled(self, switch, *args):
 		self.rtr = switch.get_active()
 		self.config.set("Settings", "autorender", str(self.rtr))
+
+	# Toolbar buttons handlers
+	def on_add_color_button_click(self, *args):
+		rgba = self.gui['color_selector'].get_current_rgba()
+		hexcolor = hex_from_rgba(rgba)
+		self.store['colorlist'].append([hexcolor, rgba.alpha, 100, rgba.to_string()])
+
+	def on_remove_color_button_click(self, *args):
+		if len(self.store['colorlist']) > 1:
+			self.store['colorlist'].remove(self.color_selected)
+
+	def on_copy_settings_button_click(self, *args):
+		self.state_buffer = deepcopy(self.database.get_dump(self.icongroups.current.name))
+
+	def on_paste_settings_button_click(self, *args):
+		self.database.update(self.icongroups.current.name, self.state_buffer)
+		self.read_gui_setting_from_base()
+
+	def on_save_settings_button_click(self, *args):
+		is_ok, file_ = self.filechooser.save()
+		if is_ok:
+			self.database.save_to_file(file_)
+
+	def on_load_settings_button_click(self, *args):
+		is_ok, file_ = self.filechooser.load()
+		if is_ok:
+			self.database.load_from_file(file_)
+			self.read_gui_setting_from_base()
+
+	def on_reset_settings_button_click(self, *args):
+		self.database.reset(self.icongroups.current.name)
+		self.read_gui_setting_from_base()
