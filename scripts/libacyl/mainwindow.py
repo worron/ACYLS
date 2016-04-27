@@ -4,24 +4,19 @@ from gi.repository import Gtk
 import configparser
 
 # User modules
+import libacyl
 from libacyl.toolbar import MainToolBar
 from libacyl.colorpage import ColorPage
 from libacyl.gui import load_gtk_css
 from libacyl.fs import FileKeeper
 from libacyl.data import DataStore
 
-# Data directories
-DIRS = dict(
-	user = "data/user",
-	default = "data/default"
-)
-
 
 class MainWindow:
 	"""Main window constructor"""
 	def __init__(self):
 		# Set config files manager
-		self.keeper = FileKeeper(DIRS['default'], DIRS['user'])
+		self.keeper = FileKeeper(libacyl._dirs['default'], libacyl._dirs['user'])
 
 		# Config file setup
 		self.configfile = self.keeper.get("config.ini")
@@ -35,7 +30,7 @@ class MainWindow:
 
 		# Load GUI
 		self.builder = Gtk.Builder()
-		self.builder.add_from_file(os.path.join("gui", "main.glade"))
+		self.builder.add_from_file(os.path.join(libacyl._dirs['gui'], "main.glade"))
 
 		gui_elements = (
 			'window', 'notebook', 'exit_button', 'refresh_button', 'maingrid',
@@ -61,7 +56,7 @@ class MainWindow:
 		self.toolbar.connect_signals(self.colorpage.bhandlers)
 
 		# Fill up GUI
-		load_gtk_css('themefix.css')
+		load_gtk_css(os.path.join(libacyl._dirs['css'], 'themefix.css'))
 		self.colorpage.gui['render_button'].emit("toggled")
 		self.gui['window'].show_all()
 

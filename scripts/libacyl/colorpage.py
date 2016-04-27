@@ -3,16 +3,12 @@ import os
 from gi.repository import Gtk, Gdk
 from copy import deepcopy
 
+import libacyl
 import libacyl.iconchanger as iconchanger
 import libacyl.gradient as gradient
 from libacyl.icongroup import IconGroupCollector
 from libacyl.filters import FilterCollector
 from libacyl.gui import hex_from_rgba, FileChooser
-
-DIRS = dict(
-	user = "data/user",
-	default = "data/default"
-)
 
 
 class ColorPage:
@@ -32,14 +28,14 @@ class ColorPage:
 		self.gradient = gradient.Gradient()
 
 		# Load filters from certain directory
-		self.filters = FilterCollector(self.config.get("Directories", "filters"))
+		self.filters = FilterCollector(libacyl._dirs['filters'])
 
 		# File dialog
-		self.filechooser = FileChooser(DIRS['user'], "custom.acyl")
+		self.filechooser = FileChooser(libacyl._dirs['user'], "custom.acyl")
 
 		# Load GUI
 		self.builder = Gtk.Builder()
-		self.builder.add_from_file(os.path.join("gui", "colors.glade"))
+		self.builder.add_from_file(os.path.join(libacyl._dirs['gui'], "colors.glade"))
 
 		gui_elements = (
 			'colorgrid', 'icongroup_combo', 'custom_icons_treeview', 'colorlist_treeview', 'gradient_combo',
