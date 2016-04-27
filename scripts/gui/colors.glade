@@ -156,7 +156,7 @@
         <property name="can_focus">False</property>
         <property name="spacing">4</property>
         <child>
-          <object class="GtkToggleButton" id="rtr_button">
+          <object class="GtkToggleButton" id="render_button">
             <property name="label" translatable="yes">Render</property>
             <property name="visible">True</property>
             <property name="can_focus">True</property>

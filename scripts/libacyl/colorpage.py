@@ -44,7 +44,7 @@ class ColorPage:
 		gui_elements = (
 			'colorgrid', 'icongroup_combo', 'custom_icons_treeview', 'colorlist_treeview', 'gradient_combo',
 			'filter_group_combo', 'filters_combo', 'direction_treeview', 'handoffset_switch', 'filters_combo',
-			'colorlist_treeview_selection', 'offset_scale', 'color_selector', 'offset_scale', 'rtr_button',
+			'colorlist_treeview_selection', 'offset_scale', 'color_selector', 'offset_scale', 'render_button',
 			'preview_icon', 'filter_settings_button',
 		)
 		self.gui = {element: self.builder.get_object(element) for element in gui_elements}
@@ -86,7 +86,7 @@ class ColorPage:
 		self.gui['icongroup_combo'].set_active(0)
 
 		# restore GUI elements state from last session
-		self.gui['rtr_button'].set_active(self.config.getboolean("Settings", "autorender"))
+		self.gui['render_button'].set_active(self.config.getboolean("Settings", "autorender"))
 
 		self.init_confirmed = True
 
@@ -113,7 +113,7 @@ class ColorPage:
 		self.gui['color_selector'].connect("color_changed", self.on_color_change)
 		self.gui['offset_scale'].connect("value_changed", self.on_offset_value_changed)
 		self.gui['gradient_combo'].connect("changed", self.on_gradient_type_switched)
-		self.gui['rtr_button'].connect("toggled", self.on_rtr_toggled)
+		self.gui['render_button'].connect("toggled", self.on_render_toggled)
 
 	def build_data_stores(self):
 		"""Build stores for GUI dataviews"""
@@ -378,9 +378,10 @@ class ColorPage:
 		self.store['colorlist'].set_value(self.color_selected, self.ced['RGBA'], rgba.to_string())
 		self.refresh()
 
-	def on_rtr_toggled(self, switch, *args):
+	def on_render_toggled(self, switch, *args):
 		self.rtr = switch.get_active()
 		self.config.set("Settings", "autorender", str(self.rtr))
+		self.refresh()
 
 	# Toolbar buttons handlers
 	def on_add_color_button_click(self, *args):

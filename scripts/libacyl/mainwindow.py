@@ -56,10 +56,13 @@ class MainWindow:
 		self.gui['exit_button'].connect("clicked", self.on_close_window)
 		self.gui['refresh_button'].connect("clicked", self.colorpage.on_refresh_click)
 
+		self.colorpage.gui['render_button'].connect("toggled", self.on_render_toggled)
+
 		self.toolbar.connect_signals(self.colorpage.bhandlers)
 
 		# Fill up GUI
 		load_gtk_css('themefix.css')
+		self.colorpage.gui['render_button'].emit("toggled")
 		self.gui['window'].show_all()
 
 	# Support functions
@@ -67,3 +70,6 @@ class MainWindow:
 	# GUI handlers
 	def on_close_window(self, *args):
 		Gtk.main_quit(*args)
+
+	def on_render_toggled(self, switch, *args):
+		self.gui['refresh_button'].set_sensitive(not self.colorpage.rtr)
