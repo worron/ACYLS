@@ -17,7 +17,6 @@ if sys.version_info < (3, 4):
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "libacyl"))
 
-# from mainwindow import MainWindow
 from libacyl.mainwindow import MainWindow
 
 # Run application

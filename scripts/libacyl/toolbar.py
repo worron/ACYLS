@@ -19,8 +19,14 @@ class MainToolBar:
 		)
 		self.gui = {element: self.builder.get_object(element) for element in gui_elements}
 
+		self.buttons = [e for e in gui_elements if e != 'toolbar']
+
 	# Support functions
 	def connect_signals(self, pack):
 		"""Connect handlers to panel buttnons"""
 		for button, handler in pack.items():
 			self.gui[button].connect("clicked", handler)
+
+	def set_buttons_sensitive(self, pack):
+		for button in self.buttons:
+			self.gui[button].set_sensitive(button in pack)

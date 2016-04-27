@@ -19,7 +19,6 @@ class ColorPage:
 
 		# Read icon size settins from config
 		self.PREVIEW_ICON_SIZE = int(self.config.get("PreviewSize", "single"))
-		self.VIEW_ICON_SIZE = int(self.config.get("PreviewSize", "group"))
 
 		# Load icon groups from config file
 		self.icongroups = IconGroupCollector(self.config)
@@ -60,6 +59,10 @@ class ColorPage:
 		self.bhandlers['save_settings_toolbutton'] = self.on_save_settings_button_click
 		self.bhandlers['load_settings_toolbutton'] = self.on_load_settings_button_click
 		self.bhandlers['reset_settings_toolbutton'] = self.on_reset_settings_button_click
+
+		# Mainpage buttnons hanlers
+		self.mhandlers = dict()
+		self.mhandlers['refresh_button'] = self.on_refresh_click
 
 		# Init vars
 		self.color_selected = None

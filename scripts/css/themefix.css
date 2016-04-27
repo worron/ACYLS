@@ -1,4 +1,4 @@
-GtkImage#ColorIconPreview {
+GtkImage#ColorIconPreview, GtkIconView {
 	background-color: @base_color;
 }
 
