@@ -1,3 +1,8 @@
-.preview_bg {
-    background-color: @base_color;
+GtkImage#ColorIconPreview {
+	background-color: @base_color;
+}
+
+GtkToolbar GtkButton {
+	padding-left: 2px;
+	padding-right: 2px;
 }

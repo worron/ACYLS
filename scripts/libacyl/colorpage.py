@@ -42,7 +42,7 @@ class ColorPage:
 		self.builder.add_from_file(os.path.join("gui", "colors.glade"))
 
 		gui_elements = (
-			'maingrid', 'icongroup_combo', 'custom_icons_treeview', 'colorlist_treeview', 'gradient_combo',
+			'colorgrid', 'icongroup_combo', 'custom_icons_treeview', 'colorlist_treeview', 'gradient_combo',
 			'filter_group_combo', 'filters_combo', 'direction_treeview', 'handoffset_switch', 'filters_combo',
 			'colorlist_treeview_selection', 'offset_scale', 'color_selector', 'offset_scale', 'rtr_button',
 			'preview_icon', 'filter_settings_button',

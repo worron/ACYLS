@@ -48,7 +48,7 @@ class MainWindow:
 
 		# Add notebook pages
 		self.colorpage = ColorPage(self.database, self.config)
-		self.gui['notebook'].append_page(self.colorpage.gui['maingrid'], Gtk.Label('Colors'))
+		self.gui['notebook'].append_page(self.colorpage.gui['colorgrid'], Gtk.Label('Colors'))
 
 		# Connect signals
 		self.signals = dict()

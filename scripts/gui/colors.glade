@@ -12,7 +12,7 @@
     <property name="tooltip_text" translatable="yes">Filter settings.</property>
     <property name="stock">gtk-preferences</property>
   </object>
-  <object class="GtkGrid" id="maingrid">
+  <object class="GtkGrid" id="colorgrid">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
     <property name="row_spacing">8</property>
@@ -46,14 +46,12 @@
     </child>
     <child>
       <object class="GtkImage" id="preview_icon">
+        <property name="name">ColorIconPreview</property>
         <property name="width_request">0</property>
         <property name="visible">True</property>
         <property name="can_focus">False</property>
         <property name="hexpand">True</property>
         <property name="stock">gtk-missing-image</property>
-        <style>
-          <class name="preview_bg"/>
-        </style>
       </object>
       <packing>
         <property name="left_attach">2</property>
