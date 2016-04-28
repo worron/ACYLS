@@ -9,7 +9,7 @@ import libacyl.gradient as gradient
 from libacyl.icongroup import IconGroupCollector
 from libacyl.filters import FilterCollector
 from libacyl.gui import hex_from_rgba, FileChooser
-
+from libacyl.multithread import multithread
 
 class ColorPage:
 	"""Colors tab"""
@@ -63,6 +63,7 @@ class ColorPage:
 		# Mainpage buttnons hanlers
 		self.mhandlers = dict()
 		self.mhandlers['refresh_button'] = self.on_refresh_click
+		self.mhandlers['apply_button'] = self.on_apply_click
 
 		# Init vars
 		self.color_selected = None
@@ -413,3 +414,8 @@ class ColorPage:
 	def on_reset_settings_button_click(self, *args):
 		self.database.reset(self.icongroups.current.name)
 		self.read_gui_setting_from_base()
+
+	@multithread
+	def on_apply_click(self, *args):
+		files = self.icongroups.current.get_real()
+		iconchanger.rebuild(*files, **self.current_state())

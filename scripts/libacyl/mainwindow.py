@@ -48,11 +48,13 @@ class MainWindow:
 		# Add notebook pages
 		self.pages = list()
 
+		# colors
 		self.colorpage = ColorPage(self.database, self.config)
 		self.gui['notebook'].append_page(self.colorpage.gui['colorgrid'], Gtk.Label('Colors'))
 		self.pages.append(self.colorpage)
 
-		self.altpage = AlternativesPage(self.database, self.config)
+		# alternatives
+		self.altpage = AlternativesPage(self.config)
 		self.gui['notebook'].append_page(self.altpage.gui['alternatives_grid'], Gtk.Label('Alternatives'))
 		self.pages.append(self.altpage)
 
@@ -70,8 +72,7 @@ class MainWindow:
 		load_gtk_css(os.path.join(libacyl._dirs['css'], 'themefix.css'))
 		self.gui['notebook'].emit("switch_page", self.colorpage.gui['colorgrid'], 0)
 		self.gui['window'].show_all()
-
-	# Support functions
+		# self.colorpage.gui['colorgrid'].get_window().set_cursor(Gdk.Cursor(Gdk.CursorType.WATCH))
 
 	# GUI handlers
 	def on_page_changed(self, nb, page, index):

@@ -9,7 +9,7 @@ from libacyl.gui import PixbufCreator
 
 class AlternativesPage:
 	"""Alternatives GUI"""
-	def __init__(self, database, config):
+	def __init__(self, config):
 		self.config = config
 		self.bhandlers = dict()
 
