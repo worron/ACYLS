@@ -5,7 +5,7 @@ from gi.repository.GdkPixbuf import Pixbuf
 
 import libacyl
 from libacyl.fs import Prospector
-from libacyl.gui import PixbufCreator
+from libacyl.gui import PixbufCreator, TreeViewHolder
 
 class AlternativesPage:
 	"""Alternatives GUI"""
@@ -36,6 +36,7 @@ class AlternativesPage:
 		self.store = Gtk.ListStore(Pixbuf)
 		self.gui['alt_icon_view'].set_model(self.store)
 		self.gui['alt_icon_view'].set_pixbuf_column(0)
+		self.iconview_lock = TreeViewHolder(self.gui['alt_icon_view'])
 
 		# Fill up GUI
 		for name in self.alternatives.structure[0]['directories']:
@@ -68,7 +69,8 @@ class AlternativesPage:
 		text = combo.get_active_text()
 		if text:
 			self.alternatives.dig(text.lower(), DIG_LEVEL)
-			self.store.clear()
-			for icon in self.alternatives.get_icons(DIG_LEVEL):
-				pixbuf = PixbufCreator.new_single_at_size(icon, self.VIEW_ICON_SIZE)
-				self.store.append([pixbuf])
+			with self.iconview_lock:
+				self.store.clear()
+				for icon in self.alternatives.get_icons(DIG_LEVEL):
+					pixbuf = PixbufCreator.new_single_at_size(icon, self.VIEW_ICON_SIZE)
+					self.store.append([pixbuf])

@@ -33,6 +33,19 @@ def hex_from_rgba(rgba):
 	return "#%02X%02X%02X" % tuple([int(getattr(rgba, name) * 255) for name in ("red", "green", "blue")])
 
 
+class TreeViewHolder():
+	"""Disconnect treeview store"""
+	def __init__(self, treeview):
+		self.treeview = treeview
+
+	def __enter__(self):
+		self.store = self.treeview.get_model()
+		self.treeview.set_model(None)
+
+	def __exit__(self, type, value, traceback):
+		self.treeview.set_model(self.store)
+
+
 class FileChooser:
 	"""File selection helper based on Gtk file dialog"""
 	def build_dialog_action(name):

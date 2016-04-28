@@ -120,6 +120,7 @@ class ColorPage:
 		self.store = dict()
 
 		# custom icons
+		self.ied = {'Name': 0, 'State': 1}
 		self.store['custom_icons'] = Gtk.ListStore(str, bool)
 		self.store['custom_icons'].append(["Simple Icon Group", False])
 
@@ -142,6 +143,7 @@ class ColorPage:
 		self.gui['colorlist_treeview'].set_model(self.store['colorlist'])
 
 		# gradient direction
+		self.ded = {'Coord': 0, 'Value': 1}
 		self.store['direction'] = Gtk.ListStore(str, int)
 		renderer_spin = Gtk.CellRendererSpin(editable=True, adjustment=Gtk.Adjustment(0, 0, 100, 5, 0, 0))
 		renderer_spin.connect("edited", self.on_direction_edited)
@@ -287,12 +289,12 @@ class ColorPage:
 		self.read_gui_setting_from_base(['gradtype', self.gradient.tag])
 
 	def on_direction_edited(self, widget, path, text):
-		self.store['direction'][path][1] = int(text)
+		self.store['direction'][path][self.ded['Value']] = int(text)
 		self.refresh()
 
 	def on_custom_icon_toggled(self, widget, path):
-		self.store['custom_icons'][path][1] = not self.store['custom_icons'][path][1]
-		name = self.store['custom_icons'][path][0].lower()
+		self.store['custom_icons'][path][self.ied['State']] = not self.store['custom_icons'][path][self.ied['State']]
+		name = self.store['custom_icons'][path][self.ied['Name']].lower()
 		self.icongroups.current.switch_state(name)
 		self.refresh(forced=True)
 
