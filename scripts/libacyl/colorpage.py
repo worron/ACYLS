@@ -28,6 +28,7 @@ class ColorPage:
 
 		# Load filters from certain directory
 		self.filters = FilterCollector(libacyl._dirs['filters'])
+		self.filters.connect_signal(self.filter_refresh)
 
 		# File dialog
 		self.filechooser = FileChooser(libacyl._dirs['user'], "custom.acyl")
@@ -114,6 +115,7 @@ class ColorPage:
 		self.gui['offset_scale'].connect("value_changed", self.on_offset_value_changed)
 		self.gui['gradient_combo'].connect("changed", self.on_gradient_type_switched)
 		self.gui['render_button'].connect("toggled", self.on_render_toggled)
+		self.gui['filter_settings_button'].connect("clicked", self.on_filter_settings_click)
 
 	def build_data_stores(self):
 		"""Build stores for GUI dataviews"""
@@ -262,13 +264,18 @@ class ColorPage:
 			data = self.database.get_dump(self.icongroups.current.name)
 		)
 
+	def filter_refresh(self, caller, forced):
+		"""Filter update handler"""
+		self.refresh(forced)
+
 	def refresh(self, forced=False):
+		"""Full update for GUI state"""
 		if self.rtr or forced:
 			self.write_gui_settings_to_base()
 			self.update()
 
 	def update(self):
-		"""Refresh icon preview and update database if needed"""
+		"""Refresh icon preview"""
 		state = self.current_state()
 		self.icongroups.current.preview = iconchanger.rebuild_text(self.icongroups.current.preview, **state)
 
@@ -416,6 +423,9 @@ class ColorPage:
 	def on_reset_settings_button_click(self, *args):
 		self.database.reset(self.icongroups.current.name)
 		self.read_gui_setting_from_base()
+
+	def on_filter_settings_click(self, widget, data=None):
+		self.filters.current.gui['window'].show_all()
 
 	@multithread
 	def on_apply_click(self, *args):
