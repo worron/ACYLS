@@ -8,6 +8,7 @@ import libacyl
 from libacyl.toolbar import MainToolBar
 from libacyl.colorpage import ColorPage
 from libacyl.altpage import AlternativesPage
+from libacyl.viewpage import ViewerPage
 from libacyl.gui import load_gtk_css
 from libacyl.fs import FileKeeper
 from libacyl.data import DataStore
@@ -58,6 +59,11 @@ class MainWindow:
 		self.gui['notebook'].append_page(self.altpage.gui['alternatives_grid'], Gtk.Label('Alternatives'))
 		self.pages.append(self.altpage)
 
+		# viewer
+		self.viewpage = ViewerPage(self.config)
+		self.gui['notebook'].append_page(self.viewpage.gui['iconview_grid'], Gtk.Label('Icon View'))
+		self.pages.append(self.viewpage)
+
 		# Connect signals
 		self.signals = dict()
 		self.gui['window'].connect("delete-event", self.on_close_window)
@@ -72,7 +78,6 @@ class MainWindow:
 		load_gtk_css(os.path.join(libacyl._dirs['css'], 'themefix.css'))
 		self.gui['notebook'].emit("switch_page", self.colorpage.gui['colorgrid'], 0)
 		self.gui['window'].show_all()
-		# self.colorpage.gui['colorgrid'].get_window().set_cursor(Gdk.Cursor(Gdk.CursorType.WATCH))
 
 	# GUI handlers
 	def on_page_changed(self, nb, page, index):
@@ -86,8 +91,10 @@ class MainWindow:
 			self.gui[button].set_sensitive(button in self.pages[index].mhandlers)
 		self.last_button_handlers = self.pages[index].mhandlers
 
-		if index == self.pages.index(self.colorpage):
-			self.colorpage.gui['render_button'].emit("toggled")
+		try:
+			self.pages[index].on_page_switch()
+		except AttributeError:
+			pass
 
 	def on_render_toggled(self, switch, *args):
 		self.gui['refresh_button'].set_sensitive(not self.colorpage.rtr)

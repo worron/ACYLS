@@ -431,3 +431,6 @@ class ColorPage:
 	def on_apply_click(self, *args):
 		files = self.icongroups.current.get_real()
 		iconchanger.rebuild(*files, **self.current_state())
+
+	def on_page_switch(self):
+		self.gui['render_button'].emit("toggled")
