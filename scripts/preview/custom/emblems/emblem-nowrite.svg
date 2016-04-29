@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="48" height="48">
   <defs id="acyl-settings">
     <linearGradient id="acyl-gradient" x1="0%" x2="0%" y1="0%" y2="100%">
-      <stop offset="100%" style="stop-color:#008085;stop-opacity:1.000000"/>
+      <stop offset="100%" style="stop-color:#404040;stop-opacity:1.000000"/>
     </linearGradient>
     <g id="acyl-filter">
       <filter id="filter"/>

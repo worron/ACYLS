@@ -12,12 +12,11 @@ from libacyl.multithread import multithread
 class ViewerPage:
 	"""Icon view GUI"""
 	def __init__(self, config):
-		self.config = config
 		self.bhandlers = dict()
 		self.mhandlers = dict()
 
 		# Create object for iconview
-		self.iconview = Prospector(self.config.get("Directories", "real"))
+		self.iconview = Prospector(config.get("Directories", "real"))
 
 		# Read icon size settins from config
 		self.VIEW_ICON_SIZE = int(config.get("PreviewSize", "group"))

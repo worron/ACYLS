@@ -9,6 +9,7 @@ from libacyl.toolbar import MainToolBar
 from libacyl.colorpage import ColorPage
 from libacyl.altpage import AlternativesPage
 from libacyl.viewpage import ViewerPage
+from libacyl.editorpage import EditorPage
 from libacyl.gui import load_gtk_css
 from libacyl.fs import FileKeeper
 from libacyl.data import DataStore
@@ -64,6 +65,11 @@ class MainWindow:
 		self.gui['notebook'].append_page(self.viewpage.gui['iconview_grid'], Gtk.Label('Icon View'))
 		self.pages.append(self.viewpage)
 
+		# filter editor
+		self.editorpage = EditorPage(self.config)
+		self.gui['notebook'].append_page(self.editorpage.gui['editor_grid'], Gtk.Label('Filter Editor'))
+		self.pages.append(self.editorpage)
+
 		# Connect signals
 		self.signals = dict()
 		self.gui['window'].connect("delete-event", self.on_close_window)
@@ -73,6 +79,7 @@ class MainWindow:
 		self.colorpage.gui['render_button'].connect("toggled", self.on_render_toggled)
 
 		self.toolbar.connect_signals(self.colorpage.bhandlers)
+		self.toolbar.connect_signals(self.editorpage.bhandlers)
 
 		# Fill up GUI
 		load_gtk_css(os.path.join(libacyl._dirs['css'], 'themefix.css'))

@@ -74,3 +74,6 @@ class AlternativesPage:
 				for icon in self.alternatives.get_icons(DIG_LEVEL):
 					pixbuf = PixbufCreator.new_single_at_size(icon, self.VIEW_ICON_SIZE)
 					self.store.append([pixbuf])
+
+	def on_page_switch(self):
+		self.gui['alt_theme_combo'].emit("changed")
