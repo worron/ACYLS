@@ -3,7 +3,6 @@ import os
 from gi.repository import Gtk, Pango
 
 import libacyl
-from libacyl.fs import Prospector
 from libacyl.gui import PixbufCreator, FileChooser
 from libacyl.filters import RawFilterEditor
 

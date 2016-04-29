@@ -11,6 +11,7 @@ from libacyl.filters import FilterCollector
 from libacyl.gui import hex_from_rgba, FileChooser
 from libacyl.multithread import multithread
 
+
 class ColorPage:
 	"""Colors tab"""
 	def __init__(self, database, config):

@@ -7,6 +7,7 @@ import libacyl
 from libacyl.fs import Prospector
 from libacyl.gui import PixbufCreator, TreeViewHolder
 
+
 class AlternativesPage:
 	"""Alternatives GUI"""
 	def __init__(self, config):

@@ -10,6 +10,7 @@ from lxml import etree
 from copy import deepcopy
 from gi.repository import Gtk, Gdk, GObject
 
+
 class FilterParameter:
 	"""Helper to find, change, save and restore certain value in xml tag attrubute.
 	Used to work with svg filter parameters.
@@ -73,6 +74,7 @@ class SimpleFilterBase:
 class Flag(GObject.GObject):
 	"""Custom signal object"""
 	__gsignals__ = {'refresh': (GObject.SIGNAL_RUN_FIRST, None, (bool,))}
+
 	def __init__(self):
 		GObject.GObject.__init__(self)
 
