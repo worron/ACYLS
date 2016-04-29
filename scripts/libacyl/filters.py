@@ -264,6 +264,7 @@ class RawFilterEditor:
 		except Exception as e:
 			print("Fail to load filter source, wrong file or filter syntax")
 			print(e)
+			self.current_preview = ""
 
 	def get_filter_info(self, modname="filter.py"):
 		"""Try to get some information about filter by current xml file"""

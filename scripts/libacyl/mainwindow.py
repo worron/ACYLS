@@ -107,4 +107,10 @@ class MainWindow:
 		self.gui['refresh_button'].set_sensitive(not self.colorpage.rtr)
 
 	def on_close_window(self, *args):
+		self.database.clear(self.colorpage.icongroups.names)
+		self.database.close()
+
+		with open(self.configfile, 'w') as configfile:
+			self.config.write(configfile)
+
 		Gtk.main_quit(*args)

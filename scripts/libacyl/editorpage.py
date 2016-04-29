@@ -49,6 +49,15 @@ class EditorPage:
 		pixbuf = PixbufCreator.new_single_at_size(self.filter_editor.preview, self.PREVIEW_ICON_SIZE)
 		self.gui['editor_preview_icon'].set_from_pixbuf(pixbuf)
 
+	# Support functions
+	def update_preview(self):
+		"""Update filter preview"""
+		try:
+			pixbuf = PixbufCreator.new_single_at_size(self.filter_editor.current_preview, self.PREVIEW_ICON_SIZE)
+			self.gui['editor_preview_icon'].set_from_pixbuf(pixbuf)
+		except Exception:
+			self.gui['editor_preview_icon'].set_from_icon_name('image-missing', Gtk.IconSize.DIALOG)
+
 	# GUI handlers
 	def on_load_filter_button_click(self, *args):
 		is_ok, file_ = self.filechooser.load()
@@ -56,8 +65,7 @@ class EditorPage:
 			self.filter_editor.load_xml(file_)
 			self.buffer.set_text(self.filter_editor.source)
 
-			pixbuf = PixbufCreator.new_single_at_size(self.filter_editor.current_preview, self.PREVIEW_ICON_SIZE)
-			self.gui['editor_preview_icon'].set_from_pixbuf(pixbuf)
+			self.update_preview()
 			self.gui['filter_info_label'].set_text(self.filter_editor.get_filter_info())
 
 	def on_save_filter_button_click(self, *args):
@@ -73,9 +81,7 @@ class EditorPage:
 		if self.filter_editor.xmlfile is not None:
 			self.filter_editor.reset()
 			self.buffer.set_text(self.filter_editor.source)
-
-			pixbuf = PixbufCreator.new_single_at_size(self.filter_editor.current_preview, self.PREVIEW_ICON_SIZE)
-			self.gui['editor_preview_icon'].set_from_pixbuf(pixbuf)
+			self.update_preview()
 		else:
 			print("Error: filter was not saved")
 
@@ -84,5 +90,4 @@ class EditorPage:
 		buffer_text = self.buffer.get_text(start, end, False)
 
 		self.filter_editor.load_source(buffer_text)
-		pixbuf = PixbufCreator.new_single_at_size(self.filter_editor.current_preview, self.PREVIEW_ICON_SIZE)
-		self.gui['editor_preview_icon'].set_from_pixbuf(pixbuf)
+		self.update_preview()
