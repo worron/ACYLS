@@ -1,10 +1,11 @@
 # -*- Mode: Python; indent-tabs-mode: t; python-indent: 4; tab-width: 4 -*-
 
 import os
-import libacyl.fs as fs
-import libacyl.base as base
 from itertools import count
-from libacyl.gui import PixbufCreator
+
+import acyls.lib.base as base
+import acyls.lib.fs as fs
+from acyls.lib.gui import PixbufCreator
 
 
 class BasicIconGroup:

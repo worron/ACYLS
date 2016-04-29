@@ -3,9 +3,9 @@ import os
 from gi.repository import Gtk
 from gi.repository.GdkPixbuf import Pixbuf
 
-import libacyl
-from libacyl.fs import Prospector
-from libacyl.gui import PixbufCreator, TreeViewHolder
+import acyls
+from acyls.lib.fs import Prospector
+from acyls.lib.gui import PixbufCreator, TreeViewHolder
 
 
 class AlternativesPage:
@@ -22,7 +22,7 @@ class AlternativesPage:
 
 		# Load GUI
 		self.builder = Gtk.Builder()
-		self.builder.add_from_file(os.path.join(libacyl._dirs['gui'], "alternatives.glade"))
+		self.builder.add_from_file(os.path.join(acyls.dirs['gui'], "alternatives.glade"))
 
 		gui_elements = (
 			'alternatives_grid', 'alt_theme_combo', 'alt_group_combo', 'alt_icon_view',

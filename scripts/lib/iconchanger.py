@@ -4,7 +4,7 @@ Some helpers to change ACYLS svg icons colected here.
 """
 
 from lxml import etree
-import libacyl.base as base
+import acyls.lib.base as base
 
 
 def rebuild(*files, gradient, gfilter, data):

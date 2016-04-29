@@ -13,14 +13,23 @@ if sys.version_info < (3, 4):
 	sys.stdout.write("Requires Python 3.x\n")
 	sys.exit(1)
 
-# User modules
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "libacyl"))
+# Load content of 'scrips' folder as 'acyls' module
+# just don't want change current directory structure with 'scripts' and 'scalable' pair
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
+import scripts
+sys.modules['acyls'] = scripts
 
-from libacyl.mainwindow import MainWindow
+# Add lib module path for filters loading
+# TODO: fix filters and remove this
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib"))
+
+# Load main app
+from acyls.lib.mainwindow import MainWindow
+
+# Set current working directory to be able use relative path in config
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 # Run application
 if __name__ == "__main__":
-	os.chdir(os.path.dirname(os.path.abspath(__file__)))
 	MainWindow()
 	Gtk.main()

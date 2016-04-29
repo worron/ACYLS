@@ -3,10 +3,10 @@ import os
 from gi.repository import Gtk
 from gi.repository.GdkPixbuf import Pixbuf
 
-import libacyl
-from libacyl.fs import Prospector
-from libacyl.gui import PixbufCreator, TreeViewHolder
-from libacyl.multithread import multithread
+import acyls
+from acyls.lib.fs import Prospector
+from acyls.lib.gui import PixbufCreator, TreeViewHolder
+from acyls.lib.multithread import multithread
 
 
 class ViewerPage:
@@ -23,7 +23,7 @@ class ViewerPage:
 
 		# Load GUI
 		self.builder = Gtk.Builder()
-		self.builder.add_from_file(os.path.join(libacyl._dirs['gui'], "viewer.glade"))
+		self.builder.add_from_file(os.path.join(acyls.dirs['gui'], "viewer.glade"))
 
 		gui_elements = (
 			'iconview_grid', 'iconview_combo', 'icons_view',

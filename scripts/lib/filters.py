@@ -3,8 +3,8 @@
 import os
 import imp
 import re
-import libacyl.fs as fs
-import libacyl.base as base
+import acyls.lib.fs as fs
+import acyls.lib.base as base
 
 from lxml import etree
 from copy import deepcopy

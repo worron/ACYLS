@@ -2,9 +2,9 @@
 import os
 from gi.repository import Gtk, Pango
 
-import libacyl
-from libacyl.gui import PixbufCreator, FileChooser
-from libacyl.filters import RawFilterEditor
+import acyls
+from acyls.lib.gui import PixbufCreator, FileChooser
+from acyls.lib.filters import RawFilterEditor
 
 
 class EditorPage:
@@ -14,14 +14,14 @@ class EditorPage:
 		self.filter_editor = RawFilterEditor(config.get("Editor", "preview"))
 
 		# File dialog
-		self.filechooser = FileChooser(libacyl._dirs['filters'], "filter.xml")
+		self.filechooser = FileChooser(acyls.dirs['filters'], "filter.xml")
 
 		# Read icon size settins from config
 		self.PREVIEW_ICON_SIZE = int(config.get("PreviewSize", "single"))
 
 		# Load GUI
 		self.builder = Gtk.Builder()
-		self.builder.add_from_file(os.path.join(libacyl._dirs['gui'], "editor.glade"))
+		self.builder.add_from_file(os.path.join(acyls.dirs['gui'], "editor.glade"))
 
 		gui_elements = (
 			'editor_grid', 'editor_textview', 'editor_preview_icon', 'filter_info_label',

@@ -4,15 +4,15 @@ from gi.repository import Gtk
 import configparser
 
 # User modules
-import libacyl
-from libacyl.toolbar import MainToolBar
-from libacyl.colorpage import ColorPage
-from libacyl.altpage import AlternativesPage
-from libacyl.viewpage import ViewerPage
-from libacyl.editorpage import EditorPage
-from libacyl.gui import load_gtk_css
-from libacyl.fs import FileKeeper
-from libacyl.data import DataStore
+import acyls
+from acyls.lib.toolbar import MainToolBar
+from acyls.lib.colorpage import ColorPage
+from acyls.lib.altpage import AlternativesPage
+from acyls.lib.viewpage import ViewerPage
+from acyls.lib.editorpage import EditorPage
+from acyls.lib.gui import load_gtk_css
+from acyls.lib.fs import FileKeeper
+from acyls.lib.data import DataStore
 
 
 class MainWindow:
@@ -21,7 +21,7 @@ class MainWindow:
 		self.last_button_handlers = dict()
 
 		# Set config files manager
-		self.keeper = FileKeeper(libacyl._dirs['default'], libacyl._dirs['user'])
+		self.keeper = FileKeeper(acyls.dirs['default'], acyls.dirs['user'])
 
 		# Config file setup
 		self.configfile = self.keeper.get("config.ini")
@@ -35,7 +35,7 @@ class MainWindow:
 
 		# Load GUI
 		self.builder = Gtk.Builder()
-		self.builder.add_from_file(os.path.join(libacyl._dirs['gui'], "main.glade"))
+		self.builder.add_from_file(os.path.join(acyls.dirs['gui'], "main.glade"))
 
 		gui_elements = (
 			'window', 'notebook', 'exit_button', 'refresh_button', 'maingrid', 'apply_button',
@@ -82,7 +82,7 @@ class MainWindow:
 		self.toolbar.connect_signals(self.editorpage.bhandlers)
 
 		# Fill up GUI
-		load_gtk_css(os.path.join(libacyl._dirs['css'], 'themefix.css'))
+		load_gtk_css(os.path.join(acyls.dirs['css'], 'themefix.css'))
 		self.gui['notebook'].emit("switch_page", self.colorpage.gui['colorgrid'], 0)
 		self.gui['window'].show_all()
 

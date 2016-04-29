@@ -3,13 +3,13 @@ import os
 from gi.repository import Gtk, Gdk
 from copy import deepcopy
 
-import libacyl
-import libacyl.iconchanger as iconchanger
-import libacyl.gradient as gradient
-from libacyl.icongroup import IconGroupCollector
-from libacyl.filters import FilterCollector
-from libacyl.gui import hex_from_rgba, FileChooser
-from libacyl.multithread import multithread
+import acyls
+import acyls.lib.iconchanger as iconchanger
+import acyls.lib.gradient as gradient
+from acyls.lib.icongroup import IconGroupCollector
+from acyls.lib.filters import FilterCollector
+from acyls.lib.gui import hex_from_rgba, FileChooser
+from acyls.lib.multithread import multithread
 
 
 class ColorPage:
@@ -28,15 +28,15 @@ class ColorPage:
 		self.gradient = gradient.Gradient()
 
 		# Load filters from certain directory
-		self.filters = FilterCollector(libacyl._dirs['filters'])
+		self.filters = FilterCollector(acyls.dirs['filters'])
 		self.filters.connect_signal(self.filter_refresh)
 
 		# File dialog
-		self.filechooser = FileChooser(libacyl._dirs['user'], "custom.acyl")
+		self.filechooser = FileChooser(acyls.dirs['user'], "custom.acyl")
 
 		# Load GUI
 		self.builder = Gtk.Builder()
-		self.builder.add_from_file(os.path.join(libacyl._dirs['gui'], "colors.glade"))
+		self.builder.add_from_file(os.path.join(acyls.dirs['gui'], "colors.glade"))
 
 		gui_elements = (
 			'colorgrid', 'icongroup_combo', 'custom_icons_treeview', 'colorlist_treeview', 'gradient_combo',

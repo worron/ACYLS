@@ -2,7 +2,7 @@
 import os
 from gi.repository import Gtk
 
-import libacyl
+import acyls
 
 
 class MainToolBar:
@@ -10,7 +10,7 @@ class MainToolBar:
 	def __init__(self):
 		# Load GUI
 		self.builder = Gtk.Builder()
-		self.builder.add_from_file(os.path.join(libacyl._dirs['gui'], "toolbar.glade"))
+		self.builder.add_from_file(os.path.join(acyls.dirs['gui'], "toolbar.glade"))
 
 		gui_elements = (
 			'toolbar', 'add_color_toolbutton', 'remove_color_toolbutton', 'copy_color_toolbutton',
