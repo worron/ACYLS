@@ -9,7 +9,6 @@
   <object class="GtkImage" id="settings_image">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
-    <property name="tooltip_text" translatable="yes">Filter settings.</property>
     <property name="stock">gtk-preferences</property>
   </object>
   <object class="GtkGrid" id="colorgrid">
@@ -111,6 +110,7 @@
           <object class="GtkTreeView" id="custom_icons_treeview">
             <property name="visible">True</property>
             <property name="can_focus">True</property>
+            <property name="tooltip_text" translatable="yes">Custom icon group settings.</property>
             <property name="headers_visible">False</property>
             <child internal-child="selection">
               <object class="GtkTreeSelection" id="custom_icons_treeview_selection"/>
@@ -134,6 +134,7 @@
           <object class="GtkTreeView" id="colorlist_treeview">
             <property name="visible">True</property>
             <property name="can_focus">True</property>
+            <property name="tooltip_text" translatable="yes">Graient colors list.</property>
             <property name="hexpand">True</property>
             <property name="vexpand">True</property>
             <property name="headers_visible">False</property>
@@ -174,6 +175,7 @@
             <property name="visible">True</property>
             <property name="can_focus">True</property>
             <property name="receives_default">True</property>
+            <property name="tooltip_text" translatable="yes">Filter settings.</property>
             <property name="image">settings_image</property>
             <property name="yalign">0.49000000953674316</property>
           </object>
@@ -189,6 +191,7 @@
             <property name="width_request">160</property>
             <property name="visible">True</property>
             <property name="can_focus">False</property>
+            <property name="tooltip_text" translatable="yes">Current filter.</property>
           </object>
           <packing>
             <property name="expand">False</property>
@@ -236,6 +239,7 @@
         <property name="width_request">180</property>
         <property name="visible">True</property>
         <property name="can_focus">True</property>
+        <property name="tooltip_text" translatable="yes">Gradient direction settings (editable).</property>
         <property name="headers_visible">False</property>
         <child internal-child="selection">
           <object class="GtkTreeSelection" id="direction_treeview_selection"/>

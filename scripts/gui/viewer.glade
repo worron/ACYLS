@@ -10,6 +10,7 @@
       <object class="GtkComboBoxText" id="iconview_combo">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
+        <property name="tooltip_text" translatable="yes">Icon group.</property>
       </object>
       <packing>
         <property name="left_attach">0</property>
