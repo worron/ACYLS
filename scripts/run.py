@@ -27,7 +27,7 @@ sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib"))
 from acyls.lib.mainwindow import MainWindow
 
 # Set current working directory to be able use relative path in config
-os.chdir(os.path.dirname(os.path.abspath(__file__)))
+os.chdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 
 # Run application
 if __name__ == "__main__":
