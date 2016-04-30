@@ -4,8 +4,8 @@
   <requires lib="gtk+" version="3.10"/>
   <object class="GtkWindow" id="window">
     <property name="can_focus">False</property>
-    <property name="default_width">940</property>
-    <property name="default_height">560</property>
+    <property name="default_width">960</property>
+    <property name="default_height">570</property>
     <child>
       <object class="GtkGrid" id="maingrid">
         <property name="visible">True</property>
@@ -13,7 +13,7 @@
         <property name="margin_left">8</property>
         <property name="margin_right">8</property>
         <property name="margin_bottom">8</property>
-        <property name="row_spacing">4</property>
+        <property name="row_spacing">8</property>
         <child>
           <object class="GtkButtonBox" id="main_buttonbox">
             <property name="visible">True</property>

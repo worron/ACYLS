@@ -6,12 +6,18 @@
     <property name="upper">100</property>
     <property name="step_increment">1</property>
   </object>
+  <object class="GtkImage" id="record_image">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="stock">gtk-media-record</property>
+  </object>
   <object class="GtkImage" id="settings_image">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
     <property name="stock">gtk-preferences</property>
   </object>
   <object class="GtkGrid" id="colorgrid">
+    <property name="name">ColorsGrid</property>
     <property name="visible">True</property>
     <property name="can_focus">False</property>
     <property name="row_spacing">8</property>
@@ -158,11 +164,11 @@
         <property name="spacing">4</property>
         <child>
           <object class="GtkToggleButton" id="render_button">
-            <property name="label" translatable="yes">Render</property>
             <property name="visible">True</property>
             <property name="can_focus">True</property>
             <property name="receives_default">True</property>
             <property name="tooltip_text" translatable="yes">Real time preview render. May cause high cpu load. Be careful using heavy filters with this mode.</property>
+            <property name="image">record_image</property>
           </object>
           <packing>
             <property name="expand">False</property>
