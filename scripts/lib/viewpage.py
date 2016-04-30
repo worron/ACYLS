@@ -4,8 +4,8 @@ from gi.repository import Gtk
 from gi.repository.GdkPixbuf import Pixbuf
 
 import acyls
-from acyls.lib.fs import Prospector
-from acyls.lib.gui import PixbufCreator, TreeViewHolder
+from acyls.lib.fssupport import Prospector
+from acyls.lib.guisupport import PixbufCreator, TreeViewHolder
 from acyls.lib.multithread import multithread
 
 

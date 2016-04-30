@@ -3,7 +3,7 @@ import os
 from gi.repository import Gtk, Pango
 
 import acyls
-from acyls.lib.gui import PixbufCreator, FileChooser
+from acyls.lib.guisupport import PixbufCreator, FileChooser
 from acyls.lib.filters import RawFilterEditor
 
 

@@ -3,7 +3,7 @@
 import os
 import imp
 import re
-import acyls.lib.fs as fs
+import acyls.lib.fssupport as fs
 import acyls.lib.base as base
 
 from lxml import etree

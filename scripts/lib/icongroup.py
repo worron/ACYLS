@@ -4,8 +4,8 @@ import os
 from itertools import count
 
 import acyls.lib.base as base
-import acyls.lib.fs as fs
-from acyls.lib.gui import PixbufCreator
+import acyls.lib.fssupport as fs
+from acyls.lib.guisupport import PixbufCreator
 
 
 class BasicIconGroup:

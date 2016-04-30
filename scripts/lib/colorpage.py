@@ -8,7 +8,7 @@ import acyls.lib.iconchanger as iconchanger
 import acyls.lib.gradient as gradient
 from acyls.lib.icongroup import IconGroupCollector
 from acyls.lib.filters import FilterCollector
-from acyls.lib.gui import hex_from_rgba, FileChooser
+from acyls.lib.guisupport import hex_from_rgba, FileChooser
 from acyls.lib.multithread import multithread
 
 

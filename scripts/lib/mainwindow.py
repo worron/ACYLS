@@ -10,8 +10,8 @@ from acyls.lib.colorpage import ColorPage
 from acyls.lib.altpage import AlternativesPage
 from acyls.lib.viewpage import ViewerPage
 from acyls.lib.editorpage import EditorPage
-from acyls.lib.gui import load_gtk_css
-from acyls.lib.fs import FileKeeper
+from acyls.lib.guisupport import load_gtk_css
+from acyls.lib.fssupport import FileKeeper
 from acyls.lib.data import DataStore
 
 
