@@ -3,7 +3,7 @@ import pytest
 import os
 import imp
 
-filter_path = "filters"
+filter_path = "scripts/filters"
 
 
 def filter_files():

@@ -296,5 +296,9 @@ class RawFilterEditor:
 		"""Save current filter state to file"""
 		file_ = newfile if newfile is not None else self.xmlfile
 		self.xmlfile = file_
-		with open(file_, 'w') as f:
-			f.write(self.source)
+		try:
+			with open(file_, 'w') as f:
+				f.write(self.source)
+		except Exception as e:
+			print("Can't save filter to file %s" % self.xmlfile)
+			print(e)

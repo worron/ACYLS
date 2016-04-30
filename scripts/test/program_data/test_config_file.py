@@ -3,7 +3,7 @@ import pytest
 import configparser
 
 
-configfile = "data/default/config.ini"
+configfile = "scripts/data/default/config.ini"
 options = {
 	'PreviewSize': ['single', 'group'],
 	'Settings': ['autorender'],
