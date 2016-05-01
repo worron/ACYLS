@@ -3,12 +3,12 @@
 import os
 import imp
 import re
-import fs
-import base
+import acyls.lib.fssupport as fs
+import acyls.lib.base as base
 
 from lxml import etree
 from copy import deepcopy
-from gi.repository import Gtk, Gdk
+from gi.repository import Gtk, Gdk, GObject
 
 
 class FilterParameter:
@@ -71,25 +71,23 @@ class SimpleFilterBase:
 		return self.dull
 
 
+class Flag(GObject.GObject):
+	"""Custom signal object"""
+	__gsignals__ = {'refresh': (GObject.SIGNAL_RUN_FIRST, None, (bool,))}
+
+	def __init__(self):
+		GObject.GObject.__init__(self)
+
+
 class CustomFilterBase(SimpleFilterBase):
 	"""Base class for advanced filter with custimizible parametrs"""
-	render = None
-
-	@classmethod
-	def connect_render(cls, render):
-		cls.render = render
-
-	def __new__(cls, *args, **kargs):
-		if CustomFilterBase.render is None:
-			raise NotImplementedError(
-				"Attribbute 'render' of 'CustomFilterBase' should be defined before subclass init")
-		return object.__new__(cls, *args, **kargs)
 
 	def __init__(self, sourse_path):
 		SimpleFilterBase.__init__(self, sourse_path)
 		self.is_custom = True
 		self.param = dict()
 		self.gui = dict()
+		self.flag = Flag()
 
 	def gui_load(self, gui_elements):
 		"""Load filter setting GUI from glade file"""
@@ -106,13 +104,13 @@ class CustomFilterBase(SimpleFilterBase):
 
 	# GUI handlers
 	def on_apply_click(self, *args):
-		CustomFilterBase.render.run(False, forced=True)
+		self.flag.emit("refresh", True)
 
 	def on_save_click(self, *args):
 		for parameter in self.param.values():
 			parameter.remember()
 
-		CustomFilterBase.render.run(False, forced=True)
+		self.flag.emit("refresh", True)
 		if 'window' in self.gui:
 			self.gui['window'].hide()
 
@@ -123,7 +121,7 @@ class CustomFilterBase(SimpleFilterBase):
 			parameter.restore()
 
 		self.gui_setup()
-		CustomFilterBase.render.run(False, forced=True)
+		self.flag.emit("refresh", True)
 
 	def on_close_window(self, *args):
 		if 'window' in self.gui:
@@ -155,7 +153,7 @@ class CustomFilterBase(SimpleFilterBase):
 				value = translate(value)
 			for parameter in parameters:
 				self.param[parameter].set_value(value)
-			self.render.run(False)
+			self.flag.emit("refresh", False)
 
 		return change_handler
 
@@ -169,7 +167,7 @@ class CustomFilterBase(SimpleFilterBase):
 				self.param[alpha].set_value(rgba.alpha)
 				rgba.alpha = 1  # dirty trick
 			self.param[color].set_value(rgba.to_string())
-			self.render.run(False, forced=True)
+			self.flag.emit("refresh", True)
 
 		return change_handler
 
@@ -216,6 +214,13 @@ class FilterCollector(base.ItemPack):
 		else:
 			return 0
 
+	def connect_signal(self, handler):
+		"""Connect signal to all filters"""
+		for group in self.groups.values():
+			for filter_ in group.values():
+				if filter_.is_custom:
+					filter_.flag.connect("refresh", handler)
+
 
 class RawFilterEditor:
 	"""Filter editor"""
@@ -261,6 +266,7 @@ class RawFilterEditor:
 		except Exception as e:
 			print("Fail to load filter source, wrong file or filter syntax")
 			print(e)
+			self.current_preview = ""
 
 	def get_filter_info(self, modname="filter.py"):
 		"""Try to get some information about filter by current xml file"""
@@ -290,5 +296,9 @@ class RawFilterEditor:
 		"""Save current filter state to file"""
 		file_ = newfile if newfile is not None else self.xmlfile
 		self.xmlfile = file_
-		with open(file_, 'w') as f:
-			f.write(self.source)
+		try:
+			with open(file_, 'w') as f:
+				f.write(self.source)
+		except Exception as e:
+			print("Can't save filter to file %s" % self.xmlfile)
+			print(e)

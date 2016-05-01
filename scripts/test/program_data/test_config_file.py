@@ -3,11 +3,12 @@ import pytest
 import configparser
 
 
-configfile = "data/default/config.ini"
+configfile = "scripts/data/default/config.ini"
 options = {
 	'PreviewSize': ['single', 'group'],
 	'Settings': ['autorender'],
-	'Directories': ['filters', 'real', 'alternatives', 'editor'],
+	'Directories': ['real', 'alternatives'],
+	'Editor': ['preview'],
 	'IconGroup1': [],
 }
 sections_list = options.keys()

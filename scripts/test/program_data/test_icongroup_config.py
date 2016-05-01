@@ -5,7 +5,7 @@ import os
 
 from icongroup import BasicIconGroup, CustomIconGroup
 
-configfile = "data/default/config.ini"
+configfile = "scripts/data/default/config.ini"
 config = configparser.ConfigParser()
 config.read(configfile)
 

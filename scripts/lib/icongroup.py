@@ -1,10 +1,11 @@
 # -*- Mode: Python; indent-tabs-mode: t; python-indent: 4; tab-width: 4 -*-
 
 import os
-import fs
-import base
 from itertools import count
-from gui import PixbufCreator
+
+import acyls.lib.base as base
+import acyls.lib.fssupport as fs
+from acyls.lib.guisupport import PixbufCreator
 
 
 class BasicIconGroup:

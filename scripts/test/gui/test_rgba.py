@@ -1,7 +1,7 @@
 # -*- Mode: Python; indent-tabs-mode: t; python-indent: 4; tab-width: 4 -*-
 import pytest
 from gi.repository import Gdk
-import gui as acylgui
+import guisupport as acylgui
 
 
 @pytest.mark.parametrize("hex_, hex_exp", [

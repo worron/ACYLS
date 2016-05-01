@@ -3,7 +3,7 @@ import pytest
 import tempfile
 
 from gi.repository import GdkPixbuf
-import gui as acylgui
+import guisupport as acylgui
 import basetest
 
 

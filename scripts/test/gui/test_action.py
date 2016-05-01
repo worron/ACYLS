@@ -1,6 +1,6 @@
 # -*- Mode: Python; indent-tabs-mode: t; python-indent: 4; tab-width: 4 -*-
 import pytest
-import gui as acylgui
+import guisupport as acylgui
 
 
 @pytest.fixture()

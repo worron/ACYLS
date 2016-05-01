@@ -1,6 +1,6 @@
 # -*- Mode: Python; indent-tabs-mode: t; python-indent: 4; tab-width: 4 -*-
 import pytest
-import fs
+import fssupport as fs
 import os
 import test_icondig
 tmpdir = test_icondig.tmpdir
