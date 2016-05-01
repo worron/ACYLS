@@ -37,7 +37,7 @@ Future plans:
 ```shell
 $ git clone https://github.com/worron/ACYLS.git ~/.icons/ACYLS
 # if you want to customize the iconpack after installation, start this script:
-$ python3 ~/.icons/ACYLS/scripts/acyls.py
+$ python3 ~/.icons/ACYLS/scripts/run.py
 ```
 
 See the [documentation](https://github.com/worron/ACYLS/wiki) for deep customization instructions. Feel free to create an issue if icon for one of your favorite program is missing, perhaps we can help. Or, you could always try to [create an icon](https://github.com/worron/ACYLS/wiki/Create-new-icon) by yourself.
