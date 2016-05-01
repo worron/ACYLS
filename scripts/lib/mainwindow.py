@@ -81,8 +81,13 @@ class MainWindow:
 		self.toolbar.connect_signals(self.colorpage.bhandlers)
 		self.toolbar.connect_signals(self.editorpage.bhandlers)
 
+		# Load css
+		try:
+			load_gtk_css(os.path.join(acyls.dirs['css'], 'user_themefix.css'))
+		except Exception:
+			load_gtk_css(os.path.join(acyls.dirs['css'], 'themefix.css'))
+
 		# Fill up GUI
-		load_gtk_css(os.path.join(acyls.dirs['css'], 'themefix.css'))
 		self.gui['notebook'].emit("switch_page", self.colorpage.gui['colorgrid'], 0)
 		self.gui['window'].show_all()
 
@@ -98,10 +103,8 @@ class MainWindow:
 			self.gui[button].set_sensitive(button in self.pages[index].mhandlers)
 		self.last_button_handlers = self.pages[index].mhandlers
 
-		try:
+		if hasattr(self.pages[index], 'on_page_switch'):
 			self.pages[index].on_page_switch()
-		except AttributeError:
-			pass
 
 	def on_render_toggled(self, switch, *args):
 		self.gui['refresh_button'].set_sensitive(not self.colorpage.rtr)
