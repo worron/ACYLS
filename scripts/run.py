@@ -19,10 +19,6 @@ sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 import scripts
 sys.modules['acyls'] = scripts
 
-# Add lib module path for filters loading
-# TODO: fix filters and remove this
-sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib"))
-
 # Load main app
 from acyls.lib.mainwindow import MainWindow
 
