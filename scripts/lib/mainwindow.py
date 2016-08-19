@@ -52,7 +52,7 @@ class MainWindow:
 
 		# colors
 		self.colorpage = ColorPage(self.database, self.config)
-		self.gui['notebook'].append_page(self.colorpage.gui['colorgrid'], Gtk.Label('Colors'))
+		self.gui['notebook'].append_page(self.colorpage.gui['colorbox'], Gtk.Label('Colors'))
 		self.pages.append(self.colorpage)
 
 		# alternatives
@@ -88,7 +88,7 @@ class MainWindow:
 			load_gtk_css(os.path.join(acyls.dirs['css'], 'themefix.css'))
 
 		# Fill up GUI
-		self.gui['notebook'].emit("switch_page", self.colorpage.gui['colorgrid'], 0)
+		self.gui['notebook'].emit("switch_page", self.colorpage.gui['colorbox'], 0)
 		self.gui['window'].show_all()
 
 	# GUI handlers

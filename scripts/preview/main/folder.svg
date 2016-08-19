@@ -1,8 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="48" height="48">
   <defs id="acyl-settings">
-    <linearGradient id="acyl-gradient" x1="0%" x2="0%" y1="0%" y2="100%">
-      <stop offset="100%" style="stop-color:#A0A0A0;stop-opacity:1.000000"/>
-    </linearGradient>
+    <radialGradient cx="50%" cy="50%" fx="50%" fy="50%" id="acyl-gradient" r="50%">
+      <stop offset="100%" style="stop-color:#A0A0A0;stop-opacity:0.596078"/>
+    </radialGradient>
     <g id="acyl-filter">
       <filter id="filter"/>
     </g>
