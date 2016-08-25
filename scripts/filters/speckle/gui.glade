@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated with glade 3.16.1 -->
+<!-- Generated with glade 3.18.3 -->
 <interface>
   <requires lib="gtk+" version="3.10"/>
   <object class="GtkAdjustment" id="frequency_x_adjustment">
@@ -66,8 +66,6 @@
               <packing>
                 <property name="left_attach">0</property>
                 <property name="top_attach">0</property>
-                <property name="width">1</property>
-                <property name="height">1</property>
               </packing>
             </child>
             <child>
@@ -81,8 +79,6 @@
               <packing>
                 <property name="left_attach">2</property>
                 <property name="top_attach">0</property>
-                <property name="width">1</property>
-                <property name="height">1</property>
               </packing>
             </child>
             <child>
@@ -97,8 +93,6 @@
               <packing>
                 <property name="left_attach">3</property>
                 <property name="top_attach">0</property>
-                <property name="width">1</property>
-                <property name="height">1</property>
               </packing>
             </child>
             <child>
@@ -111,8 +105,6 @@
               <packing>
                 <property name="left_attach">0</property>
                 <property name="top_attach">2</property>
-                <property name="width">1</property>
-                <property name="height">1</property>
               </packing>
             </child>
             <child>
@@ -129,7 +121,6 @@
                 <property name="left_attach">1</property>
                 <property name="top_attach">2</property>
                 <property name="width">3</property>
-                <property name="height">1</property>
               </packing>
             </child>
             <child>
@@ -142,8 +133,6 @@
               <packing>
                 <property name="left_attach">0</property>
                 <property name="top_attach">1</property>
-                <property name="width">1</property>
-                <property name="height">1</property>
               </packing>
             </child>
             <child>
@@ -152,6 +141,7 @@
                 <property name="can_focus">True</property>
                 <property name="adjustment">sensation_adjustment</property>
                 <property name="round_digits">1</property>
+                <property name="digits">2</property>
                 <property name="value_pos">left</property>
                 <signal name="value-changed" handler="on_sensation_changed" swapped="no"/>
               </object>
@@ -159,7 +149,6 @@
                 <property name="left_attach">1</property>
                 <property name="top_attach">1</property>
                 <property name="width">3</property>
-                <property name="height">1</property>
               </packing>
             </child>
             <child>
@@ -172,8 +161,6 @@
               <packing>
                 <property name="left_attach">1</property>
                 <property name="top_attach">0</property>
-                <property name="width">1</property>
-                <property name="height">1</property>
               </packing>
             </child>
           </object>

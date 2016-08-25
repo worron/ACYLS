@@ -61,4 +61,4 @@ class Filter(CustomFilterBase):
 		self.param['stroke_color'].set_value(rgba_string)
 		self.param['stop1_color'].set_value(rgba_string)
 		self.param['stop2_color'].set_value(rgba_string)
-		self.render.run(False, forced=True)
+		self.flag.emit("refresh", True)
