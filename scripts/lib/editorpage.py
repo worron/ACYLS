@@ -9,7 +9,10 @@ from acyls.lib.filters import RawFilterEditor
 
 class EditorPage:
 	"""Filter editor GUI"""
-	def __init__(self, config):
+	def __init__(self, filters, config):
+		# Color page filters
+		self.filters = filters
+
 		# Filter edit helper
 		self.filter_editor = RawFilterEditor(config.get("Editor", "preview"))
 
@@ -39,6 +42,7 @@ class EditorPage:
 
 		# Toolbar buttnons hanlers
 		self.bhandlers = dict()
+		self.bhandlers['edit_filter_toolbutton'] = self.on_edit_filter_button_click
 		self.bhandlers['load_filter_toolbutton'] = self.on_load_filter_button_click
 		self.bhandlers['revert_filter_toolbutton'] = self.on_revert_filter_button_click
 		self.bhandlers['save_filter_toolbutton'] = self.on_save_filter_button_click
@@ -57,15 +61,21 @@ class EditorPage:
 		except Exception:
 			self.gui['editor_preview_icon'].set_from_icon_name('image-missing', Gtk.IconSize.DIALOG)
 
+	def set_filter_from_file(self, file_):
+		"""Load filter"""
+		self.filter_editor.load_xml(file_)
+		self.buffer.set_text(self.filter_editor.source)
+		self.update_preview()
+		self.gui['filter_info_label'].set_text(self.filter_editor.get_filter_info())
+
 	# GUI handlers
+	def on_edit_filter_button_click(self, *args):
+		self.set_filter_from_file(self.filters.current.fstore)
+
 	def on_load_filter_button_click(self, *args):
 		is_ok, file_ = self.filechooser.load()
 		if is_ok:
-			self.filter_editor.load_xml(file_)
-			self.buffer.set_text(self.filter_editor.source)
-
-			self.update_preview()
-			self.gui['filter_info_label'].set_text(self.filter_editor.get_filter_info())
+			self.set_filter_from_file(file_)
 
 	def on_save_filter_button_click(self, *args):
 		self.filter_editor.save_xml()

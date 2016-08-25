@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated with glade 3.16.1 -->
+<!-- Generated with glade 3.18.3 -->
 <interface>
   <requires lib="gtk+" version="3.10"/>
   <object class="GtkToolbar" id="toolbar">
@@ -115,6 +115,20 @@
       </packing>
     </child>
     <child>
+      <object class="GtkToolButton" id="edit_filter_toolbutton">
+        <property name="visible">True</property>
+        <property name="can_focus">False</property>
+        <property name="tooltip_text" translatable="yes">Edit active filter.</property>
+        <property name="label" translatable="yes">Edit Filter</property>
+        <property name="use_underline">True</property>
+        <property name="stock_id">gtk-edit</property>
+      </object>
+      <packing>
+        <property name="expand">False</property>
+        <property name="homogeneous">True</property>
+      </packing>
+    </child>
+    <child>
       <object class="GtkToolButton" id="load_filter_toolbutton">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
@@ -171,7 +185,7 @@
       </packing>
     </child>
     <style>
-     <class name="primary-toolbar"/>
+      <class name="primary-toolbar"/>
     </style>
   </object>
 </interface>

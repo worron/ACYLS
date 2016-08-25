@@ -69,7 +69,7 @@ class MainWindow:
 		self.pages.append(self.viewpage)
 
 		# filter editor
-		self.editorpage = EditorPage(self.config)
+		self.editorpage = EditorPage(self.colorpage.filters, self.config)
 		self.gui['notebook'].append_page(self.editorpage.gui['editor_grid'], Gtk.Label('Filter Editor'))
 		self.pages.append(self.editorpage)
 
