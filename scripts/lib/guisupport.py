@@ -4,15 +4,15 @@ import os
 from gi.repository import GdkPixbuf, Gio, GLib, Gtk, Gdk
 
 
-DIALOGS_PROFILE = dict(
-	save = (
+dialogs_profile = dict(
+	save = [
 		"Save ACYL", None, Gtk.FileChooserAction.SAVE,
 		(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_SAVE, Gtk.ResponseType.OK)
-	),
-	load = (
+	],
+	load = [
 		"Load ACYL", None, Gtk.FileChooserAction.OPEN,
 		(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_OPEN, Gtk.ResponseType.OK)
-	)
+	]
 )
 
 
@@ -61,7 +61,7 @@ class FileChooser:
 
 	def __init__(self, start_folder, default_name):
 		self.dialogs = dict()
-		for name, args in DIALOGS_PROFILE.items():
+		for name, args in dialogs_profile.items():
 			self.dialogs[name] = Gtk.FileChooserDialog(*args)
 			self.dialogs[name].set_current_folder(start_folder)
 

@@ -10,7 +10,7 @@ from acyls.lib.colorpage import ColorPage
 from acyls.lib.altpage import AlternativesPage
 from acyls.lib.viewpage import ViewerPage
 from acyls.lib.editorpage import EditorPage
-from acyls.lib.guisupport import load_gtk_css
+from acyls.lib.guisupport import load_gtk_css, dialogs_profile
 from acyls.lib.fssupport import FileKeeper
 from acyls.lib.data import DataStore
 
@@ -42,6 +42,9 @@ class MainWindow:
 		)
 		self.gui = {element: self.builder.get_object(element) for element in gui_elements}
 		self.buttons = ('refresh_button', 'apply_button')
+
+		for args in dialogs_profile.values():
+			args[1] = self.gui["window"]
 
 		# Add panel
 		self.toolbar = MainToolBar()
