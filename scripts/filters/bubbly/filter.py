@@ -18,29 +18,29 @@ class Filter(CustomFilterBase):
 		composite_tag = self.dull['filter'].find(".//*[@id='feComposite2']")
 
 		self.param['scale'] = FilterParameter(visible_tag, 'transform', 'scale\((.+?)\) ', 'scale(%.2f) ')
-		self.param['octaves'] = FilterParameter(turbulence_tag, 'numOctaves', '(.+)', '%d')
-		self.param['blur'] = FilterParameter(blur_tag, 'stdDeviation', '(.+)', '%.1f')
+		self.param['octaves'] = FilterParameter(turbulence_tag, 'numOctaves', '(.+)', '%.1f')
+		self.param['blur'] = FilterParameter(blur_tag, 'stdDeviation', '(.+)', '%.2f')
 		self.param['frequency_x'] = FilterParameter(turbulence_tag, 'baseFrequency', '(.+?) ', '%.2f ')
 		self.param['frequency_y'] = FilterParameter(turbulence_tag, 'baseFrequency', ' (.+)', ' %.2f')
 		self.param['specular_cons'] = FilterParameter(lighting_tag, 'specularConstant', '(.+)', '%.1f')
-		self.param['specular_exp'] = FilterParameter(lighting_tag, 'specularExponent', '(.+)', '%d')
-		self.param['surface'] = FilterParameter(lighting_tag, 'surfaceScale', '(.+)', '%d')
-		self.param['composite_k2'] = FilterParameter(composite_tag, 'k2', '(.+)', ' %.1f')
-		self.param['composite_k3'] = FilterParameter(composite_tag, 'k3', '(.+)', ' %.1f')
+		self.param['specular_exp'] = FilterParameter(lighting_tag, 'specularExponent', '(.+)', '%.1f')
+		self.param['surface'] = FilterParameter(lighting_tag, 'surfaceScale', '(.+)', '%.1f')
+		self.param['composite_k2'] = FilterParameter(composite_tag, 'k2', '(.+)', ' %.2f')
+		self.param['composite_k3'] = FilterParameter(composite_tag, 'k3', '(.+)', ' %.2f')
 
-		gui_elements = (
-			"window", "scale", "octaves", "frequency_x", "frequency_y", "blur", "specular_cons", "surface",
-			"composite_k2", "composite_k3", "specular_exp"
-		)
+		gui_elements = [
+			"scale", "octaves", "frequency_x", "frequency_y", "blur", "specular_cons", "specular_exp", "surface",
+			"composite_k2", "composite_k3"
+		]
 
 		self.on_scale_changed = self.build_plain_handler('scale')
 		self.on_blur_changed = self.build_plain_handler('blur')
 		self.on_frequency_x_changed = self.build_plain_handler('frequency_x')
 		self.on_frequency_y_changed = self.build_plain_handler('frequency_y')
-		self.on_octaves_changed = self.build_plain_handler('octaves', translate=int)
+		self.on_octaves_changed = self.build_plain_handler('octaves')
 		self.on_specular_cons_changed = self.build_plain_handler('specular_cons')
-		self.on_specular_exp_changed = self.build_plain_handler('specular_exp', translate=int)
-		self.on_surface_changed = self.build_plain_handler('surface', translate=int)
+		self.on_specular_exp_changed = self.build_plain_handler('specular_exp')
+		self.on_surface_changed = self.build_plain_handler('surface')
 		self.on_composite_k2_changed = self.build_plain_handler('composite_k2')
 		self.on_composite_k3_changed = self.build_plain_handler('composite_k3')
 
@@ -49,6 +49,10 @@ class Filter(CustomFilterBase):
 
 	def gui_setup(self):
 		self.gui_settler_plain(
-			'scale', 'frequency_x', 'frequency_y', 'blur', 'specular_cons', 'composite_k2', 'composite_k3'
+			'scale', 'frequency_x', 'frequency_y', 'blur', 'specular_cons', 'composite_k2', 'composite_k3',
+			'octaves', 'surface', 'specular_exp'
 		)
-		self.gui_settler_plain('octaves', 'surface', 'specular_exp', translate=int)
+		self.connect_scale_signal(
+			'scale', 'frequency_x', 'frequency_y', 'blur', 'specular_cons', 'composite_k2', 'composite_k3',
+			'octaves', 'surface', 'specular_exp'
+		)
