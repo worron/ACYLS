@@ -9,7 +9,7 @@ class Filter(CustomFilterBase):
 	def __init__(self):
 		CustomFilterBase.__init__(self, os.path.dirname(__file__))
 		self.name = "Dark Edges"
-		self.group = "Shadow"
+		self.group = "Shadows"
 
 		visible_tag = self.dull['visual'].find(".//*[@id='visible1']")
 		blur_tag = self.dull['filter'].find(".//*[@id='feGaussianBlur1']")

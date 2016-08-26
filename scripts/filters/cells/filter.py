@@ -21,9 +21,9 @@ class Filter(CustomFilterBase):
 		self.param['blur'] = FilterParameter(blur_tag, 'stdDeviation', '(.+)', '%.1f')
 		self.param['frequency_x'] = FilterParameter(turbulence_tag, 'baseFrequency', '(.+?) ', '%.2f ')
 		self.param['frequency_y'] = FilterParameter(turbulence_tag, 'baseFrequency', ' (.+)', ' %.2f')
-		self.param['composite_k1'] = FilterParameter(composite_tag, 'k1', '(.+)', ' %.1f')
-		self.param['composite_k2'] = FilterParameter(composite_tag, 'k2', '(.+)', ' %.1f')
-		self.param['composite_k3'] = FilterParameter(composite_tag, 'k3', '(.+)', ' %.1f')
+		self.param['composite_k1'] = FilterParameter(composite_tag, 'k1', '(.+)', '%.1f')
+		self.param['composite_k2'] = FilterParameter(composite_tag, 'k2', '(.+)', '%.1f')
+		self.param['composite_k3'] = FilterParameter(composite_tag, 'k3', '(.+)', '%.1f')
 
 		gui_elements = [
 			"scale", "octaves", "frequency_x", "frequency_y", "blur", "composite_k1", "composite_k2", "composite_k3"

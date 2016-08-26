@@ -9,7 +9,7 @@ class Filter(CustomFilterBase):
 	def __init__(self):
 		CustomFilterBase.__init__(self, os.path.dirname(__file__))
 		self.name = "Orb"
-		self.group = "Old"
+		self.group = "Advanced"
 
 		visible2_tag = self.dull['visual'].find(".//*[@id='visible2']")
 		visible1_tag = self.dull['visual'].find(".//*[@id='visible1']")
@@ -34,10 +34,9 @@ class Filter(CustomFilterBase):
 		self.param['stop_alpha'] = FilterParameter(stop1_tag, 'style', 'stop-opacity:(.+)', 'stop-opacity:%.2f')
 		self.param['stroke_width'] = FilterParameter(mainorb_tag, 'style', 'stroke-width:(.+)', 'stroke-width:%.1f')
 
-		gui_elements = (
-			"window", "scale", "orb", "colorbutton", "alpha", "stroke_alpha", "stop_alpha", "reflex_scale",
-			"stroke_width"
-		)
+		gui_elements = [
+			"scale", "orb", "colorbutton", "alpha", "stroke_alpha", "stop_alpha", "reflex_scale", "stroke_width"
+		]
 
 		self.on_scale_changed = self.build_plain_handler('scale')
 		self.on_reflex_scale_changed = self.build_plain_handler('reflex_scale')
@@ -46,6 +45,7 @@ class Filter(CustomFilterBase):
 		self.on_stop_alpha_changed = self.build_plain_handler('stop_alpha')
 		self.on_orb_changed = self.build_plain_handler('orb')
 		self.on_stroke_width_changed = self.build_plain_handler('stroke_width')
+		self.on_colorbutton_set = self.advanced_colorbutton_setup
 
 		self.gui_load(gui_elements)
 		self.gui_setup()
@@ -53,8 +53,10 @@ class Filter(CustomFilterBase):
 	def gui_setup(self):
 		self.gui_settler_plain('scale', 'orb', 'alpha', 'stroke_alpha', 'stop_alpha', 'reflex_scale', 'stroke_width')
 		self.gui_settler_color('colorbutton', 'color')
+		self.connect_scale_signal('scale', 'orb', 'alpha', 'stroke_alpha', 'stop_alpha', 'reflex_scale', 'stroke_width')
+		self.connect_colorbutton_signal('colorbutton')
 
-	def on_colorbutton_set(self, widget):
+	def advanced_colorbutton_setup(self, widget):
 		rgba = widget.get_rgba()
 		rgba_string = rgba.to_string()
 		self.param['color'].set_value(rgba_string)
