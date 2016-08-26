@@ -18,7 +18,6 @@
     <property name="width_request">400</property>
     <property name="can_focus">False</property>
     <property name="type_hint">dialog</property>
-    <signal name="delete-event" handler="on_close_window" swapped="no"/>
     <child>
       <object class="GtkBox" id="mainbox">
         <property name="visible">True</property>
@@ -41,10 +40,9 @@
                 <property name="can_focus">True</property>
                 <property name="hexpand">True</property>
                 <property name="adjustment">width_adjustment</property>
-                <property name="round_digits">1</property>
+                <property name="round_digits">2</property>
                 <property name="digits">2</property>
                 <property name="value_pos">left</property>
-                <signal name="value-changed" handler="on_width_changed" swapped="no"/>
               </object>
               <packing>
                 <property name="left_attach">1</property>
@@ -83,7 +81,6 @@
                 <property name="round_digits">2</property>
                 <property name="digits">2</property>
                 <property name="value_pos">left</property>
-                <signal name="value-changed" handler="on_scale_changed" swapped="no"/>
               </object>
               <packing>
                 <property name="left_attach">1</property>
@@ -96,7 +93,6 @@
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="use_alpha">True</property>
-                <signal name="color-set" handler="on_colorbutton_set" swapped="no"/>
               </object>
               <packing>
                 <property name="left_attach">2</property>
@@ -124,7 +120,6 @@
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="xalign">0.47999998927116394</property>
-                <signal name="clicked" handler="on_save_click" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -138,7 +133,6 @@
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <signal name="clicked" handler="on_cancel_click" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -152,7 +146,6 @@
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <signal name="clicked" handler="on_apply_click" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
