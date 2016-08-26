@@ -1,8 +1,8 @@
 <root xmlns:xlink="http://www.w3.org/1999/xlink">
   <g id="acyl-filter">
     <filter id="filter">
-      <feTurbulence id="feTurbulence1" type="turbulence" result="result0" seed="5" numOctaves="3" baseFrequency="0 0.20"/>
-      <feTurbulence id="feTurbulence2" type="turbulence" seed="5" numOctaves="3" baseFrequency="0.30 0"/>
+      <feTurbulence id="feTurbulence1" type="turbulence" result="result0" seed="5" numOctaves="3.0" baseFrequency="0 0.20"/>
+      <feTurbulence id="feTurbulence2" type="turbulence" seed="5" numOctaves="3.0" baseFrequency="0.30 0"/>
       <feComposite id="feComposite1" in2="result0" result="result1" operator="over"/>
       <feMerge id="feMerge1" result="result2">
         <feMergeNode id="feMergeNode1" in="result1"/>
