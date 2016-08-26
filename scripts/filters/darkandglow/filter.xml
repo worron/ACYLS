@@ -1,7 +1,7 @@
 <root xmlns:xlink="http://www.w3.org/1999/xlink">
   <g id="acyl-filter">
     <filter id="filter" x="-50%" y="-50%" width="200%" height="200%">
-      <feGaussianBlur id="feGaussianBlur1" stdDeviation="2.0" result="result1"/>
+      <feGaussianBlur id="feGaussianBlur1" stdDeviation="2.00" result="result1"/>
       <feComposite id="feComposite1" in="SourceGraphic" in2="result1" operator="atop" result="result2"/>
       <feComposite id="feComposite2" in="result2" in2="SourceAlpha" operator="over"/>
       <feColorMatrix id="feColorMatrix1" values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 1 0 " result="result3"/>
