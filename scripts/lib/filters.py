@@ -93,8 +93,14 @@ class CustomFilterBase(SimpleFilterBase):
 		"""Load filter setting GUI from glade file"""
 		self.builder = Gtk.Builder()
 		self.builder.add_from_file(os.path.join(self.path, "gui.glade"))
-		self.builder.connect_signals(self)
+
+		gui_elements.extend(["window", "save_button", "cancel_button", "apply_button"])
 		self.gui = {name: self.builder.get_object(name) for name in gui_elements}
+
+		self.gui['window'].connect("delete_event", self.on_close_window)
+		self.gui['save_button'].connect("clicked", self.on_save_click)
+		self.gui['cancel_button'].connect("clicked", self.on_cancel_click)
+		self.gui['apply_button'].connect("clicked", self.on_apply_click)
 
 		# May cause exeption but should be catched by FilterCollector
 		self.gui['window'].set_property("title", "ACYL Filter - %s" % self.name)
@@ -129,6 +135,16 @@ class CustomFilterBase(SimpleFilterBase):
 		return True
 
 	# GUI setup helpers
+	def connect_scale_signal(self, *elementns):
+		"""Scale signal connect helper"""
+		for widget in elementns:
+			self.gui[widget].connect("value_changed", self.__dict__["on_%s_changed" % widget])
+
+	def connect_colorbutton_signal(self, *elementns):
+		"""Color button signal connect helper"""
+		for button in elementns:
+			self.gui[button].connect("color_set", self.__dict__["on_%s_set" % button])
+
 	def gui_settler_plain(self, *parameters, translate=float):
 		"""GUI setup helper - simple parameters"""
 		for parameter in parameters:

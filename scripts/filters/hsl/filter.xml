@@ -2,9 +2,9 @@
   <g id="acyl-filter">
     <filter id="filter">
       <feColorMatrix id="feColorMatrix1" result="fbSourceGraphicAlpha" in="SourceGraphic" values="1 0 0 -1 0 1 0 1 -1 0 1 0 0 -1 0 -0.8 -1 0 3.7 -2.4 "/>
-      <feGaussianBlur id="feGaussianBlur1" stdDeviation="0.5" in="fbSourceGraphicAlpha" result="result0"/>
-      <feSpecularLighting id="feSpecularLighting1" specularConstant="0.75" specularExponent="6" in="result0" surfaceScale="7" result="result1">
-        <feDistantLight id="feDistantLight1" azimuth="235" elevation="5"/>
+      <feGaussianBlur id="feGaussianBlur1" stdDeviation="0.50" in="fbSourceGraphicAlpha" result="result0"/>
+      <feSpecularLighting id="feSpecularLighting1" specularConstant="0.75" specularExponent="6" in="result0" surfaceScale="5.0" result="result1">
+        <feDistantLight id="feDistantLight1" azimuth="235" elevation="5.0"/>
       </feSpecularLighting>
       <!-- <feDiffuseLighting id="feDiffuseLighting2" surfaceScale="20" diffuseConstant="0.2" lighting-color="rgb(255,255,255)" in="result0"> -->
       <!--   <feDistantLight id="feDistantLight2" azimuth="235" elevation="25"/> -->

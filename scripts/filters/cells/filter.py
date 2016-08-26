@@ -17,18 +17,17 @@ class Filter(CustomFilterBase):
 		composite_tag = self.dull['filter'].find(".//*[@id='feComposite1']")
 
 		self.param['scale'] = FilterParameter(visible_tag, 'transform', 'scale\((.+?)\) ', 'scale(%.2f) ')
-		self.param['octaves'] = FilterParameter(turbulence_tag, 'numOctaves', '(.+)', '%d')
+		self.param['octaves'] = FilterParameter(turbulence_tag, 'numOctaves', '(.+)', '%.1f')
 		self.param['blur'] = FilterParameter(blur_tag, 'stdDeviation', '(.+)', '%.1f')
 		self.param['frequency_x'] = FilterParameter(turbulence_tag, 'baseFrequency', '(.+?) ', '%.2f ')
 		self.param['frequency_y'] = FilterParameter(turbulence_tag, 'baseFrequency', ' (.+)', ' %.2f')
-		self.param['composite_k1'] = FilterParameter(composite_tag, 'k1', '(.+)', ' %.1f')
-		self.param['composite_k2'] = FilterParameter(composite_tag, 'k2', '(.+)', ' %.1f')
-		self.param['composite_k3'] = FilterParameter(composite_tag, 'k3', '(.+)', ' %.1f')
+		self.param['composite_k1'] = FilterParameter(composite_tag, 'k1', '(.+)', '%.1f')
+		self.param['composite_k2'] = FilterParameter(composite_tag, 'k2', '(.+)', '%.1f')
+		self.param['composite_k3'] = FilterParameter(composite_tag, 'k3', '(.+)', '%.1f')
 
-		gui_elements = (
-			"window", "scale", "octaves", "frequency_x", "frequency_y",
-			"blur", "composite_k1", "composite_k2", "composite_k3"
-		)
+		gui_elements = [
+			"scale", "octaves", "frequency_x", "frequency_y", "blur", "composite_k1", "composite_k2", "composite_k3"
+		]
 
 		self.on_scale_changed = self.build_plain_handler('scale')
 		self.on_blur_changed = self.build_plain_handler('blur')
@@ -37,13 +36,15 @@ class Filter(CustomFilterBase):
 		self.on_composite_k1_changed = self.build_plain_handler('composite_k1')
 		self.on_composite_k2_changed = self.build_plain_handler('composite_k2')
 		self.on_composite_k3_changed = self.build_plain_handler('composite_k3')
-		self.on_octaves_changed = self.build_plain_handler('octaves', translate=int)
+		self.on_octaves_changed = self.build_plain_handler('octaves')
 
 		self.gui_load(gui_elements)
 		self.gui_setup()
 
 	def gui_setup(self):
 		self.gui_settler_plain(
-			'scale', 'frequency_x', 'frequency_y', 'blur', 'composite_k1', 'composite_k2', 'composite_k3'
+			'scale', 'frequency_x', 'frequency_y', 'blur', 'composite_k1', 'composite_k2', 'composite_k3', 'octaves'
 		)
-		self.gui_settler_plain('octaves', translate=int)
+		self.connect_scale_signal(
+			'scale', 'frequency_x', 'frequency_y', 'blur', 'composite_k1', 'composite_k2', 'composite_k3', 'octaves'
+		)

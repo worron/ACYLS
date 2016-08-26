@@ -13,7 +13,7 @@ class Filter(CustomFilterBase):
 		visible_tag = self.dull['visual'].find(".//*[@id='visible1']")
 		self.param['scale'] = FilterParameter(visible_tag, 'transform', 'scale\((.+?)\) ', 'scale(%.2f) ')
 
-		gui_elements = ("window", "scale")
+		gui_elements = ["scale"]
 
 		self.on_scale_changed = self.build_plain_handler('scale')
 
@@ -22,3 +22,4 @@ class Filter(CustomFilterBase):
 
 	def gui_setup(self):
 		self.gui_settler_plain('scale')
+		self.connect_scale_signal('scale')

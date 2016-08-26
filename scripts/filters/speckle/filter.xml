@@ -1,7 +1,7 @@
 <root xmlns:xlink="http://www.w3.org/1999/xlink">
   <g id="acyl-filter">
     <filter id="filter">
-      <feTurbulence id="feTurbulence1" result="result1" numOctaves="3" baseFrequency="0.20 0.20" type="fractalNoise"/>
+      <feTurbulence id="feTurbulence1" result="result1" numOctaves="3.0" baseFrequency="0.20 0.20" type="fractalNoise"/>
       <feColorMatrix id="feColorMatrix1" result="result0" in="SourceGraphic" type="luminanceToAlpha"/>
       <feColorMatrix id="feColorMatrix2" values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 0.2 0" result="result2"/>
       <feComposite id="feComposite1" in2="result2" in="result1" operator="over"/>
