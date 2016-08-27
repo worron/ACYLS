@@ -39,11 +39,11 @@ class Filter(CustomFilterBase):
 		self.gui_load(gui_elements)
 		self.gui_setup()
 
+		self.connect_scale_signal('scale', 'radius', 'scale_icon', 'stroke_width')
+		self.connect_colorbutton_signal('colorbutton', 'stroke_colorbutton')
+
 	def gui_setup(self):
 		self.gui['radius'].set_value(float(self.param['rx'].match()))
 		self.gui_settler_plain('scale', 'scale_icon', 'stroke_width')
 		self.gui_settler_color('colorbutton', 'color', 'alpha')
 		self.gui_settler_color('stroke_colorbutton', 'stroke_color', 'stroke_alpha')
-
-		self.connect_scale_signal('scale', 'radius', 'scale_icon', 'stroke_width')
-		self.connect_colorbutton_signal('colorbutton', 'stroke_colorbutton')

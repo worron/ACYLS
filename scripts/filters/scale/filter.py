@@ -20,6 +20,7 @@ class Filter(CustomFilterBase):
 		self.gui_load(gui_elements)
 		self.gui_setup()
 
+		self.connect_scale_signal('scale')
+
 	def gui_setup(self):
 		self.gui_settler_plain('scale')
-		self.connect_scale_signal('scale')

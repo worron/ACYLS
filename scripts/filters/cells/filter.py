@@ -41,10 +41,11 @@ class Filter(CustomFilterBase):
 		self.gui_load(gui_elements)
 		self.gui_setup()
 
-	def gui_setup(self):
-		self.gui_settler_plain(
+		self.connect_scale_signal(
 			'scale', 'frequency_x', 'frequency_y', 'blur', 'composite_k1', 'composite_k2', 'composite_k3', 'octaves'
 		)
-		self.connect_scale_signal(
+
+	def gui_setup(self):
+		self.gui_settler_plain(
 			'scale', 'frequency_x', 'frequency_y', 'blur', 'composite_k1', 'composite_k2', 'composite_k3', 'octaves'
 		)

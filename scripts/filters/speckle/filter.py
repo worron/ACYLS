@@ -32,6 +32,7 @@ class Filter(CustomFilterBase):
 		self.gui_load(gui_elements)
 		self.gui_setup()
 
+		self.connect_scale_signal('scale', 'frequency_x', 'frequency_y', 'sensation', 'octaves')
+
 	def gui_setup(self):
 		self.gui_settler_plain('scale', 'frequency_x', 'frequency_y', 'sensation', 'octaves')
-		self.connect_scale_signal('scale', 'frequency_x', 'frequency_y', 'sensation', 'octaves')

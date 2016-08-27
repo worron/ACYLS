@@ -45,16 +45,16 @@ class Filter(CustomFilterBase):
 		self.on_stop_alpha_changed = self.build_plain_handler('stop_alpha')
 		self.on_orb_changed = self.build_plain_handler('orb')
 		self.on_stroke_width_changed = self.build_plain_handler('stroke_width')
-		self.on_colorbutton_set = self.advanced_colorbutton_setup
 
 		self.gui_load(gui_elements)
 		self.gui_setup()
 
+		self.connect_scale_signal('scale', 'orb', 'alpha', 'stroke_alpha', 'stop_alpha', 'reflex_scale', 'stroke_width')
+		self.gui["colorbutton"].connect("color_set", self.advanced_colorbutton_setup)
+
 	def gui_setup(self):
 		self.gui_settler_plain('scale', 'orb', 'alpha', 'stroke_alpha', 'stop_alpha', 'reflex_scale', 'stroke_width')
 		self.gui_settler_color('colorbutton', 'color')
-		self.connect_scale_signal('scale', 'orb', 'alpha', 'stroke_alpha', 'stop_alpha', 'reflex_scale', 'stroke_width')
-		self.connect_colorbutton_signal('colorbutton')
 
 	def advanced_colorbutton_setup(self, widget):
 		rgba = widget.get_rgba()

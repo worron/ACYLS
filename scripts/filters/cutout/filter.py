@@ -30,6 +30,7 @@ class Filter(CustomFilterBase):
 		self.gui_load(gui_elements)
 		self.gui_setup()
 
+		self.connect_scale_signal('scale', 'blur', 'dx', 'dy')
+
 	def gui_setup(self):
 		self.gui_settler_plain('scale', 'blur', 'dx', 'dy')
-		self.connect_scale_signal('scale', 'blur', 'dx', 'dy')

@@ -35,9 +35,9 @@ class Filter(CustomFilterBase):
 		self.gui_load(gui_elements)
 		self.gui_setup()
 
+		self.connect_scale_signal('scale', 'alpha', 'blur', 'dx', 'dy')
+		self.connect_colorbutton_signal('colorbutton')
+
 	def gui_setup(self):
 		self.gui_settler_plain('scale', 'alpha', 'blur', 'dx', 'dy')
 		self.gui_settler_color('colorbutton', 'color')
-
-		self.connect_scale_signal('scale', 'alpha', 'blur', 'dx', 'dy')
-		self.connect_colorbutton_signal('colorbutton')

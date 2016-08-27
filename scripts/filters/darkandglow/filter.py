@@ -24,6 +24,7 @@ class Filter(CustomFilterBase):
 		self.gui_load(gui_elements)
 		self.gui_setup()
 
+		self.connect_scale_signal('scale', 'deviation')
+
 	def gui_setup(self):
 		self.gui_settler_plain('scale', 'deviation')
-		self.connect_scale_signal('scale', 'deviation')
