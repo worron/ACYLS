@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated with glade 3.16.1 -->
+<!-- Generated with glade 3.18.3 -->
 <interface>
   <requires lib="gtk+" version="3.10"/>
   <object class="GtkAdjustment" id="frequency_x_adjustment">
@@ -26,7 +26,7 @@
     <property name="lower">0.10000000000000001</property>
     <property name="upper">1</property>
     <property name="value">1</property>
-    <property name="step_increment">0.050000000000000003</property>
+    <property name="step_increment">1</property>
   </object>
   <object class="GtkAdjustment" id="sensation_adjustment">
     <property name="lower">1</property>
@@ -38,7 +38,6 @@
     <property name="width_request">400</property>
     <property name="can_focus">False</property>
     <property name="type_hint">dialog</property>
-    <signal name="delete-event" handler="on_close_window" swapped="no"/>
     <child>
       <object class="GtkBox" id="mainbox">
         <property name="visible">True</property>
@@ -65,8 +64,6 @@
               <packing>
                 <property name="left_attach">0</property>
                 <property name="top_attach">0</property>
-                <property name="width">1</property>
-                <property name="height">1</property>
               </packing>
             </child>
             <child>
@@ -78,13 +75,11 @@
                 <property name="round_digits">0</property>
                 <property name="digits">0</property>
                 <property name="value_pos">left</property>
-                <signal name="value-changed" handler="on_octaves_changed" swapped="no"/>
               </object>
               <packing>
                 <property name="left_attach">1</property>
                 <property name="top_attach">1</property>
                 <property name="width">2</property>
-                <property name="height">1</property>
               </packing>
             </child>
             <child>
@@ -93,13 +88,10 @@
                 <property name="can_focus">True</property>
                 <property name="adjustment">frequency_x_adjustment</property>
                 <property name="digits">2</property>
-                <signal name="value-changed" handler="on_frequency_x_changed" swapped="no"/>
               </object>
               <packing>
                 <property name="left_attach">1</property>
                 <property name="top_attach">0</property>
-                <property name="width">1</property>
-                <property name="height">1</property>
               </packing>
             </child>
             <child>
@@ -109,13 +101,10 @@
                 <property name="adjustment">frequency_y_adjustment</property>
                 <property name="digits">2</property>
                 <property name="value">0.20000000000000001</property>
-                <signal name="value-changed" handler="on_frequency_y_changed" swapped="no"/>
               </object>
               <packing>
                 <property name="left_attach">2</property>
                 <property name="top_attach">0</property>
-                <property name="width">1</property>
-                <property name="height">1</property>
               </packing>
             </child>
             <child>
@@ -124,12 +113,10 @@
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="use_alpha">True</property>
-                <signal name="color-set" handler="on_colorbutton_set" swapped="no"/>
               </object>
               <packing>
                 <property name="left_attach">3</property>
                 <property name="top_attach">0</property>
-                <property name="width">1</property>
                 <property name="height">2</property>
               </packing>
             </child>
@@ -143,8 +130,6 @@
               <packing>
                 <property name="left_attach">0</property>
                 <property name="top_attach">1</property>
-                <property name="width">1</property>
-                <property name="height">1</property>
               </packing>
             </child>
             <child>
@@ -157,8 +142,6 @@
               <packing>
                 <property name="left_attach">0</property>
                 <property name="top_attach">3</property>
-                <property name="width">1</property>
-                <property name="height">1</property>
               </packing>
             </child>
             <child>
@@ -169,13 +152,11 @@
                 <property name="round_digits">2</property>
                 <property name="digits">2</property>
                 <property name="value_pos">left</property>
-                <signal name="value-changed" handler="on_scale_changed" swapped="no"/>
               </object>
               <packing>
                 <property name="left_attach">1</property>
                 <property name="top_attach">3</property>
                 <property name="width">3</property>
-                <property name="height">1</property>
               </packing>
             </child>
             <child>
@@ -188,8 +169,6 @@
               <packing>
                 <property name="left_attach">0</property>
                 <property name="top_attach">2</property>
-                <property name="width">1</property>
-                <property name="height">1</property>
               </packing>
             </child>
             <child>
@@ -198,14 +177,13 @@
                 <property name="can_focus">True</property>
                 <property name="adjustment">sensation_adjustment</property>
                 <property name="round_digits">1</property>
+                <property name="digits">2</property>
                 <property name="value_pos">left</property>
-                <signal name="value-changed" handler="on_sensation_changed" swapped="no"/>
               </object>
               <packing>
                 <property name="left_attach">1</property>
                 <property name="top_attach">2</property>
                 <property name="width">3</property>
-                <property name="height">1</property>
               </packing>
             </child>
           </object>
@@ -228,7 +206,6 @@
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="xalign">0.47999998927116394</property>
-                <signal name="clicked" handler="on_save_click" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -242,7 +219,6 @@
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <signal name="clicked" handler="on_cancel_click" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -256,7 +232,6 @@
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <signal name="clicked" handler="on_apply_click" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>

@@ -1,7 +1,7 @@
 # -*- Mode: Python; indent-tabs-mode: t; python-indent: 4; tab-width: 4 -*-
 
 import os
-from filters import SimpleFilterBase
+from acyls.lib.filters import SimpleFilterBase
 
 
 class Filter(SimpleFilterBase):

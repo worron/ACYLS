@@ -1,7 +1,7 @@
 # -*- Mode: Python; indent-tabs-mode: t; python-indent: 4; tab-width: 4 -*-
 
 import os
-from filters import FilterParameter, CustomFilterBase
+from acyls.lib.filters import FilterParameter, CustomFilterBase
 
 
 class Filter(CustomFilterBase):
@@ -9,7 +9,7 @@ class Filter(CustomFilterBase):
 	def __init__(self):
 		CustomFilterBase.__init__(self, os.path.dirname(__file__))
 		self.name = "Wood"
-		self.group = "Old"
+		self.group = "Advanced"
 
 		visible_tag = self.dull['visual'].find(".//*[@id='visible1']")
 		turbulence_tag = self.dull['filter'].find(".//*[@id='feTurbulence1']")
@@ -23,12 +23,10 @@ class Filter(CustomFilterBase):
 		self.param['blur'] = FilterParameter(blur_tag, 'stdDeviation', '(.+)', '%.1f')
 		self.param['color'] = FilterParameter(flood_tag, 'flood-color', '(.+)', '%s')
 		self.param['alpha'] = FilterParameter(flood_tag, 'flood-opacity', '(.+)', '%.2f')
-		self.param['composite_k1'] = FilterParameter(composite_tag, 'k1', '(.+)', ' %.1f')
-		self.param['composite_k2'] = FilterParameter(composite_tag, 'k2', '(.+)', ' %.1f')
+		self.param['composite_k1'] = FilterParameter(composite_tag, 'k1', '(.+)', '%.1f')
+		self.param['composite_k2'] = FilterParameter(composite_tag, 'k2', '(.+)', '%.1f')
 
-		gui_elements = (
-			"window", "scale", "frequency_x", "frequency_y", "colorbutton", "blur", "composite_k1", "composite_k2"
-		)
+		gui_elements = ["scale", "frequency_x", "frequency_y", "colorbutton", "blur", "composite_k1", "composite_k2"]
 
 		self.on_scale_changed = self.build_plain_handler('scale')
 		self.on_frequency_x_changed = self.build_plain_handler('frequency_x')
@@ -40,6 +38,9 @@ class Filter(CustomFilterBase):
 
 		self.gui_load(gui_elements)
 		self.gui_setup()
+
+		self.connect_scale_signal('scale', 'frequency_x', 'frequency_y', 'blur', 'composite_k1', 'composite_k2')
+		self.connect_colorbutton_signal('colorbutton')
 
 	def gui_setup(self):
 		self.gui_settler_plain('scale', 'frequency_x', 'frequency_y', 'blur', 'composite_k1', 'composite_k2')

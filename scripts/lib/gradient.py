@@ -30,7 +30,7 @@ class Gradient:
 	def build(self, data):
 		"""Build svg gradient tag"""
 		# build attribute for gradient
-		attr_list = data['direction'][self.tag]
+		attr_list = data[self.tag]
 		attr_persents = ["%d%%" % value for title, value in attr_list]
 		attr_dict = dict(zip(self.profile['attributes'], attr_persents))
 		attr_dict['id'] = "acyl-gradient"

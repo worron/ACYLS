@@ -1,7 +1,7 @@
 # -*- Mode: Python; indent-tabs-mode: t; python-indent: 4; tab-width: 4 -*-
 
 import os
-from filters import FilterParameter, CustomFilterBase
+from acyls.lib.filters import FilterParameter, CustomFilterBase
 
 
 class Filter(CustomFilterBase):
@@ -17,17 +17,17 @@ class Filter(CustomFilterBase):
 
 		self.param['scale_icon'] = FilterParameter(support1_tag, 'transform', 'scale\((.+?)\) ', 'scale(%.2f) ')
 		self.param['scale'] = FilterParameter(support3_tag, 'transform', 'scale\((.+?)\) ', 'scale(%.2f) ')
-		self.param['rx'] = FilterParameter(support3_tag, 'rx', '(.+)', '%.1f')
-		self.param['ry'] = FilterParameter(support3_tag, 'ry', '(.+)', '%.1f')
+		self.param['rx'] = FilterParameter(support3_tag, 'rx', '(.+)', '%.2f')
+		self.param['ry'] = FilterParameter(support3_tag, 'ry', '(.+)', '%.2f')
 		self.param['color'] = FilterParameter(support2_tag, 'style', '(rgb\(.+?\));', '%s;')
 		self.param['alpha'] = FilterParameter(support2_tag, 'style', 'fill-opacity:(.+)', 'fill-opacity:%.2f')
 		self.param['stroke_color'] = FilterParameter(visible2_tag, 'style', '(rgb\(.+?\));', '%s;')
-		self.param['stroke_width'] = FilterParameter(visible2_tag, 'style', 'stroke-width:(.+)', 'stroke-width:%.1f')
+		self.param['stroke_width'] = FilterParameter(visible2_tag, 'style', 'stroke-width:(.+)', 'stroke-width:%.2f')
 		self.param['stroke_alpha'] = FilterParameter(
 			visible2_tag, 'style', 'stroke-opacity:(.+?);', 'stroke-opacity:%.2f;'
 		)
 
-		gui_elements = ("window", "scale", "scale_icon", "radius", "colorbutton", "stroke_colorbutton", "stroke_width")
+		gui_elements = ["scale", "scale_icon", "radius", "colorbutton", "stroke_colorbutton", "stroke_width"]
 
 		self.on_scale_changed = self.build_plain_handler('scale')
 		self.on_stroke_width_changed = self.build_plain_handler('stroke_width')
@@ -38,6 +38,9 @@ class Filter(CustomFilterBase):
 
 		self.gui_load(gui_elements)
 		self.gui_setup()
+
+		self.connect_scale_signal('scale', 'radius', 'scale_icon', 'stroke_width')
+		self.connect_colorbutton_signal('colorbutton', 'stroke_colorbutton')
 
 	def gui_setup(self):
 		self.gui['radius'].set_value(float(self.param['rx'].match()))

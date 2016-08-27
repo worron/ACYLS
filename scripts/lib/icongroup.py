@@ -1,8 +1,11 @@
 # -*- Mode: Python; indent-tabs-mode: t; python-indent: 4; tab-width: 4 -*-
 
 import os
-import base
 from itertools import count
+
+import acyls.lib.base as base
+import acyls.lib.fssupport as fs
+from acyls.lib.guisupport import PixbufCreator
 
 
 class BasicIconGroup:
@@ -18,25 +21,39 @@ class BasicIconGroup:
 		self.pairsw = pairsw
 
 		if self.is_double:
-			self.pair = base.get_svg_first(pairdir)
+			self.pair = fs.get_svg_first(pairdir)
 
-	def cache(self):
+		self.cache_preview()
+
+	def cache_preview(self):
 		"""Save current preview icon as text"""
-		with open(self.get_preview(), 'rb') as f:
+		preview_icon = fs.get_svg_first(*self.testdirs)
+		if not preview_icon:
+			preview_icon = fs.get_svg_first(self.emptydir)
+
+		with open(preview_icon, 'rb') as f:
 			self.preview = f.read()
 
-	def get_preview(self):
-		"""Get active preview for icon group"""
-		preview_icon = base.get_svg_first(*self.testdirs)
-		return preview_icon if preview_icon else base.get_svg_first(self.emptydir)
+	def get_preview_pixbuf(self, icon_size):
+		"""Create icongroup preview pixbuf"""
+		if self.is_double:
+			icon1, icon2 = self.preview, self.pair
+			if self.pairsw:
+				icon1, icon2 = icon2, icon1
+
+			pixbuf = PixbufCreator.new_double_at_size(icon1, icon2, size=icon_size)
+		else:
+			pixbuf = PixbufCreator.new_single_at_size(self.preview, size=icon_size)
+
+		return pixbuf
 
 	def get_real(self):
 		"""Get list of all real icons for group"""
-		return base.get_svg_all(*self.realdirs)
+		return fs.get_svg_all(*self.realdirs)
 
 	def get_test(self):
 		"""Get list of all testing icons for group"""
-		return base.get_svg_all(*self.testdirs)
+		return fs.get_svg_all(*self.testdirs)
 
 
 class CustomIconGroup(BasicIconGroup):
@@ -53,6 +70,7 @@ class CustomIconGroup(BasicIconGroup):
 		self.state[subgroup] = not self.state[subgroup]
 		self.testdirs = [os.path.join(self.testbase, name) for name in self.state if self.state[name]]
 		self.realdirs = [os.path.join(self.realbase, name) for name in self.state if self.state[name]]
+		self.cache_preview()
 
 
 class IconGroupCollector(base.ItemPack):

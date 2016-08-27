@@ -1,7 +1,7 @@
 # -*- Mode: Python; indent-tabs-mode: t; python-indent: 4; tab-width: 4 -*-
 
 import os
-from filters import FilterParameter, CustomFilterBase
+from acyls.lib.filters import FilterParameter, CustomFilterBase
 
 
 class Filter(CustomFilterBase):
@@ -9,7 +9,7 @@ class Filter(CustomFilterBase):
 	def __init__(self):
 		CustomFilterBase.__init__(self, os.path.dirname(__file__))
 		self.name = "Orb"
-		self.group = "Old"
+		self.group = "Advanced"
 
 		visible2_tag = self.dull['visual'].find(".//*[@id='visible2']")
 		visible1_tag = self.dull['visual'].find(".//*[@id='visible1']")
@@ -34,10 +34,9 @@ class Filter(CustomFilterBase):
 		self.param['stop_alpha'] = FilterParameter(stop1_tag, 'style', 'stop-opacity:(.+)', 'stop-opacity:%.2f')
 		self.param['stroke_width'] = FilterParameter(mainorb_tag, 'style', 'stroke-width:(.+)', 'stroke-width:%.1f')
 
-		gui_elements = (
-			"window", "scale", "orb", "colorbutton", "alpha", "stroke_alpha", "stop_alpha", "reflex_scale",
-			"stroke_width"
-		)
+		gui_elements = [
+			"scale", "orb", "colorbutton", "alpha", "stroke_alpha", "stop_alpha", "reflex_scale", "stroke_width"
+		]
 
 		self.on_scale_changed = self.build_plain_handler('scale')
 		self.on_reflex_scale_changed = self.build_plain_handler('reflex_scale')
@@ -50,15 +49,18 @@ class Filter(CustomFilterBase):
 		self.gui_load(gui_elements)
 		self.gui_setup()
 
+		self.connect_scale_signal('scale', 'orb', 'alpha', 'stroke_alpha', 'stop_alpha', 'reflex_scale', 'stroke_width')
+		self.gui["colorbutton"].connect("color_set", self.advanced_colorbutton_setup)
+
 	def gui_setup(self):
 		self.gui_settler_plain('scale', 'orb', 'alpha', 'stroke_alpha', 'stop_alpha', 'reflex_scale', 'stroke_width')
 		self.gui_settler_color('colorbutton', 'color')
 
-	def on_colorbutton_set(self, widget):
+	def advanced_colorbutton_setup(self, widget):
 		rgba = widget.get_rgba()
 		rgba_string = rgba.to_string()
 		self.param['color'].set_value(rgba_string)
 		self.param['stroke_color'].set_value(rgba_string)
 		self.param['stop1_color'].set_value(rgba_string)
 		self.param['stop2_color'].set_value(rgba_string)
-		self.render.run(False, forced=True)
+		self.flag.emit("refresh", True)

@@ -1,19 +1,49 @@
 # -*- Mode: Python; indent-tabs-mode: t; python-indent: 4; tab-width: 4 -*-
 
 import os
-from gi.repository import GdkPixbuf, Gio, GLib, Gtk
+from gi.repository import GdkPixbuf, Gio, GLib, Gtk, Gdk
 
 
-DIALOGS_PROFILE = dict(
-	save = (
-		"Save ACYL settings", None, Gtk.FileChooserAction.SAVE,
+dialogs_profile = dict(
+	save = [
+		"Save ACYL", None, Gtk.FileChooserAction.SAVE,
 		(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_SAVE, Gtk.ResponseType.OK)
-	),
-	load = (
-		"Load ACYL settings from file", None, Gtk.FileChooserAction.OPEN,
+	],
+	load = [
+		"Load ACYL", None, Gtk.FileChooserAction.OPEN,
 		(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_OPEN, Gtk.ResponseType.OK)
-	)
+	]
 )
+
+
+def load_gtk_css(file_):
+	"""Set custom CSS for Gtk theme"""
+	style_provider = Gtk.CssProvider()
+	style_provider.load_from_path(file_)
+
+	Gtk.StyleContext.add_provider_for_screen(
+		Gdk.Screen.get_default(),
+		style_provider,
+		Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
+	)
+
+
+def hex_from_rgba(rgba):
+	"""Translate color from Gdk.RGBA to html hex format"""
+	return "#%02X%02X%02X" % tuple([int(getattr(rgba, name) * 255) for name in ("red", "green", "blue")])
+
+
+class TreeViewHolder():
+	"""Disconnect treeview store"""
+	def __init__(self, treeview):
+		self.treeview = treeview
+
+	def __enter__(self):
+		self.store = self.treeview.get_model()
+		self.treeview.set_model(None)
+
+	def __exit__(self, type, value, traceback):
+		self.treeview.set_model(self.store)
 
 
 class FileChooser:
@@ -31,7 +61,7 @@ class FileChooser:
 
 	def __init__(self, start_folder, default_name):
 		self.dialogs = dict()
-		for name, args in DIALOGS_PROFILE.items():
+		for name, args in dialogs_profile.items():
 			self.dialogs[name] = Gtk.FileChooserDialog(*args)
 			self.dialogs[name].set_current_folder(start_folder)
 
@@ -68,11 +98,6 @@ class PixbufCreator():
 			stream = Gio.MemoryInputStream.new_from_bytes(GLib.Bytes.new(icon))
 			pixbuf = GdkPixbuf.Pixbuf.new_from_stream_at_scale(stream, size, size, True)
 		return pixbuf
-
-	@staticmethod
-	def hex_from_rgba(rgba):
-		"""Translate color from Gdk.RGBA to html hex format"""
-		return "#%02X%02X%02X" % tuple([int(getattr(rgba, name) * 255) for name in ("red", "green", "blue")])
 
 
 class ActionHandler:

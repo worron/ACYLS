@@ -1,7 +1,7 @@
 # -*- Mode: Python; indent-tabs-mode: t; python-indent: 4; tab-width: 4 -*-
 
 import os
-from filters import FilterParameter, CustomFilterBase
+from acyls.lib.filters import FilterParameter, CustomFilterBase
 
 
 class Filter(CustomFilterBase):
@@ -9,7 +9,7 @@ class Filter(CustomFilterBase):
 	def __init__(self):
 		CustomFilterBase.__init__(self, os.path.dirname(__file__))
 		self.name = "Drop Shadow"
-		self.group = "Shadow"
+		self.group = "Shadows"
 
 		visible_tag = self.dull['visual'].find(".//*[@id='visible1']")
 		flood_tag = self.dull['filter'].find(".//*[@id='feFlood1']")
@@ -17,13 +17,13 @@ class Filter(CustomFilterBase):
 		offset_tag = self.dull['filter'].find(".//*[@id='feOffset1']")
 
 		self.param['alpha'] = FilterParameter(flood_tag, 'flood-opacity', '(.+)', '%.2f')
-		self.param['dx'] = FilterParameter(offset_tag, 'dx', '(.+)', '%.1f')
-		self.param['dy'] = FilterParameter(offset_tag, 'dy', '(.+)', '%.1f')
-		self.param['blur'] = FilterParameter(blur_tag, 'stdDeviation', '(.+)', '%.1f')
+		self.param['dx'] = FilterParameter(offset_tag, 'dx', '(.+)', '%.2f')
+		self.param['dy'] = FilterParameter(offset_tag, 'dy', '(.+)', '%.2f')
+		self.param['blur'] = FilterParameter(blur_tag, 'stdDeviation', '(.+)', '%.2f')
 		self.param['scale'] = FilterParameter(visible_tag, 'transform', 'scale\((.+?)\) ', 'scale(%.2f) ')
 		self.param['color'] = FilterParameter(flood_tag, 'flood-color', '(.+)', '%s')
 
-		gui_elements = ("window", "alpha", "scale", "colorbutton", "blur", "dx", "dy")
+		gui_elements = ["alpha", "scale", "colorbutton", "blur", "dx", "dy"]
 
 		self.on_scale_changed = self.build_plain_handler('scale')
 		self.on_dx_changed = self.build_plain_handler('dx')
@@ -34,6 +34,9 @@ class Filter(CustomFilterBase):
 
 		self.gui_load(gui_elements)
 		self.gui_setup()
+
+		self.connect_scale_signal('scale', 'alpha', 'blur', 'dx', 'dy')
+		self.connect_colorbutton_signal('colorbutton')
 
 	def gui_setup(self):
 		self.gui_settler_plain('scale', 'alpha', 'blur', 'dx', 'dy')

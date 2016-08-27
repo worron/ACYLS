@@ -1,7 +1,7 @@
 # -*- Mode: Python; indent-tabs-mode: t; python-indent: 4; tab-width: 4 -*-
 
 import os
-from filters import FilterParameter, CustomFilterBase
+from acyls.lib.filters import FilterParameter, CustomFilterBase
 
 
 class Filter(CustomFilterBase):
@@ -16,22 +16,23 @@ class Filter(CustomFilterBase):
 		matrix_tag = self.dull['filter'].find(".//*[@id='feColorMatrix2']")
 
 		self.param['scale'] = FilterParameter(visible_tag, 'transform', 'scale\((.+?)\) ', 'scale(%.2f) ')
-		self.param['octaves'] = FilterParameter(turbulence_tag, 'numOctaves', '(.+)', '%d')
+		self.param['octaves'] = FilterParameter(turbulence_tag, 'numOctaves', '(.+)', '%.1f')
 		self.param['sensation'] = FilterParameter(matrix_tag, 'values', '0 (\d+\.\d+) 0', '0 %.1f 0')
 		self.param['frequency_x'] = FilterParameter(turbulence_tag, 'baseFrequency', '(.+?) ', '%.2f ')
 		self.param['frequency_y'] = FilterParameter(turbulence_tag, 'baseFrequency', ' (.+)', ' %.2f')
 
-		gui_elements = ("window", "scale", "octaves", "frequency_x", "frequency_y", "sensation")
+		gui_elements = ["scale", "octaves", "frequency_x", "frequency_y", "sensation"]
 
 		self.on_scale_changed = self.build_plain_handler('scale')
 		self.on_sensation_changed = self.build_plain_handler('sensation')
 		self.on_frequency_x_changed = self.build_plain_handler('frequency_x')
 		self.on_frequency_y_changed = self.build_plain_handler('frequency_y')
-		self.on_octaves_changed = self.build_plain_handler('octaves', translate=int)
+		self.on_octaves_changed = self.build_plain_handler('octaves')
 
 		self.gui_load(gui_elements)
 		self.gui_setup()
 
+		self.connect_scale_signal('scale', 'frequency_x', 'frequency_y', 'sensation', 'octaves')
+
 	def gui_setup(self):
-		self.gui_settler_plain('scale', 'frequency_x', 'frequency_y', 'sensation')
-		self.gui_settler_plain('octaves', translate=int)
+		self.gui_settler_plain('scale', 'frequency_x', 'frequency_y', 'sensation', 'octaves')
