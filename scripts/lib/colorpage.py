@@ -35,6 +35,7 @@ class ColorPage:
 		self.filechooser = FileChooser(acyls.dirs['user'], "custom.acyl")
 
 		# Load GUI
+		self.signals = dict()
 		self.builder = Gtk.Builder()
 		self.builder.add_from_file(os.path.join(acyls.dirs['gui'], "colors.glade"))
 
@@ -95,7 +96,6 @@ class ColorPage:
 	# Init functions
 	def connect_signals(self):
 		"""Connect GUI handlers"""
-		self.signals = dict()
 		self.signals['colorlist'] = self.gui['colorlist_treeview_selection'].connect(
 			"changed", self.on_color_selection_changed
 		)
@@ -108,11 +108,13 @@ class ColorPage:
 		self.signals['colorlist_add'] = self.store['colorlist'].connect(
 			"row-inserted", self.on_colorlist_structure_changed
 		)
+		self.signals['color_selector'] = self.gui['color_selector'].connect(
+			"color_changed", self.on_color_change
+		)
 
 		self.gui['icongroup_combo'].connect("changed", self.on_icongroup_combo_changed)
 		self.gui['filter_group_combo'].connect("changed", self.on_filter_group_combo_changed)
 		self.gui['filters_combo'].connect("changed", self.on_filter_combo_changed)
-		self.gui['color_selector'].connect("color_changed", self.on_color_change)
 		self.gui['offset_scale'].connect("value_changed", self.on_offset_value_changed)
 		self.gui['gradient_combo'].connect("changed", self.on_gradient_type_switched)
 		self.gui['render_button'].connect("toggled", self.on_render_toggled)
@@ -148,11 +150,11 @@ class ColorPage:
 		# gradient direction
 		self.ded = {'Coord': 0, 'Value': 1}
 		self.store['direction'] = Gtk.ListStore(str, int)
-		renderer_spin = Gtk.CellRendererSpin(editable=True, adjustment=Gtk.Adjustment(0, 0, 100, 5, 0, 0))
-		renderer_spin.connect("edited", self.on_direction_edited)
+		self.gui['renderer_spin'] = Gtk.CellRendererSpin(editable=True, adjustment=Gtk.Adjustment(0, 0, 100, 5, 0, 0))
+		self.signals['direction_edited'] = self.gui['renderer_spin'].connect("edited", self.on_direction_edited)
 
 		self.gui['direction_treeview'].append_column(Gtk.TreeViewColumn("Coord", Gtk.CellRendererText(), text=0))
-		self.gui['direction_treeview'].append_column(Gtk.TreeViewColumn("Value", renderer_spin, text=1))
+		self.gui['direction_treeview'].append_column(Gtk.TreeViewColumn("Value", self.gui['renderer_spin'], text=1))
 		self.gui['direction_treeview'].set_model(self.store['direction'])
 
 	def build_data_hadlers(self):
@@ -167,7 +169,9 @@ class ColorPage:
 						self.store['colorlist'].clear()
 						for color in dump['colors']:
 							self.store['colorlist'].append(color)
-			self.on_colorlist_structure_changed()
+
+			with self.gui['color_selector'].handler_block(self.signals['color_selector']):
+				self.on_colorlist_structure_changed()
 
 		def read_gradient_type(dump):
 			self.gui['gradient_combo'].set_active(gradient.GRADIENT_PROFILES[dump['gradtype']]['index'])
@@ -179,9 +183,10 @@ class ColorPage:
 			self.gui['filters_combo'].set_active(filter_index)
 
 		def read_gradient_settings(dump):
-			self.store['direction'].clear()
-			for coord in dump[self.gradient.tag]:
-				self.store['direction'].append(coord)
+			with self.gui['renderer_spin'].handler_block(self.signals['direction_edited']):
+				self.store['direction'].clear()
+				for coord in dump[self.gradient.tag]:
+					self.store['direction'].append(coord)
 
 		def read_autoofset_settings(dump):
 			with self.gui['handoffset_switch'].handler_block(self.signals['handoffset_switch']):
