@@ -1,4 +1,4 @@
-# AnyColorYouLike Simplified
+# AnyColorYouLikeSimple
 This is simplified fork of [ACYL by pobtott](http://gnome-look.org/content/show.php/?content=102435) -- a highly customizable vector icon pack.
 
 ####Main goals
@@ -14,6 +14,7 @@ This is simplified fork of [ACYL by pobtott](http://gnome-look.org/content/show.
 
 ####Dependencies
 * Python >=3.4
+* lxml
 * GTK+ >=3.10
 
 ####Current state
