@@ -3,6 +3,7 @@
 
 import os
 import shutil
+import configparser
 
 
 def get_svg_all(*dirlist):
@@ -21,6 +22,55 @@ def get_svg_first(*dirlist):
 			for filename in files:
 				if filename.endswith('.svg'):
 					return os.path.join(root, filename)
+
+
+class ConfigReader:
+	"""Custom config parser"""
+	def double_config_action(method):
+		def action(self, section, option):
+			try:
+				res = getattr(self.mainconfig, method)(section, option)
+			except Exception as e:
+				print(self.base_error_message % (section, option, e))
+				res = getattr(self.backconfig, method)(section, option)
+			return res
+		return action
+
+	def direct_action(method):
+		def action(self, *args):
+			return getattr(self.mainconfig, method)(*args)
+		return action
+
+	def __init__(self, main_dir, backup_dir, filename):
+		self.userfile = os.path.join(main_dir, filename)
+		systemfile = os.path.join(backup_dir, filename)
+
+		if not os.path.isfile(self.userfile) and os.path.isfile(systemfile):
+			shutil.copy(systemfile, main_dir)
+
+		self.mainconfig = configparser.ConfigParser()
+		self.mainconfig.read(self.userfile)
+
+		self.backconfig = configparser.ConfigParser()
+		self.backconfig.read(systemfile)
+
+		self.base_error_message = (
+			"Fail to read user config section '%s' option '%s'\n%s\n"
+			"Trying to get value from backup config\n"
+		)
+
+	get = double_config_action("get")
+	getint = double_config_action("getint")
+	getboolean = double_config_action("getboolean")
+
+	set = direct_action("set")
+	has_option = direct_action("has_option")
+	has_section = direct_action("has_section")
+
+	def write(self):
+		"""Write user config file"""
+		with open(self.userfile, 'w') as configfile:
+			self.mainconfig.write(configfile)
 
 
 class Prospector:
@@ -50,23 +100,3 @@ class Prospector:
 				destination_dir = source_dir.replace(source_root_dir, dest)
 				for file_ in files:
 					shutil.copy(os.path.join(source_dir, file_), destination_dir)
-
-
-class FileKeeper:
-	"""Helper to work with user files.
-	Trying to get file from current user directory, copy from backup directory if not found.
-	"""
-	def __init__(self, bakdir, curdir):
-		self.bakdir = bakdir
-		self.curdir = curdir
-
-	def get(self, name):
-		"""Get file by name"""
-		fullname = os.path.join(self.curdir, name)
-		backup = os.path.join(self.bakdir, name)
-
-		if not os.path.isfile(fullname):
-			if os.path.isfile(backup):
-				shutil.copy(backup, self.curdir)
-
-		return fullname

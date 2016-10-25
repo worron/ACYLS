@@ -20,7 +20,7 @@ class EditorPage:
 		self.filechooser = FileChooser(acyls.dirs['filters'], "filter.xml")
 
 		# Read icon size settins from config
-		self.PREVIEW_ICON_SIZE = int(config.get("PreviewSize", "single"))
+		self.PREVIEW_ICON_SIZE = config.getint("PreviewSize", "single")
 
 		# Load GUI
 		self.builder = Gtk.Builder()
