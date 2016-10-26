@@ -1,7 +1,6 @@
 # -*- Mode: Python; indent-tabs-mode: t; python-indent: 4; tab-width: 4 -*-
 import os
 from gi.repository import Gtk
-import configparser
 
 # User modules
 import acyls
@@ -11,7 +10,7 @@ from acyls.lib.altpage import AlternativesPage
 from acyls.lib.viewpage import ViewerPage
 from acyls.lib.editorpage import EditorPage
 from acyls.lib.guisupport import load_gtk_css, dialogs_profile
-from acyls.lib.fssupport import FileKeeper
+from acyls.lib.fssupport import ConfigReader
 from acyls.lib.data import DataStore
 
 
@@ -20,18 +19,12 @@ class MainWindow:
 	def __init__(self):
 		self.last_button_handlers = dict()
 
-		# Set config files manager
-		self.keeper = FileKeeper(acyls.dirs['default'], acyls.dirs['user'])
-
 		# Config file setup
-		self.configfile = self.keeper.get("config.ini")
-		self.config = configparser.ConfigParser()
-		self.config.read(self.configfile)
+		self.config = ConfigReader(acyls.dirs['user'], acyls.dirs['default'], "config.ini")
 
 		# Set data file for saving icon render settings
 		# Icon render setting will stored for every icon group separately
-		self.dbfile = self.keeper.get("store.acyl")
-		self.database = DataStore(self.dbfile)
+		self.database = DataStore(os.path.join(acyls.dirs['user'], "store.acyl"))
 
 		# Load GUI
 		self.builder = Gtk.Builder()
@@ -115,8 +108,6 @@ class MainWindow:
 	def on_close_window(self, *args):
 		self.database.clear(self.colorpage.icongroups.names)
 		self.database.close()
-
-		with open(self.configfile, 'w') as configfile:
-			self.config.write(configfile)
+		self.config.write()
 
 		Gtk.main_quit(*args)

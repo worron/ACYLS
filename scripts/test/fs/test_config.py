@@ -14,7 +14,8 @@ def tmpdir(request):
 
 	for dir_, file_ in (("sys", "test1"), ("sys", "test2"), ("user", "test2")):
 		with open(os.path.join(tdir.name, dir_, file_), "w") as f:
-			f.write(dir_ + file_)
+			# f.write(dir_ + file_)
+			f.write("[test]\nvalue=%s" % dir_ + file_)
 
 	def tmpdir_teardown():
 		tdir.cleanup()
@@ -25,15 +26,5 @@ def tmpdir(request):
 
 def test_filekeeper_copy(tmpdir):
 	bakdir, curdir = tmpdir
-	keeper = fs.FileKeeper(bakdir, curdir)
-	assert os.path.isfile(keeper.get("test1"))
-
-
-def test_filekeeper_save_user_data(tmpdir):
-	bakdir, curdir = tmpdir
-	keeper = fs.FileKeeper(bakdir, curdir)
-	with open(keeper.get("test2"), "r") as f:
-		keep = f.read()
-	with open(os.path.join(bakdir, "test2"), "r") as f:
-		back = f.read()
-	assert keep != back
+	fs.ConfigReader(curdir, bakdir, "test1")
+	assert os.path.isfile(os.path.join(curdir, "test1"))

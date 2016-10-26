@@ -1,7 +1,6 @@
 # -*- Mode: Python; indent-tabs-mode: t; python-indent: 4; tab-width: 4 -*-
 
 import os
-from itertools import count
 
 import acyls.lib.base as base
 import acyls.lib.fssupport as fs
@@ -76,36 +75,10 @@ class CustomIconGroup(BasicIconGroup):
 class IconGroupCollector(base.ItemPack):
 	"""Object to load, store and switch between icon groups"""
 	def __init__(self, config):
-		self.pack = dict()
-		counter = count(1)
+		self.pack = config.build_icon_groups(BasicIconGroup, CustomIconGroup)
 
-		while True:
-			index = next(counter)
-			section = "IconGroup" + str(index)
-			if not config.has_section(section):
-				break
-			try:
-				# group type
-				is_custom = config.getboolean(section, 'custom')
-
-				# plain text arguments
-				args = ("name", "pairdir", "emptydir", "testbase", "realbase")
-				kargs = {k: config.get(section, k) for k in args if config.has_option(section, k)}
-
-				# list type arguments
-				args_l = ("testdirs", "realdirs")
-				kargs_l = {k: config.get(section, k).split(";") for k in args_l if config.has_option(section, k)}
-
-				# boolean type arguments
-				args_b = ("pairsw",)
-				kargs_b = {k: config.getboolean(section, k) for k in args_b if config.has_option(section, k)}
-
-				for d in (kargs_l, kargs_b):
-					kargs.update(d)
-				kargs['index'] = index
-
-				self.pack[kargs['name']] = CustomIconGroup(**kargs) if is_custom else BasicIconGroup(**kargs)
-			except Exception:
-				print("Fail to load icon group №%d" % index)
+		if not self.pack:
+			print("No one icon group was found in user config\nTrying to read data from backup config")
+			self.pack = config.build_icon_groups(BasicIconGroup, CustomIconGroup, from_backup=True)
 
 		self.build_names(sortkey=lambda name: self.pack[name].index)

@@ -19,7 +19,7 @@ class ColorPage:
 		self.config = config
 
 		# Read icon size settins from config
-		self.PREVIEW_ICON_SIZE = int(self.config.get("PreviewSize", "single"))
+		self.PREVIEW_ICON_SIZE = self.config.getint("PreviewSize", "single")
 
 		# Load icon groups from config file
 		self.icongroups = IconGroupCollector(self.config)
