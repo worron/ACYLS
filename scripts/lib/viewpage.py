@@ -16,7 +16,7 @@ class ViewerPage:
 		self.mhandlers = dict()
 
 		# Create object for iconview
-		self.iconview = Prospector(config.get("Directories", "real"))
+		self.iconview = Prospector(config.getdir("Directories", "real"))
 
 		# Read icon size settins from config
 		self.VIEW_ICON_SIZE = config.getint("PreviewSize", "group")

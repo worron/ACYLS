@@ -15,7 +15,7 @@ class AlternativesPage:
 		self.bhandlers = dict()
 
 		# Create objects for alternative and prewiew
-		self.alternatives = Prospector(config.get("Directories", "alternatives"))
+		self.alternatives = Prospector(config.getdir("Directories", "alternatives"))
 
 		# Read icon size settins from config
 		self.VIEW_ICON_SIZE = config.getint("PreviewSize", "group")
@@ -53,7 +53,7 @@ class AlternativesPage:
 	# GUI handlers
 	def on_apply_click(self, *args):
 		DIG_LEVEL = 2
-		self.alternatives.send_icons(DIG_LEVEL, self.config.get("Directories", "real"))
+		self.alternatives.send_icons(DIG_LEVEL, self.config.getdir("Directories", "real"))
 
 	def on_alt_group_combo_changed(self, combo):
 		DIG_LEVEL = 1

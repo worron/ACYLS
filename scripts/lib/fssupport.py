@@ -26,6 +26,14 @@ def get_svg_first(*dirlist):
 					return os.path.join(root, filename)
 
 
+def _is_dir(item):
+	"""Check if given item has valid fs path"""
+	if isinstance(item, list):
+		return all((_is_dir(e) for e in item))
+	else:
+		return os.path.isdir(item)
+
+
 def _read_icon_group_data(config, index, section):
 	"""Read icon group data from config section"""
 	# plain text arguments
@@ -44,6 +52,11 @@ def _read_icon_group_data(config, index, section):
 	for d in (kargs_l, kargs_b):
 		kargs.update(d)
 		kargs['index'] = index
+
+	# check directories
+	for key in (k for k in kargs.keys() if k not in ("custom", "index", "name", "pairsw")):
+		if not _is_dir(kargs[key]):
+			raise FileNotFoundError()
 
 	return kargs
 
@@ -90,6 +103,17 @@ class ConfigReader:
 	set = direct_action("set")
 	has_option = direct_action("has_option")
 	has_section = direct_action("has_section")
+
+	def getdir(self, section, option):
+		"""Get directory from config"""
+		try:
+			res = self.mainconfig.get(section, option)
+			if not os.path.isdir(res):
+				raise FileNotFoundError("Directory '%s' was not found" % res)
+		except Exception as e:
+			print(self.base_error_message % (section, option, e))
+			res = self.backconfig.get(section, option)
+		return res
 
 	def build_icon_groups(self, simple_group_class, custom_group_class, from_backup=False):
 		"""Read all available icon group data from config"""

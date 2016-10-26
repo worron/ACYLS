@@ -1,7 +1,6 @@
 # -*- Mode: Python; indent-tabs-mode: t; python-indent: 4; tab-width: 4 -*-
 
 import os
-from itertools import count
 
 import acyls.lib.base as base
 import acyls.lib.fssupport as fs
