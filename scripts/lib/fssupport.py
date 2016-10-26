@@ -5,6 +5,8 @@ import os
 import shutil
 import configparser
 
+from itertools import count
+
 
 def get_svg_all(*dirlist):
 	"""Find all SVG icon in directories"""
@@ -22,6 +24,28 @@ def get_svg_first(*dirlist):
 			for filename in files:
 				if filename.endswith('.svg'):
 					return os.path.join(root, filename)
+
+
+def _read_icon_group_data(config, index, section):
+	"""Read icon group data from config section"""
+	# plain text arguments
+	args = ("name", "pairdir", "emptydir", "testbase", "realbase")
+	kargs = {k: config.get(section, k) for k in args if config.has_option(section, k)}
+
+	# list type arguments
+	args_l = ("testdirs", "realdirs")
+	kargs_l = {k: config.get(section, k).split(";") for k in args_l if config.has_option(section, k)}
+
+	# boolean type arguments
+	args_b = ("pairsw", "custom")
+	kargs_b = {k: config.getboolean(section, k) for k in args_b if config.has_option(section, k)}
+
+	# collect it all together
+	for d in (kargs_l, kargs_b):
+		kargs.update(d)
+		kargs['index'] = index
+
+	return kargs
 
 
 class ConfigReader:
@@ -66,6 +90,26 @@ class ConfigReader:
 	set = direct_action("set")
 	has_option = direct_action("has_option")
 	has_section = direct_action("has_section")
+
+	def build_icon_groups(self, simple_group_class, custom_group_class, from_backup=False):
+		"""Read all available icon group data from config"""
+		pack = {}
+		counter = count(1)
+		config = self.backconfig if from_backup else self.mainconfig
+
+		while True:
+			index = next(counter)
+			section = "IconGroup" + str(index)
+			if not config.has_section(section):
+				break
+			try:
+				group = _read_icon_group_data(config, index, section)
+				is_custom = group.pop("custom")
+				pack[group['name']] = custom_group_class(**group) if is_custom else simple_group_class(**group)
+			except Exception as e:
+				print("Fail to load icon group №%d\n%s" % (index, e))
+
+		return pack
 
 	def write(self):
 		"""Write user config file"""
