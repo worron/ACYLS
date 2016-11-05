@@ -201,6 +201,16 @@ class Miner(Prospector):
 		# use temporary directory to avoid write access problem
 		with tempfile.TemporaryDirectory() as tdir:
 			for source_dir, dirs, files in os.walk(source_root_dir):
+				# read date from optional config file
+				try:
+					if source_dir == source_root_dir:
+						raise Exception()
+					config = configparser.ConfigParser()
+					config.read(os.path.join(source_dir, "config.ini"))
+					csize = config.getint("Main", "size")
+				except Exception:
+					csize = size
+
 				# create directory structure
 				subdir = os.path.relpath(source_dir, source_root_dir)
 				for d in dirs:
@@ -209,7 +219,7 @@ class Miner(Prospector):
 				# save theme icons to temporary directory
 				for icon in (f for f in files if f.endswith('.svg')):
 					icon_dest = os.path.join(tdir, subdir, icon[:-3] + "png")
-					pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(os.path.join(source_dir, icon), size, size)
+					pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(os.path.join(source_dir, icon), csize, csize)
 					pixbuf.savev(icon_dest, "png", [], [])
 
 			# copy files to destination folder
