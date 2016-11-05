@@ -9,6 +9,7 @@ from acyls.lib.colorpage import ColorPage
 from acyls.lib.altpage import AlternativesPage
 from acyls.lib.viewpage import ViewerPage
 from acyls.lib.editorpage import EditorPage
+from acyls.lib.appspage import ApplicationsPage
 from acyls.lib.guisupport import load_gtk_css, dialogs_profile
 from acyls.lib.fssupport import ConfigReader
 from acyls.lib.data import DataStore
@@ -65,6 +66,11 @@ class MainWindow:
 		self.editorpage = EditorPage(self.colorpage.filters, self.config)
 		self.gui['notebook'].append_page(self.editorpage.gui['editor_grid'], Gtk.Label('Filter Editor'))
 		self.pages.append(self.editorpage)
+
+		# applications GUI icons
+		self.appspage = ApplicationsPage(self.config)
+		self.gui['notebook'].append_page(self.appspage.gui['apps_grid'], Gtk.Label('Applications'))
+		self.pages.append(self.appspage)
 
 		# Connect signals
 		self.signals = dict()

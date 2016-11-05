@@ -4,7 +4,10 @@
 import os
 import shutil
 import configparser
+import tempfile
+import subprocess
 
+from gi.repository import GdkPixbuf
 from itertools import count
 
 
@@ -168,3 +171,49 @@ class Prospector:
 				destination_dir = source_dir.replace(source_root_dir, dest)
 				for file_ in files:
 					shutil.copy(os.path.join(source_dir, file_), destination_dir)
+
+
+class Miner(Prospector):
+	""""Find icon group with settings file on diffrent deep level in directory tree"""
+	def __init__(self, root):
+		super().__init__(root)
+		self.group = {}
+
+		# check config files
+		for dname in self.structure[0]['directories']:
+			configfile = os.path.join(root, dname, "config.ini")
+			try:
+				config = configparser.ConfigParser()
+				config.read(configfile)
+
+				name = config.get("Main", "name")
+				path = config.get("Main", "path")
+				size = config.getint("Main", "size")
+				self.group[name] = {"size": size, "directory": dname, "path": path}
+			except Exception as e:
+				print("Fail to load applications icons from '%s'\n" % (dname,), e)
+
+	def send_group(self, name):
+		"""Copy application icon theme files"""
+		source_root_dir = os.path.join(self.root, self.group[name]["directory"])
+		size = self.group[name]["size"]
+
+		# use temporary directory to avoid write access problem
+		with tempfile.TemporaryDirectory() as tdir:
+			for source_dir, dirs, files in os.walk(source_root_dir):
+				# create directory structure
+				subdir = os.path.relpath(source_dir, source_root_dir)
+				for d in dirs:
+					os.makedirs(os.path.join(os.path.join(tdir, subdir, d)))
+
+				# save theme icons to temporary directory
+				for icon in (f for f in files if f.endswith('.svg')):
+					icon_dest = os.path.join(tdir, subdir, icon[:-3] + "png")
+					pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(os.path.join(source_dir, icon), size, size)
+					pixbuf.savev(icon_dest, "png", [], [])
+
+			# copy files to destination folder
+			if os.access(self.group[name]['path'], os.W_OK):
+				subprocess.call(["cp", "-rf", os.path.join(tdir, "."), self.group[name]['path']])
+			else:
+				subprocess.call(["gksu", "cp -rf %s %s" % (os.path.join(tdir, "."), self.group[name]['path'])])
