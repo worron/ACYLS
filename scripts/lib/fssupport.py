@@ -189,14 +189,18 @@ class Miner(Prospector):
 				name = config.get("Main", "name")
 				path = config.get("Main", "path")
 				size = config.getint("Main", "size")
-				self.group[name] = {"size": size, "directory": dname, "path": path}
+
+				filetype = config.get("Main", "type") if config.has_option("Main", "type") else "png"
+				if filetype not in ("png", "svg"):
+					filetype = "png"
+
+				self.group[name] = {"size": size, "directory": dname, "path": path, "type": filetype}
 			except Exception as e:
 				print("Fail to load applications icons from '%s'\n" % (dname,), e)
 
 	def send_group(self, name):
 		"""Copy application icon theme files"""
 		source_root_dir = os.path.join(self.root, self.group[name]["directory"])
-		size = self.group[name]["size"]
 
 		# use temporary directory to avoid write access problem
 		with tempfile.TemporaryDirectory() as tdir:
@@ -207,9 +211,12 @@ class Miner(Prospector):
 						raise Exception()
 					config = configparser.ConfigParser()
 					config.read(os.path.join(source_dir, "config.ini"))
+
+					ctype = config.get("Main", "type")
 					csize = config.getint("Main", "size")
 				except Exception:
-					csize = size
+					csize = self.group[name]["size"]
+					ctype = self.group[name]["type"]
 
 				# create directory structure
 				subdir = os.path.relpath(source_dir, source_root_dir)
@@ -218,9 +225,14 @@ class Miner(Prospector):
 
 				# save theme icons to temporary directory
 				for icon in (f for f in files if f.endswith('.svg')):
-					icon_dest = os.path.join(tdir, subdir, icon[:-3] + "png")
-					pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(os.path.join(source_dir, icon), csize, csize)
-					pixbuf.savev(icon_dest, "png", [], [])
+					source_file = os.path.join(source_dir, icon)
+					if ctype == "png":
+						dest_file = os.path.join(tdir, subdir, icon[:-3] + "png")
+						pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(os.path.join(source_dir, icon), csize, csize)
+						pixbuf.savev(dest_file, "png", [], [])
+					else:
+						dest_file = os.path.join(tdir, subdir, icon)
+						shutil.copyfile(source_file, dest_file)
 
 			# copy files to destination folder
 			if os.access(self.group[name]['path'], os.W_OK):
