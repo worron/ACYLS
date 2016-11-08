@@ -6,7 +6,7 @@ from gi.repository.GdkPixbuf import Pixbuf
 
 import acyls
 from acyls.lib.fssupport import Miner, AppThemeReader
-from acyls.lib.guisupport import PixbufCreator, TreeViewHolder
+from acyls.lib.guisupport import PixbufCreator, TreeViewHolder, FileChooser
 from acyls.lib.multithread import multithread
 
 
@@ -21,6 +21,9 @@ class ApplicationsPage:
 
 		self.iconminer = Miner(self.themes_dir, self.icontype)
 		self.appthemes = AppThemeReader(self.themes_dir, self.icontype)
+
+		# File dialog
+		self.filechooser = FileChooser(self.backup_dir)
 
 		# Read icon size settins from config
 		self.VIEW_ICON_SIZE = config.getint("PreviewSize", "group")
@@ -57,6 +60,7 @@ class ApplicationsPage:
 		# Toolbar buttnons hanlers
 		self.bhandlers = dict()
 		self.bhandlers['backup_icons_toolbutton'] = self.on_backup_icons_button_click
+		self.bhandlers['open_backup_toolbutton'] = self.on_open_backup_button_click
 
 	# GUI handlers
 	@multithread
@@ -90,3 +94,8 @@ class ApplicationsPage:
 		ct = time.strftime("%Y-%m-%d(%H:%M:%S)")
 		backup_dir = os.path.join(self.backup_dir, self.appthemes.active["directory"] + "_" + ct)
 		self.iconminer.copy_theme(self.appthemes.active, backup_dir)
+
+	def on_open_backup_button_click(self, *args):
+		is_ok, dir_ = self.filechooser.open_folder()
+		if is_ok:
+			self.iconminer.restore_theme(dir_)

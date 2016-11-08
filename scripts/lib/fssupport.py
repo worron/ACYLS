@@ -66,7 +66,7 @@ def _read_icon_group_data(config, index, section):
 
 class ConfigReader:
 	"""Custom config parser"""
-	def double_config_action(method):
+	def _double_config_action(method):
 		def action(self, section, option):
 			try:
 				res = getattr(self.mainconfig, method)(section, option)
@@ -76,7 +76,7 @@ class ConfigReader:
 			return res
 		return action
 
-	def direct_action(method):
+	def _direct_action(method):
 		def action(self, *args):
 			return getattr(self.mainconfig, method)(*args)
 		return action
@@ -99,13 +99,13 @@ class ConfigReader:
 			"Trying to get value from backup config\n"
 		)
 
-	get = double_config_action("get")
-	getint = double_config_action("getint")
-	getboolean = double_config_action("getboolean")
+	get = _double_config_action("get")
+	getint = _double_config_action("getint")
+	getboolean = _double_config_action("getboolean")
 
-	set = direct_action("set")
-	has_option = direct_action("has_option")
-	has_section = direct_action("has_section")
+	set = _direct_action("set")
+	has_option = _direct_action("has_option")
+	has_section = _direct_action("has_section")
 
 	def getdir(self, section, option):
 		"""Get directory from config"""
@@ -207,6 +207,7 @@ class Miner(Prospector):
 	def __init__(self, root, icontype):
 		super().__init__(root)
 		self.icontype = icontype
+		self.cf = "config.ini"
 
 	def _read_subconfig_options(self, theme, source_root_dir, source_dir):
 		"""Read date from optional config file"""
@@ -214,7 +215,7 @@ class Miner(Prospector):
 			if source_dir == source_root_dir:
 				raise Exception()
 			config = configparser.ConfigParser()
-			config.read(os.path.join(source_dir, "config.ini"))
+			config.read(os.path.join(source_dir, self.cf))
 
 			ctype = config.get("Main", "type")
 			csize = config.getint("Main", "size")
@@ -225,6 +226,26 @@ class Miner(Prospector):
 			ctype = theme["type"]
 		return csize, ctype
 
+	def restore_theme(self, backup_dir):
+		"""Copy application icon theme files from backup folder"""
+		try:
+			config = configparser.ConfigParser()
+			config.read(os.path.join(backup_dir, self.cf))
+			dest_root_dir = config.get("Main", "path")
+		except Exception as e:
+			print("Fail to read backup settings\n%s" % e)
+			return
+
+		for source_dir, _, files in os.walk(backup_dir):
+			subdir = os.path.relpath(source_dir, backup_dir)
+			dest_dir = os.path.join(dest_root_dir, subdir)
+
+			if not os.path.isdir(dest_dir):
+				print("Can't restore icons because of missed folder:\n%s" % (dest_dir,))
+				continue
+			for icon in (f for f in files if f.split(".")[-1] in self.icontype):
+				shutil.copy(os.path.join(source_dir, icon), os.path.join(dest_dir, icon))
+
 	def copy_theme(self, theme, backup_dir=""):
 		"""Copy application icon theme files"""
 		source_root_dir = os.path.join(self.root, theme["directory"])
@@ -233,6 +254,7 @@ class Miner(Prospector):
 		is_backuping = backup_dir != ""
 		if is_backuping:
 			os.makedirs(backup_dir)
+			shutil.copyfile(os.path.join(source_root_dir, self.cf), os.path.join(backup_dir, self.cf))
 
 		# use temporary directory to avoid write access problem
 		with tempfile.TemporaryDirectory() as tdir:

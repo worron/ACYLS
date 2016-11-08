@@ -208,6 +208,20 @@
         <property name="homogeneous">True</property>
       </packing>
     </child>
+    <child>
+      <object class="GtkToolButton" id="open_backup_toolbutton">
+        <property name="visible">True</property>
+        <property name="can_focus">False</property>
+        <property name="tooltip_text" translatable="yes">Restore icons from backup.</property>
+        <property name="label" translatable="yes">Restore Backup</property>
+        <property name="use_underline">True</property>
+        <property name="stock_id">gtk-redo</property>
+      </object>
+      <packing>
+        <property name="expand">False</property>
+        <property name="homogeneous">True</property>
+      </packing>
+    </child>
     <style>
       <class name="primary-toolbar"/>
     </style>
