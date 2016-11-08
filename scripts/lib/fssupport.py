@@ -190,10 +190,11 @@ class AppThemeReader:
 				size = config.getint("Main", "size")
 
 				filetype = config.get("Main", "type") if config.has_option("Main", "type") else "png"
+				comment = config.get("Main", "comment") if config.has_option("Main", "comment") else "No comments."
 				if filetype not in icontype:
 					filetype = "png"
 
-				self.pack[name] = {"size": size, "directory": dname, "path": path, "type": filetype}
+				self.pack[name] = {"size": size, "directory": dname, "path": path, "type": filetype, "comment": comment}
 			except Exception as e:
 				print("Fail to load applications icons from '%s'\n" % (dname,), e)
 

@@ -33,7 +33,7 @@ class ApplicationsPage:
 		self.builder.add_from_file(os.path.join(acyls.dirs['gui'], "applications.glade"))
 
 		gui_elements = (
-			'apps_grid', 'applications_combo', 'icons_view', 'path_label',
+			'apps_grid', 'applications_combo', 'icons_view', 'path_label', 'message_label',
 		)
 		self.gui = {element: self.builder.get_object(element) for element in gui_elements}
 
@@ -70,6 +70,7 @@ class ApplicationsPage:
 		if text:
 			self.appthemes.set_active_by_name(text)
 			self.gui['path_label'].set_text(self.appthemes.active["path"])
+			self.gui['message_label'].set_text(self.appthemes.active["comment"])
 			self.iconminer.dig(self.appthemes.active["directory"], DIG_LEVEL)
 
 			icons = self.iconminer.get_icons(DIG_LEVEL)
