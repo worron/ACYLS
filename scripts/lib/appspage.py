@@ -13,13 +13,14 @@ from acyls.lib.multithread import multithread
 class ApplicationsPage:
 	"""Icon view GUI"""
 	def __init__(self, config):
+		self.icontype = ("jpeg", "png", "tiff", "ico", "bmp", "svg")
 
 		# Create object for iconview
 		self.themes_dir = config.getdir("Directories", "applications")
 		self.backup_dir = config.getdir("Directories", "backup")
 
-		self.iconminer = Miner(self.themes_dir)
-		self.appthemes = AppThemeReader(self.themes_dir)
+		self.iconminer = Miner(self.themes_dir, self.icontype)
+		self.appthemes = AppThemeReader(self.themes_dir, self.icontype)
 
 		# Read icon size settins from config
 		self.VIEW_ICON_SIZE = config.getint("PreviewSize", "group")
