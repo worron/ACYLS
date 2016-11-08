@@ -37,6 +37,15 @@ def _is_dir(item):
 		return os.path.isdir(item)
 
 
+def copy_with_su(source_dir, dest_dir):
+	"""Copy file tree with root privileges if need"""
+	if os.path.isdir(source_dir) and os.path.isdir(dest_dir):
+		if os.access(dest_dir, os.W_OK):
+			subprocess.call(["cp", "-rf", os.path.join(source_dir, "."), dest_dir])
+		else:
+			subprocess.call(["gksu", "cp -rf %s %s" % (os.path.join(source_dir, "."), dest_dir)])
+
+
 def _read_icon_group_data(config, index, section):
 	"""Read icon group data from config section"""
 	# plain text arguments
@@ -229,6 +238,7 @@ class Miner(Prospector):
 
 	def restore_theme(self, backup_dir):
 		"""Copy application icon theme files from backup folder"""
+		# read backup restore path
 		try:
 			config = configparser.ConfigParser()
 			config.read(os.path.join(backup_dir, self.cf))
@@ -237,15 +247,25 @@ class Miner(Prospector):
 			print("Fail to read backup settings\n%s" % e)
 			return
 
-		for source_dir, _, files in os.walk(backup_dir):
-			subdir = os.path.relpath(source_dir, backup_dir)
-			dest_dir = os.path.join(dest_root_dir, subdir)
+		# use temporary directory to avoid write access problem
+		with tempfile.TemporaryDirectory() as tdir:
+			for source_dir, _, files in os.walk(backup_dir):
+				subdir = os.path.relpath(source_dir, backup_dir)
+				dest_dir = os.path.join(dest_root_dir, subdir)
 
-			if not os.path.isdir(dest_dir):
-				print("Can't restore icons because of missed folder:\n%s" % (dest_dir,))
-				continue
-			for icon in (f for f in files if f.split(".")[-1] in self.icontype):
-				shutil.copy(os.path.join(source_dir, icon), os.path.join(dest_dir, icon))
+				if not os.path.isdir(dest_dir):
+					print("Can't restore icons because of missed folder:\n%s" % (dest_dir,))
+					continue
+				else:
+					tdest_dir = os.path.join(tdir, subdir)
+					if not os.path.isdir(tdest_dir):
+						os.makedirs(tdest_dir)
+
+				for icon in (f for f in files if f.split(".")[-1] in self.icontype):
+					shutil.copy(os.path.join(source_dir, icon), os.path.join(tdest_dir, icon))
+
+			# copy files to destination folder from temporary directory
+			copy_with_su(tdir, dest_root_dir)
 
 	def copy_theme(self, theme, backup_dir=""):
 		"""Copy application icon theme files"""
@@ -289,8 +309,5 @@ class Miner(Prospector):
 							pixbuf.savev(dest_file, ctype, [], [])
 
 			# copy files to destination folder from temporary directory
-			dest_folder = backup_dir if is_backuping else theme['path']
-			if os.access(dest_folder, os.W_OK):
-				subprocess.call(["cp", "-rf", os.path.join(tdir, "."), dest_folder])
-			else:
-				subprocess.call(["gksu", "cp -rf %s %s" % (os.path.join(tdir, "."), dest_folder)])
+			dest_dir = backup_dir if is_backuping else theme['path']
+			copy_with_su(tdir, dest_dir)
