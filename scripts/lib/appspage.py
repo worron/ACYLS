@@ -1,5 +1,6 @@
 # -*- Mode: Python; indent-tabs-mode: t; python-indent: 4; tab-width: 4 -*-
 import os
+import time
 from gi.repository import Gtk
 from gi.repository.GdkPixbuf import Pixbuf
 
@@ -16,6 +17,7 @@ class ApplicationsPage:
 
 		# Create object for iconview
 		self.iconminer = Miner(config.getdir("Directories", "applications"))
+		self.backup_dir = config.getdir("Directories", "backup")
 
 		# Read icon size settins from config
 		self.VIEW_ICON_SIZE = config.getint("PreviewSize", "group")
@@ -47,8 +49,11 @@ class ApplicationsPage:
 
 		# Mainpage buttnons hanlers
 		self.mhandlers = dict()
-		self.bhandlers = dict()
 		self.mhandlers['apply_button'] = self.on_apply_click
+
+		# Toolbar buttnons hanlers
+		self.bhandlers = dict()
+		self.bhandlers['backup_icons_toolbutton'] = self.on_backup_icons_button_click
 
 	# GUI handlers
 	@multithread
@@ -77,3 +82,8 @@ class ApplicationsPage:
 
 	def on_apply_click(self, *args):
 		self.iconminer.send_group(self.active)
+
+	def on_backup_icons_button_click(self, *args):
+		ct = time.strftime("%Y-%m-%d(%H:%M:%S)")
+		backup_dir = os.path.join(self.backup_dir, self.iconminer.group[self.active]["directory"] + "_" + ct)
+		self.iconminer.send_group(self.active, backup_dir)

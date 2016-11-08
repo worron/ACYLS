@@ -198,9 +198,13 @@ class Miner(Prospector):
 			except Exception as e:
 				print("Fail to load applications icons from '%s'\n" % (dname,), e)
 
-	def send_group(self, name):
+	def send_group(self, name, backup_dir=""):
 		"""Copy application icon theme files"""
 		source_root_dir = os.path.join(self.root, self.group[name]["directory"])
+
+		is_backuping = backup_dir != ""
+		if is_backuping:
+			os.makedirs(backup_dir)
 
 		# use temporary directory to avoid write access problem
 		with tempfile.TemporaryDirectory() as tdir:
@@ -225,17 +229,27 @@ class Miner(Prospector):
 
 				# save theme icons to temporary directory
 				for icon in (f for f in files if f.endswith('.svg')):
-					source_file = os.path.join(source_dir, icon)
-					if ctype == "png":
-						dest_file = os.path.join(tdir, subdir, icon[:-3] + "png")
-						pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(os.path.join(source_dir, icon), csize, csize)
-						pixbuf.savev(dest_file, "png", [], [])
+					if is_backuping:
+						try:
+							filename = icon[:-3] + ctype
+							source_file = os.path.join(self.group[name]['path'], subdir, filename)
+							dest_file = os.path.join(tdir, subdir, filename)
+							shutil.copyfile(source_file, dest_file)
+						except Exception as e:
+							print("Fail to backup file:\n%s\n" % (source_file,), e)
 					else:
-						dest_file = os.path.join(tdir, subdir, icon)
-						shutil.copyfile(source_file, dest_file)
+						source_file = os.path.join(source_dir, icon)
+						if ctype == "png":
+							dest_file = os.path.join(tdir, subdir, icon[:-3] + "png")
+							pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(source_file, csize, csize)
+							pixbuf.savev(dest_file, "png", [], [])
+						else:
+							dest_file = os.path.join(tdir, subdir, icon)
+							shutil.copyfile(source_file, dest_file)
 
 			# copy files to destination folder
-			if os.access(self.group[name]['path'], os.W_OK):
-				subprocess.call(["cp", "-rf", os.path.join(tdir, "."), self.group[name]['path']])
+			dest_folder = backup_dir if is_backuping else self.group[name]['path']
+			if os.access(dest_folder, os.W_OK):
+				subprocess.call(["cp", "-rf", os.path.join(tdir, "."), dest_folder])
 			else:
-				subprocess.call(["gksu", "cp -rf %s %s" % (os.path.join(tdir, "."), self.group[name]['path'])])
+				subprocess.call(["gksu", "cp -rf %s %s" % (os.path.join(tdir, "."), dest_folder)])

@@ -184,6 +184,30 @@
         <property name="homogeneous">True</property>
       </packing>
     </child>
+    <child>
+      <object class="GtkSeparatorToolItem" id="seaprator1">
+        <property name="visible">True</property>
+        <property name="can_focus">False</property>
+      </object>
+      <packing>
+        <property name="expand">False</property>
+        <property name="homogeneous">True</property>
+      </packing>
+    </child>
+    <child>
+      <object class="GtkToolButton" id="backup_icons_toolbutton">
+        <property name="visible">True</property>
+        <property name="can_focus">False</property>
+        <property name="tooltip_text" translatable="yes">Make backup of current application icons if they exist. Backups location can be set in config file.</property>
+        <property name="label" translatable="yes">Backup Theme</property>
+        <property name="use_underline">True</property>
+        <property name="stock_id">gtk-harddisk</property>
+      </object>
+      <packing>
+        <property name="expand">False</property>
+        <property name="homogeneous">True</property>
+      </packing>
+    </child>
     <style>
       <class name="primary-toolbar"/>
     </style>
