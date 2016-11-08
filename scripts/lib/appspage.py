@@ -5,7 +5,7 @@ from gi.repository import Gtk
 from gi.repository.GdkPixbuf import Pixbuf
 
 import acyls
-from acyls.lib.fssupport import Miner
+from acyls.lib.fssupport import Miner, AppThemeReader
 from acyls.lib.guisupport import PixbufCreator, TreeViewHolder
 from acyls.lib.multithread import multithread
 
@@ -13,11 +13,13 @@ from acyls.lib.multithread import multithread
 class ApplicationsPage:
 	"""Icon view GUI"""
 	def __init__(self, config):
-		self.active = None
 
 		# Create object for iconview
-		self.iconminer = Miner(config.getdir("Directories", "applications"))
+		self.themes_dir = config.getdir("Directories", "applications")
 		self.backup_dir = config.getdir("Directories", "backup")
+
+		self.iconminer = Miner(self.themes_dir)
+		self.appthemes = AppThemeReader(self.themes_dir)
 
 		# Read icon size settins from config
 		self.VIEW_ICON_SIZE = config.getint("PreviewSize", "group")
@@ -35,10 +37,10 @@ class ApplicationsPage:
 		self.store = Gtk.ListStore(Pixbuf)
 		self.gui['icons_view'].set_model(self.store)
 		self.gui['icons_view'].set_pixbuf_column(0)
-		self.iconminer_lock = TreeViewHolder(self.gui['icons_view'])
+		self.iconview_lock = TreeViewHolder(self.gui['icons_view'])
 
 		# Fill up GUI
-		for name in self.iconminer.group.keys():
+		for name in self.appthemes.pack.keys():
 			self.gui['applications_combo'].append_text(name)
 
 		# connect signals
@@ -60,17 +62,17 @@ class ApplicationsPage:
 	def on_applications_combo_changed(self, combo):
 		DIG_LEVEL = 1
 		text = combo.get_active_text()
-		if text and text in self.iconminer.group:
-			self.active = text
-			self.gui['path_label'].set_text(self.iconminer.group[text]["path"])
-			self.iconminer.dig(self.iconminer.group[text]["directory"], DIG_LEVEL)
+		if text:
+			self.appthemes.set_active_by_name(text)
+			self.gui['path_label'].set_text(self.appthemes.active["path"])
+			self.iconminer.dig(self.appthemes.active["directory"], DIG_LEVEL)
 
 			icons = self.iconminer.get_icons(DIG_LEVEL)
 			pixbufs = [PixbufCreator.new_single_at_size(icon, self.VIEW_ICON_SIZE) for icon in icons]
 
 			# GUI action catched in seperate function and moved to main thread
 			def update_gui_with_new_icons():
-				with self.iconminer_lock:
+				with self.iconview_lock:
 					self.store.clear()
 					for pix in pixbufs:
 						self.store.append([pix])
@@ -81,9 +83,9 @@ class ApplicationsPage:
 		self.gui['applications_combo'].emit("changed")
 
 	def on_apply_click(self, *args):
-		self.iconminer.send_group(self.active)
+		self.iconminer.copy_theme(self.appthemes.active)
 
 	def on_backup_icons_button_click(self, *args):
 		ct = time.strftime("%Y-%m-%d(%H:%M:%S)")
-		backup_dir = os.path.join(self.backup_dir, self.iconminer.group[self.active]["directory"] + "_" + ct)
-		self.iconminer.send_group(self.active, backup_dir)
+		backup_dir = os.path.join(self.backup_dir, self.appthemes.active["directory"] + "_" + ct)
+		self.iconminer.copy_theme(self.appthemes.active, backup_dir)
