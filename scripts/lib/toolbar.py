@@ -17,7 +17,7 @@ class MainToolBar:
 			'paste_color_toolbutton', 'save_settings_toolbutton', 'load_settings_toolbutton',
 			'reset_settings_toolbutton', 'load_filter_toolbutton', 'save_filter_toolbutton',
 			'save_as_filter_toolbutton', 'revert_filter_toolbutton', 'edit_filter_toolbutton',
-			'backup_icons_toolbutton', 'open_backup_toolbutton',
+			'make_backup_toolbutton', 'restore_backup_toolbutton',
 		)
 		self.gui = {element: self.builder.get_object(element) for element in gui_elements}
 

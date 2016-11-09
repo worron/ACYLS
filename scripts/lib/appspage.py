@@ -5,7 +5,7 @@ from gi.repository import Gtk
 from gi.repository.GdkPixbuf import Pixbuf
 
 import acyls
-from acyls.lib.fssupport import Miner, AppThemeReader
+from acyls.lib.fssupport import AppThemeReader
 from acyls.lib.guisupport import PixbufCreator, TreeViewHolder, FileChooser
 from acyls.lib.multithread import multithread
 
@@ -19,7 +19,6 @@ class ApplicationsPage:
 		self.themes_dir = config.getdir("Directories", "applications")
 		self.backup_dir = config.getdir("Directories", "backup")
 
-		self.iconminer = Miner(self.themes_dir, self.icontype)
 		self.appthemes = AppThemeReader(self.themes_dir, self.icontype)
 
 		# File dialog
@@ -59,21 +58,19 @@ class ApplicationsPage:
 
 		# Toolbar buttnons hanlers
 		self.bhandlers = dict()
-		self.bhandlers['backup_icons_toolbutton'] = self.on_backup_icons_button_click
-		self.bhandlers['open_backup_toolbutton'] = self.on_open_backup_button_click
+		self.bhandlers['make_backup_toolbutton'] = self.on_make_backup_button_click
+		self.bhandlers['restore_backup_toolbutton'] = self.on_restore_backup_button_click
 
 	# GUI handlers
 	@multithread
 	def on_applications_combo_changed(self, combo):
-		DIG_LEVEL = 1
 		text = combo.get_active_text()
 		if text:
 			self.appthemes.set_active_by_name(text)
 			self.gui['path_label'].set_text(self.appthemes.active["path"])
 			self.gui['message_label'].set_text(self.appthemes.active["comment"])
-			self.iconminer.dig(self.appthemes.active["directory"], DIG_LEVEL)
 
-			icons = self.iconminer.get_icons(DIG_LEVEL)
+			icons = self.appthemes.get_icons()
 			pixbufs = [PixbufCreator.new_single_at_size(icon, self.VIEW_ICON_SIZE) for icon in icons]
 
 			# GUI action catched in seperate function and moved to main thread
@@ -89,14 +86,14 @@ class ApplicationsPage:
 		self.gui['applications_combo'].emit("changed")
 
 	def on_apply_click(self, *args):
-		self.iconminer.copy_theme(self.appthemes.active)
+		self.appthemes.copy_theme()
 
-	def on_backup_icons_button_click(self, *args):
+	def on_make_backup_button_click(self, *args):
 		ct = time.strftime("%Y-%m-%d(%H:%M:%S)")
 		backup_dir = os.path.join(self.backup_dir, self.appthemes.active["directory"] + "_" + ct)
-		self.iconminer.copy_theme(self.appthemes.active, backup_dir)
+		self.appthemes.copy_theme(backup_dir)
 
-	def on_open_backup_button_click(self, *args):
+	def on_restore_backup_button_click(self, *args):
 		is_ok, dir_ = self.filechooser.open_folder()
 		if is_ok:
-			self.iconminer.restore_theme(dir_)
+			self.appthemes.restore_theme(dir_)

@@ -195,7 +195,7 @@
       </packing>
     </child>
     <child>
-      <object class="GtkToolButton" id="backup_icons_toolbutton">
+      <object class="GtkToolButton" id="make_backup_toolbutton">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
         <property name="tooltip_text" translatable="yes">Make backup of current application icons if they exist. Backups location can be set in config file.</property>
@@ -209,7 +209,7 @@
       </packing>
     </child>
     <child>
-      <object class="GtkToolButton" id="open_backup_toolbutton">
+      <object class="GtkToolButton" id="restore_backup_toolbutton">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
         <property name="tooltip_text" translatable="yes">Restore icons from backup.</property>

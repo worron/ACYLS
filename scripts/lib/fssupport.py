@@ -185,6 +185,10 @@ class Prospector:
 class AppThemeReader:
 	"""Find applications themes in directory"""
 	def __init__(self, root, icontype):
+		self.root = root
+		self.icontype = icontype
+		self.cf = "config.ini"
+
 		self.pack = {}
 		self.active = None
 
@@ -207,34 +211,30 @@ class AppThemeReader:
 			except Exception as e:
 				print("Fail to load applications icons from '%s'\n" % (dname,), e)
 
-	def set_active_by_name(self, name):
-		"""Set active icon theme"""
-		self.active = self.pack[name]
-
-
-class Miner(Prospector):
-	""""Find icon group with settings on diffrent deep level in directory tree"""
-	def __init__(self, root, icontype):
-		super().__init__(root)
-		self.icontype = icontype
-		self.cf = "config.ini"
-
-	def _read_subconfig_options(self, theme, source_root_dir, source_dir):
+	def _read_subconfig_options(self, source_root_dir, current_dir):
 		"""Read date from optional config file"""
 		try:
-			if source_dir == source_root_dir:
+			if current_dir == source_root_dir:
 				raise Exception()
 			config = configparser.ConfigParser()
-			config.read(os.path.join(source_dir, self.cf))
+			config.read(os.path.join(current_dir, self.cf))
 
 			ctype = config.get("Main", "type")
 			csize = config.getint("Main", "size")
 			if ctype not in self.icontype:
 				raise Exception()
 		except Exception:
-			csize = theme["size"]
-			ctype = theme["type"]
+			csize = self.active["size"]
+			ctype = self.active["type"]
 		return csize, ctype
+
+	def set_active_by_name(self, name):
+		"""Set active icon theme"""
+		self.active = self.pack[name]
+
+	def get_icons(self):
+		"""Get current theme icons"""
+		return get_svg_all(os.path.join(self.root, self.active['directory']))
 
 	def restore_theme(self, backup_dir):
 		"""Copy application icon theme files from backup folder"""
@@ -267,9 +267,9 @@ class Miner(Prospector):
 			# copy files to destination folder from temporary directory
 			copy_with_su(tdir, dest_root_dir)
 
-	def copy_theme(self, theme, backup_dir=""):
+	def copy_theme(self, backup_dir=""):
 		"""Copy application icon theme files"""
-		source_root_dir = os.path.join(self.root, theme["directory"])
+		source_root_dir = os.path.join(self.root, self.active["directory"])
 
 		# make some preparations if backuping theme
 		is_backuping = backup_dir != ""
@@ -281,7 +281,7 @@ class Miner(Prospector):
 		with tempfile.TemporaryDirectory() as tdir:
 			for source_dir, dirs, files in os.walk(source_root_dir):
 				# read date from optional config file
-				csize, ctype = self._read_subconfig_options(theme, source_root_dir, source_dir)
+				csize, ctype = self._read_subconfig_options(source_root_dir, source_dir)
 
 				# create directory structure
 				subdir = os.path.relpath(source_dir, source_root_dir)
@@ -291,14 +291,16 @@ class Miner(Prospector):
 				# save theme icons to temporary directory
 				for icon in (f for f in files if f.endswith('.svg')):
 					if is_backuping:
+						# copy original appliction files
 						try:
 							filename = icon[:-3] + ctype
-							source_file = os.path.join(theme['path'], subdir, filename)
+							source_file = os.path.join(self.active['path'], subdir, filename)
 							dest_file = os.path.join(tdir, subdir, filename)
 							shutil.copyfile(source_file, dest_file)
 						except Exception as e:
 							print("Fail to backup file:\n%s\n" % (source_file,), e)
 					else:
+						# copy acyls theme files
 						source_file = os.path.join(source_dir, icon)
 						if ctype == "svg":
 							dest_file = os.path.join(tdir, subdir, icon)
@@ -309,5 +311,5 @@ class Miner(Prospector):
 							pixbuf.savev(dest_file, ctype, [], [])
 
 			# copy files to destination folder from temporary directory
-			dest_dir = backup_dir if is_backuping else theme['path']
+			dest_dir = backup_dir if is_backuping else self.active['path']
 			copy_with_su(tdir, dest_dir)
