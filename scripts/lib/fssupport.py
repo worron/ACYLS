@@ -201,6 +201,8 @@ class AppThemeReader:
 				name = config.get("Main", "name")
 				path = config.get("Main", "path")
 				comment = config.get("Main", "comment") if config.has_option("Main", "comment") else "No comments."
+				if not os.path.isdir(path):
+					raise Exception("Fail to read 'path' option")
 
 				msize, mtype = self._read_custom_data(config)
 
@@ -238,7 +240,12 @@ class AppThemeReader:
 
 	def get_icons(self):
 		"""Get current theme icons"""
-		return get_svg_all(os.path.join(self.root, self.active['directory']))
+		filelist = []
+		for root, _, files in os.walk(os.path.join(self.root, self.active['directory'])):
+			for file_ in (os.path.join(root, name) for name in files):
+				if file_.endswith('.svg') and not os.path.islink(file_):
+					filelist.append(file_)
+		return filelist
 
 	def restore_theme(self, backup_dir):
 		"""Copy application icon theme files from backup folder"""
