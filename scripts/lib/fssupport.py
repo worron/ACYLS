@@ -200,33 +200,37 @@ class AppThemeReader:
 
 				name = config.get("Main", "name")
 				path = config.get("Main", "path")
-				size = config.getint("Main", "size")
-
-				filetype = config.get("Main", "type") if config.has_option("Main", "type") else "png"
 				comment = config.get("Main", "comment") if config.has_option("Main", "comment") else "No comments."
-				if filetype not in icontype:
-					filetype = "png"
 
-				self.pack[name] = {"size": size, "directory": dname, "path": path, "type": filetype, "comment": comment}
+				msize, mtype = self._read_custom_data(config)
+
+				self.pack[name] = {"size": msize, "directory": dname, "path": path, "type": mtype, "comment": comment}
 			except Exception as e:
 				print("Fail to load applications icons from '%s'\n" % (dname,), e)
 
-	def _read_subconfig_options(self, source_root_dir, current_dir):
+	def _read_custom_data(self, config, dsize=48, dtype="png"):
+		"""Read complex icon settings from config"""
+		isize = config.getint("Main", "size") if config.has_option("Main", "size") else dsize
+		csize = {k: int(s) for k, s in config["Size"].items()} if config.has_section("Size") else []
+		msize = {"main": isize, "custom": csize}
+
+		itype = config.get("Main", "type") if config.has_option("Main", "type") else dtype
+		itype = itype if itype in self.icontype else "png"
+		ctype = {k: s for k, s in config["Type"].items() if s in self.icontype} if config.has_section("Type") else []
+		mtype = {"main": itype, "custom": ctype}
+
+		return msize, mtype
+
+	def _read_subconfig_options(self, current_dir):
 		"""Read date from optional config file"""
 		try:
-			if current_dir == source_root_dir:
-				raise Exception()
 			config = configparser.ConfigParser()
 			config.read(os.path.join(current_dir, self.cf))
-
-			ctype = config.get("Main", "type")
-			csize = config.getint("Main", "size")
-			if ctype not in self.icontype:
-				raise Exception()
+			msize, mtype = self._read_custom_data(config, self.active["size"]["main"], self.active["type"]["main"])
 		except Exception:
-			csize = self.active["size"]
-			ctype = self.active["type"]
-		return csize, ctype
+			msize = {"main": self.active["size"]["main"], "custom": {}}
+			mtype = {"main": self.active["type"]["main"], "custom": {}}
+		return msize, mtype
 
 	def set_active_by_name(self, name):
 		"""Set active icon theme"""
@@ -280,8 +284,11 @@ class AppThemeReader:
 		# use temporary directory to avoid write access problem
 		with tempfile.TemporaryDirectory() as tdir:
 			for source_dir, dirs, files in os.walk(source_root_dir):
-				# read date from optional config file
-				csize, ctype = self._read_subconfig_options(source_root_dir, source_dir)
+				# read data from optional config file
+				if source_dir != source_root_dir:
+					msize, mtype = self._read_subconfig_options(source_dir)
+				else:
+					msize, mtype = self.active["size"], self.active["type"]
 
 				# create directory structure
 				subdir = os.path.relpath(source_dir, source_root_dir)
@@ -290,10 +297,13 @@ class AppThemeReader:
 
 				# save theme icons to temporary directory
 				for icon in (f for f in files if f.endswith('.svg')):
+					iname = icon[:-4]
+					itype = mtype['custom'][iname] if iname in mtype['custom'] else mtype['main']
+
 					if is_backuping:
-						# copy original appliction files
+						# copy original application files
 						try:
-							filename = icon[:-3] + ctype
+							filename = icon[:-3] + itype
 							source_file = os.path.join(self.active['path'], subdir, filename)
 							dest_file = os.path.join(tdir, subdir, filename)
 							shutil.copyfile(source_file, dest_file)
@@ -302,13 +312,14 @@ class AppThemeReader:
 					else:
 						# copy acyls theme files
 						source_file = os.path.join(source_dir, icon)
-						if ctype == "svg":
+						if itype == "svg":
 							dest_file = os.path.join(tdir, subdir, icon)
 							shutil.copyfile(source_file, dest_file)
 						else:
-							dest_file = os.path.join(tdir, subdir, icon[:-3] + ctype)
-							pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(source_file, csize, csize)
-							pixbuf.savev(dest_file, ctype, [], [])
+							isize = msize['custom'][iname] if iname in msize['custom'] else msize['main']
+							dest_file = os.path.join(tdir, subdir, icon[:-3] + itype)
+							pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(source_file, isize, isize)
+							pixbuf.savev(dest_file, itype, [], [])
 
 			# copy files to destination folder from temporary directory
 			dest_dir = backup_dir if is_backuping else self.active['path']
