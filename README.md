@@ -4,7 +4,7 @@ This is simplified fork of [ACYL by pobtott](http://gnome-look.org/content/show.
 ####Main goals
 * Rewrite the codebase with GTK3 and python3;
 * Get rid of bash scripts and move all logic to Python scripts;
-* Make scripts easy extensible. The user should have easy way to add new filters, icon alternatives, etc;
+* Make scripts easy extensible. The user should have easy way to add new filters, icon alternatives, app themes;
 * New icons and filters.
 
 ####Screenshots
@@ -13,9 +13,10 @@ This is simplified fork of [ACYL by pobtott](http://gnome-look.org/content/show.
 <img src="https://github.com/worron/ACYLS/wiki/images/Screenshot-3.png" width="440"> <img src="https://github.com/worron/ACYLS/wiki/images/Screenshot-4.png" width="440">
 
 ####Dependencies
+* GTK+ >=3.10
 * Python >=3.4
 * lxml
-* GTK+ >=3.10
+* gksu (optional)
 
 ####Current state
 Already done:
@@ -24,15 +25,15 @@ Already done:
 * Icon alternatives switcher;
 * Quick view of current state for the whole icon pack;
 * Customizable filters;
+* Specific application themes;
 * Quick filter edit.
 
 Dropped:
-* Code view;
-* Specific application icons.
+* Code view.
 
 Future plans:
 * Create test suite;
-* Add back specific applications icons feature (unsure about this).
+* More icons.
 
 ####Installation
 ```shell
