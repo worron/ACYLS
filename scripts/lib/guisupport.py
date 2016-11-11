@@ -12,6 +12,10 @@ dialogs_profile = dict(
 	load = [
 		"Load ACYL", None, Gtk.FileChooserAction.OPEN,
 		(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_OPEN, Gtk.ResponseType.OK)
+	],
+	open_folder = [
+		"Open folder", None, Gtk.FileChooserAction.SELECT_FOLDER,
+		(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_OPEN, Gtk.ResponseType.OK)
 	]
 )
 
@@ -48,7 +52,7 @@ class TreeViewHolder():
 
 class FileChooser:
 	"""File selection helper based on Gtk file dialog"""
-	def build_dialog_action(name):
+	def _build_dialog_action(name):
 		def action(self):
 			response = self.dialogs[name].run()
 			file_ = self.dialogs[name].get_filename()
@@ -59,7 +63,7 @@ class FileChooser:
 			return response == Gtk.ResponseType.OK, file_
 		return action
 
-	def __init__(self, start_folder, default_name):
+	def __init__(self, start_folder, default_name=""):
 		self.dialogs = dict()
 		for name, args in dialogs_profile.items():
 			self.dialogs[name] = Gtk.FileChooserDialog(*args)
@@ -67,8 +71,9 @@ class FileChooser:
 
 		self.dialogs['save'].set_current_name(default_name)
 
-	load = build_dialog_action('load')
-	save = build_dialog_action('save')
+	load = _build_dialog_action('load')
+	save = _build_dialog_action('save')
+	open_folder = _build_dialog_action('open_folder')
 
 
 class PixbufCreator():

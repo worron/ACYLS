@@ -9,6 +9,7 @@ from acyls.lib.colorpage import ColorPage
 from acyls.lib.altpage import AlternativesPage
 from acyls.lib.viewpage import ViewerPage
 from acyls.lib.editorpage import EditorPage
+from acyls.lib.appspage import ApplicationsPage
 from acyls.lib.guisupport import load_gtk_css, dialogs_profile
 from acyls.lib.fssupport import ConfigReader
 from acyls.lib.data import DataStore
@@ -66,6 +67,11 @@ class MainWindow:
 		self.gui['notebook'].append_page(self.editorpage.gui['editor_grid'], Gtk.Label('Filter Editor'))
 		self.pages.append(self.editorpage)
 
+		# applications GUI icons
+		self.appspage = ApplicationsPage(self.config)
+		self.gui['notebook'].append_page(self.appspage.gui['apps_grid'], Gtk.Label('Applications'))
+		self.pages.append(self.appspage)
+
 		# Connect signals
 		self.signals = dict()
 		self.gui['window'].connect("delete-event", self.on_close_window)
@@ -74,8 +80,8 @@ class MainWindow:
 
 		self.colorpage.gui['render_button'].connect("toggled", self.on_render_toggled)
 
-		self.toolbar.connect_signals(self.colorpage.bhandlers)
-		self.toolbar.connect_signals(self.editorpage.bhandlers)
+		for page in (self.colorpage, self.editorpage, self.appspage):
+			self.toolbar.connect_signals(page.bhandlers)
 
 		# Load css
 		try:
