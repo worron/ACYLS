@@ -80,8 +80,9 @@ class MainWindow:
 
 		self.colorpage.gui['render_button'].connect("toggled", self.on_render_toggled)
 
-		for page in (self.colorpage, self.editorpage, self.appspage):
-			self.toolbar.connect_signals(page.bhandlers)
+		for page in self.pages:
+			if page.bhandlers:
+				self.toolbar.connect_signals(page.bhandlers)
 
 		# Load css
 		try:

@@ -1,7 +1,7 @@
 # -*- Mode: Python; indent-tabs-mode: t; python-indent: 4; tab-width: 4 -*-
 import os
 import time
-from gi.repository import Gtk
+from gi.repository import Gtk, GObject
 from gi.repository.GdkPixbuf import Pixbuf
 
 import acyls
@@ -10,10 +10,14 @@ from acyls.lib.guisupport import PixbufCreator, TreeViewHolder, FileChooser
 from acyls.lib.multithread import multithread
 
 
-class ApplicationsPage:
+class ApplicationsPage(GObject.GObject):
 	"""Icon view GUI"""
+	__gsignals__ = {'icons_loaded': (GObject.SIGNAL_RUN_FIRST, None, ())}
+
 	def __init__(self, config):
+		super().__init__()
 		self.icontype = ("jpeg", "png", "tiff", "ico", "bmp", "svg")
+		self.pixbufs = []
 
 		# Create object for iconview
 		self.themes_dir = config.getdir("Directories", "applications")
@@ -48,6 +52,7 @@ class ApplicationsPage:
 
 		# connect signals
 		self.gui['applications_combo'].connect("changed", self.on_applications_combo_changed)
+		self.connect("icons_loaded", self.on_icons_loaded)
 
 		# setup
 		self.gui['applications_combo'].set_active(0)
@@ -62,25 +67,25 @@ class ApplicationsPage:
 		self.bhandlers['restore_backup_toolbutton'] = self.on_restore_backup_button_click
 
 	# GUI handlers
+	def on_icons_loaded(self, *args):
+		self.gui['path_label'].set_text(self.appthemes.active["path"])
+		self.gui['message_label'].set_text(self.appthemes.active["comment"])
+
+		with self.iconview_lock:
+			self.store.clear()
+			for pix in self.pixbufs:
+				self.store.append([pix])
+
 	@multithread
 	def on_applications_combo_changed(self, combo):
 		text = combo.get_active_text()
 		if text:
 			self.appthemes.set_active_by_name(text)
-			self.gui['path_label'].set_text(self.appthemes.active["path"])
-			self.gui['message_label'].set_text(self.appthemes.active["comment"])
 
 			icons = self.appthemes.get_icons()
-			pixbufs = [PixbufCreator.new_single_at_size(icon, self.VIEW_ICON_SIZE) for icon in icons]
+			self.pixbufs = [PixbufCreator.new_single_at_size(icon, self.VIEW_ICON_SIZE) for icon in icons]
 
-			# GUI action catched in seperate function and moved to main thread
-			def update_gui_with_new_icons():
-				with self.iconview_lock:
-					self.store.clear()
-					for pix in pixbufs:
-						self.store.append([pix])
-
-			return update_gui_with_new_icons
+			return "icons_loaded"
 
 	def on_page_switch(self):
 		self.gui['applications_combo'].emit("changed")
