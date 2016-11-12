@@ -36,10 +36,21 @@ Future plans:
 * More icons.
 
 ####Installation
+The easiest way to install icon pack is use git:
 ```shell
 $ git clone https://github.com/worron/ACYLS.git ~/.icons/ACYLS
-# if you want to customize the iconpack after installation, start this script:
+````
+All scripts in this project are fully portable, so you can have as many copies of icon pack as you want. Also you can use a desktop file to provide quick launch of configuration program from your DE app menu. Just copy desktop file to one of designed locations, for example:
+```shell
+$ cp ~/.icons/ACYLS/desktop/acyls.desktop ~/.local/share/applications
+````
+
+####Usage
+To launch configuration program, start this script:
+```shell
 $ python3 ~/.icons/ACYLS/scripts/run.py
 ```
 
-See the [documentation](https://github.com/worron/ACYLS/wiki) for deep customization instructions. Feel free to create an issue if icon for one of your favorite program is missing, perhaps we can help. Or, you could always try to [create an icon](https://github.com/worron/ACYLS/wiki/Create-new-icon) by yourself.
+Following the application tooltips you will be able to do primary configuration of icon pack. Also see the [documentation](https://github.com/worron/ACYLS/wiki) for deep customization instructions.
+
+Feel free to create an issue if icon for one of your favorite program is missing. Or, you could always try to [create an icon](https://github.com/worron/ACYLS/wiki/Create-new-icon) by yourself.
