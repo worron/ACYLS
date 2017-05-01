@@ -53,3 +53,6 @@ $ python3 ~/.icons/ACYLS/scripts/run.py
 Following the application tooltips you will be able to do primary configuration of icon pack. Also see the [documentation](https://github.com/worron/ACYLS/wiki) for deep customization instructions.
 
 Feel free to create an issue if icon for one of your favorite program is missing. Or, you could always try to [create an icon](https://github.com/worron/ACYLS/wiki/Create-new-icon) by yourself.
+
+#### Icons Request
+Open issue with program name, its homepage link (or may be source code link, I just should be able to find original icon without installing app) and exact icon name for you system. Icon name defined by desktop file (usually located in `/usr/share/applications`) 'Icon' option.
