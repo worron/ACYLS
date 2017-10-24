@@ -1,5 +1,6 @@
 [Icon Theme]
 Name=AnyColorYouLikeSimple
+Inherits=adwaita,gnome,hicolor
 Comment= Simple icon theme that you can change color and other stuff on.
 
 # Directory list
