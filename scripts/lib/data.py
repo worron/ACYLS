@@ -1,5 +1,6 @@
 # -*- Mode: Python; indent-tabs-mode: t; python-indent: 4; tab-width: 4 -*-
 
+import dbm
 import shelve
 from copy import deepcopy
 
@@ -57,6 +58,9 @@ class DataStore:
 
 	def load_from_file(self, dbfile):
 		"""Load database from file"""
+		if dbm.whichdb(dbfile) == '':
+			dbfile = dbfile[:dbfile.rfind('.')]
+
 		try:
 			with shelve.open(dbfile) as newdb:
 				for key in newdb:
