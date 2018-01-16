@@ -16,6 +16,14 @@ _default_section = {
 
 class DataStore:
 	"""Shelve database handler"""
+
+	@staticmethod
+	def strip_extension(db_filename):
+		"""Strips the underlying database extension from a file name"""
+		return db_filename[:db_filename.rfind('.')] \
+			if dbm.whichdb(db_filename) == '' \
+			else db_filename
+
 	def __init__(self, dbfile, ddate=None, dsection='default'):
 		self.db = shelve.open(dbfile, writeback=True)
 		self.dsection = dsection
@@ -50,7 +58,7 @@ class DataStore:
 	def save_to_file(self, dbfile):
 		"""Save current database to file"""
 		try:
-			with shelve.open(dbfile) as newdb:
+			with shelve.open(self.strip_extension(dbfile)) as newdb:
 				for key in self.db:
 					newdb[key] = self.db[key]
 		except Exception as e:
@@ -58,11 +66,8 @@ class DataStore:
 
 	def load_from_file(self, dbfile):
 		"""Load database from file"""
-		if dbm.whichdb(dbfile) == '':
-			dbfile = dbfile[:dbfile.rfind('.')]
-
 		try:
-			with shelve.open(dbfile) as newdb:
+			with shelve.open(self.strip_extension(dbfile)) as newdb:
 				for key in newdb:
 					self.db[key] = newdb[key]
 		except Exception as e:
