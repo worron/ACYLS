@@ -1,5 +1,6 @@
 # -*- Mode: Python; indent-tabs-mode: t; python-indent: 4; tab-width: 4 -*-
 
+import os
 import dbm
 import shelve
 from copy import deepcopy
@@ -20,7 +21,7 @@ class DataStore:
 	@staticmethod
 	def strip_extension(db_filename):
 		"""Strips the underlying database extension from a file name"""
-		return db_filename[:db_filename.rfind('.')] \
+		return os.path.splitext(db_filename)[0] \
 			if dbm.whichdb(db_filename) == 'dbm.ndbm' \
 			else db_filename
 
