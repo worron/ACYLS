@@ -21,7 +21,7 @@ class DataStore:
 	def strip_extension(db_filename):
 		"""Strips the underlying database extension from a file name"""
 		return db_filename[:db_filename.rfind('.')] \
-			if dbm.whichdb(db_filename) == '' \
+			if dbm.whichdb(db_filename) == 'dbm.ndbm' \
 			else db_filename
 
 	def __init__(self, dbfile, ddate=None, dsection='default'):
