@@ -20,9 +20,10 @@ class DataStore:
 
 	@staticmethod
 	def strip_extension(db_filename):
-		"""Strips the underlying database extension from a file name"""
-		return os.path.splitext(db_filename)[0] \
-			if dbm.whichdb(db_filename) == 'dbm.ndbm' \
+		"""Strips the underlying database extension for ndbm databases"""
+		ndbm_filename = os.path.splitext(db_filename)[0]
+		return ndbm_filename \
+			if dbm.whichdb(ndbm_filename) == 'dbm.ndbm' \
 			else db_filename
 
 	def __init__(self, dbfile, ddate=None, dsection='default'):
