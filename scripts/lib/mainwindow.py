@@ -1,7 +1,6 @@
 # -*- Mode: Python; indent-tabs-mode: t; python-indent: 4; tab-width: 4 -*-
 import os
 from gi.repository import Gtk
-import configparser
 
 # User modules
 import acyls
@@ -10,8 +9,9 @@ from acyls.lib.colorpage import ColorPage
 from acyls.lib.altpage import AlternativesPage
 from acyls.lib.viewpage import ViewerPage
 from acyls.lib.editorpage import EditorPage
+from acyls.lib.appspage import ApplicationsPage
 from acyls.lib.guisupport import load_gtk_css, dialogs_profile
-from acyls.lib.fssupport import FileKeeper
+from acyls.lib.fssupport import ConfigReader
 from acyls.lib.data import DataStore
 
 
@@ -20,18 +20,12 @@ class MainWindow:
 	def __init__(self):
 		self.last_button_handlers = dict()
 
-		# Set config files manager
-		self.keeper = FileKeeper(acyls.dirs['default'], acyls.dirs['user'])
-
 		# Config file setup
-		self.configfile = self.keeper.get("config.ini")
-		self.config = configparser.ConfigParser()
-		self.config.read(self.configfile)
+		self.config = ConfigReader(acyls.dirs['user'], acyls.dirs['default'], "config.ini")
 
 		# Set data file for saving icon render settings
 		# Icon render setting will stored for every icon group separately
-		self.dbfile = self.keeper.get("store.acyl")
-		self.database = DataStore(self.dbfile)
+		self.database = DataStore(os.path.join(acyls.dirs['user'], "store.acyl"))
 
 		# Load GUI
 		self.builder = Gtk.Builder()
@@ -73,6 +67,11 @@ class MainWindow:
 		self.gui['notebook'].append_page(self.editorpage.gui['editor_grid'], Gtk.Label('Filter Editor'))
 		self.pages.append(self.editorpage)
 
+		# applications GUI icons
+		self.appspage = ApplicationsPage(self.config)
+		self.gui['notebook'].append_page(self.appspage.gui['apps_grid'], Gtk.Label('Applications'))
+		self.pages.append(self.appspage)
+
 		# Connect signals
 		self.signals = dict()
 		self.gui['window'].connect("delete-event", self.on_close_window)
@@ -81,8 +80,9 @@ class MainWindow:
 
 		self.colorpage.gui['render_button'].connect("toggled", self.on_render_toggled)
 
-		self.toolbar.connect_signals(self.colorpage.bhandlers)
-		self.toolbar.connect_signals(self.editorpage.bhandlers)
+		for page in self.pages:
+			if page.bhandlers:
+				self.toolbar.connect_signals(page.bhandlers)
 
 		# Load css
 		try:
@@ -115,8 +115,6 @@ class MainWindow:
 	def on_close_window(self, *args):
 		self.database.clear(self.colorpage.icongroups.names)
 		self.database.close()
-
-		with open(self.configfile, 'w') as configfile:
-			self.config.write(configfile)
+		self.config.write()
 
 		Gtk.main_quit(*args)
