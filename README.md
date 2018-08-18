@@ -8,8 +8,8 @@ This is simplified fork of [ACYL by pobtott](http://gnome-look.org/content/show.
 * New icons and filters.
 
 #### Screenshots
-<img src="https://github.com/worron/ACYLS/wiki/images/Screenshot-1.png" width="440"> <img src="https://github.com/worron/ACYLS/wiki/images/Screenshot-2.png" width="440">
-<img src="https://github.com/worron/ACYLS/wiki/images/Screenshot-3.png" width="440"> <img src="https://github.com/worron/ACYLS/wiki/images/Screenshot-4.png" width="440">
+<img src="https://i.imgur.com/9DtRBrU.png" width="440"> <img src="https://i.imgur.com/XRQesGP.png" width="440">
+<img src="https://i.imgur.com/xlih3G0.png" width="440"> <img src="https://i.imgur.com/HtZM5AR.png" width="440">
 
 #### Dependencies
 * GTK+ >=3.10

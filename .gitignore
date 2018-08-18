@@ -3,3 +3,6 @@
 **/*.pyc
 **/.tox
 **/.cache
+
+# IDE settings
+.idea/*
