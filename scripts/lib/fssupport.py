@@ -43,7 +43,7 @@ def copy_with_su(source_dir, dest_dir):
 		if os.access(dest_dir, os.W_OK):
 			subprocess.call(["cp", "-rf", os.path.join(source_dir, "."), dest_dir])
 		else:
-			subprocess.call(["gksu", "cp -rf %s %s" % (os.path.join(source_dir, "."), dest_dir)])
+			subprocess.call(["pkexec", "cp", "-rf", os.path.join(source_dir, "."), dest_dir])
 
 
 def _read_icon_group_data(config, index, section):
