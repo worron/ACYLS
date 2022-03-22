@@ -14,6 +14,7 @@ This is simplified fork of [ACYL by pobtott](http://gnome-look.org/content/show.
 #### Dependencies
 * GTK+ >=3.10
 * Python >=3.4
+* python-gobject
 * lxml
 * gksu (optional)
 
