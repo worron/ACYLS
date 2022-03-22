@@ -3,7 +3,7 @@
 
 import os
 import sys
-import imp
+import importlib.util
 
 # Check requirements
 import gi
@@ -16,9 +16,12 @@ if sys.version_info < (3, 4):
 
 # Load content of 'scrips' folder as 'acyls' module
 # just don't want change current directory structure with 'scripts' and 'scalable' pair
-moddata = imp.find_module('scripts', [os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")])
-scripts = imp.load_module('scripts', *moddata)
-sys.modules['acyls'] = scripts
+local_module_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "__init__.py")
+spec = importlib.util.spec_from_file_location('acyls', local_module_path)
+local_module = importlib.util.module_from_spec(spec)
+
+sys.modules['acyls'] = local_module
+spec.loader.exec_module(local_module)
 
 # Load main app
 from acyls.lib.mainwindow import MainWindow

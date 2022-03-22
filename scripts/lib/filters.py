@@ -1,7 +1,7 @@
 # -*- Mode: Python; indent-tabs-mode: t; python-indent: 4; tab-width: 4 -*-
 
 import os
-import imp
+import importlib.util
 import re
 import acyls.lib.fssupport as fs
 import acyls.lib.base as base
@@ -9,6 +9,14 @@ import acyls.lib.base as base
 from lxml import etree
 from copy import deepcopy
 from gi.repository import Gtk, Gdk, GObject
+
+
+def load_local_module(filepath):
+	spec = importlib.util.spec_from_file_location('module', filepath)
+	local_module = importlib.util.module_from_spec(spec)
+	spec.loader.exec_module(local_module)
+
+	return local_module
 
 
 class FilterParameter:
@@ -198,7 +206,8 @@ class FilterCollector(base.ItemPack):
 		for root, _, files in os.walk(path):
 			if filename in files:
 				try:
-					module = imp.load_source(filename.split('.')[0], os.path.join(root, filename))
+					# module = imp.load_source(filename.split('.')[0], os.path.join(root, filename))
+					module = load_local_module(os.path.join(root, filename))
 					filter_ = module.Filter()
 					self.add(filter_)
 				except Exception as e:
@@ -294,7 +303,8 @@ class RawFilterEditor:
 
 			# Check if filter module available in xml file directory
 			try:
-				module = imp.load_source(modname.split('.')[0], os.path.join(dirname, modname))
+				# module = imp.load_source(modname.split('.')[0], os.path.join(dirname, modname))
+				module = load_local_module(os.path.join(dirname, modname))
 				filter_ = module.Filter()
 				info['group'] = filter_.group
 				info['name'] = filter_.name
